@@ -135,3 +135,7 @@ venv.bak/
 
 # Backups
 *~
+
+# Customized
+reference/
+.idea/
