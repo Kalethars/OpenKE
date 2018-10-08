@@ -1,9 +1,13 @@
-import config
-import models
 import tensorflow as tf
 import numpy as np
 import argparse
 import time
+import os, sys
+
+parentDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parentDir)
+import config
+import models
 
 
 def begin(co_name):
@@ -32,11 +36,11 @@ def end():
 
 
 def initVariables(co_name):
-    global logPath, module, startTime
+    global logPath, module, startTime, parentdir
 
     module = ''
     startTime = time.time()
-    logPath = '../log/' + co_name + '.log'
+    logPath = parentDir + '/log/' + co_name + '.log'
     log = open(logPath, 'w')
     log.close()
 
@@ -97,8 +101,8 @@ def TransE():
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
-        exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
+        exportPath = parentDir + '/res/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = parentDir + '/res/' + name + '/' + str(i) + '/embedding.vec.json'
 
         params.set_export_files(exportPath)
         params.set_out_files(outPath)
@@ -148,8 +152,8 @@ def TransH():
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
-        exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
+        exportPath = parentDir + '/res/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = parentDir + '/res/' + name + '/' + str(i) + '/embedding.vec.json'
 
         params.set_export_files(exportPath)
         params.set_out_files(outPath)
@@ -199,8 +203,8 @@ def DistMult():
         params.set_work_threads(threads)
         params.set_opt_method("Adagrad")
 
-        exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
+        exportPath = parentDir + '/res/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = parentDir + '/res/' + name + '/' + str(i) + '/embedding.vec.json'
 
         params.set_export_files(exportPath)
         params.set_out_files(outPath)
@@ -251,8 +255,8 @@ def ComplEx():
         params.set_lmbda(float(paramMap['lmbda']))
         params.set_opt_method("Adagrad")
 
-        exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
+        exportPath = parentDir + '/res/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = parentDir + '/res/' + name + '/' + str(i) + '/embedding.vec.json'
 
         params.set_export_files(exportPath)
         params.set_out_files(outPath)
