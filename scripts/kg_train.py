@@ -6,266 +6,289 @@ import argparse
 import time
 
 
-class KgTrain(object):
-    def begin(self, co_name):
-        log = open(self.logPath, 'a')
+def begin(co_name):
+    global logPath, module, startTime
 
-        self.module += '/' + co_name
-        self.startTime = time.time()
-        log.write(self.module + '\n')
+    log = open(logPath, 'a')
 
-        log.close()
+    module += '/' + co_name
+    startTime = time.time()
+    log.write(module + '\n')
 
-    def end(self):
-        log = open(self.logPath, 'a')
+    log.close()
 
-        log.write('Total Time: ' + str(time.time() - self.startTime) + ' seconds\n')
-        log.write('End of ' + self.module + '\n')
-        log.write('-' * 50 + '\n')
-        self.module = '/'.join(self.module.split('/')[:-1])
 
-        log.close()
+def end():
+    global logPath, module, startTime
 
-    def initVariables(self, co_name):
-        self.module = ''
-        self.startTime = time.time()
-        self.logPath = '../log/' + co_name + '.log'
-        log = open(self.logPath, 'w')
-        log.close()
+    log = open(logPath, 'a')
 
-    def initParams(self, map):
-        params = config.Config()
+    log.write('Total Time: ' + str(time.time() - startTime) + ' seconds\n')
+    log.write('End of ' + module + '\n')
+    log.write('-' * 50 + '\n')
+    module = '/'.join(module.split('/')[:-1])
 
-        params.set_test_flag(True)
-        params.set_ent_neg_rate(1)
-        params.set_rel_neg_rate(0)
+    log.close()
 
-        params.set_test_triple_classification(False)
-        params.set_test_link_prediction(True)
 
-        params.set_train_times(int(map['epoch']))
-        params.set_nbatches(int(map['nbatches']))
-        params.set_alpha(float(map['alpha']))
-        params.set_margin(float(map['margin']))
-        params.set_bern(int(map['bern']))
-        params.set_dimension(int(map['dimension']))
+def initVariables(co_name):
+    global logPath, module, startTime
 
-        return params
+    module = ''
+    startTime = time.time()
+    logPath = '../log/' + co_name + '.log'
+    log = open(logPath, 'w')
+    log.close()
 
-    def parseParams(self, line):
-        paramMap = dict()
-        splitedLine = line.split()
-        for each in splitedLine:
-            pos = each.find('=')
-            if pos >= 0:
-                paramMap[each[:pos]] = each[pos + 1:]
-        return paramMap
 
-    def TransE(self):
-        name = 'TransE'
-        self.initVariables(name)
+def initParams(map):
+    params = config.Config()
 
-        self.begin(name)
+    params.set_test_flag(True)
+    params.set_ent_neg_rate(1)
+    params.set_rel_neg_rate(0)
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--config', type=str, required=True)
-        parsedConfig = parser.parse_args()
+    params.set_test_triple_classification(False)
+    params.set_test_link_prediction(True)
 
-        f = open(parsedConfig.config, 'r')
-        configLines = f.readlines()
+    params.set_train_times(int(map['epoch']))
+    params.set_nbatches(int(map['nbatches']))
+    params.set_alpha(float(map['alpha']))
+    params.set_margin(float(map['margin']))
+    params.set_bern(int(map['bern']))
+    params.set_dimension(int(map['dimension']))
+
+    return params
+
+
+def parseParams(line):
+    paramMap = dict()
+    splitedLine = line.split()
+    for each in splitedLine:
+        pos = each.find('=')
+        if pos >= 0:
+            paramMap[each[:pos]] = each[pos + 1:]
+    return paramMap
+
+
+def TransE():
+    global logPath, parsedConfig
+
+    name = 'TransE'
+    initVariables(name)
+
+    begin(name)
+
+    f = open(parsedConfig.config, 'r')
+    configLines = f.readlines()
+    f.close()
+
+    paramMap = parseParams(configLines[0])
+    threads = int(paramMap['threads'])
+    start = int(paramMap['start'])
+    count = int(paramMap['count'])
+
+    for i in range(start, start + count):
+        begin(name + '_' + str(i))
+
+        paramMap = parseParams(configLines[i])
+
+        params = initParams(paramMap)
+        params.set_work_threads(threads)
+        params.set_opt_method("SGD")
+
+        exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
+
+        params.set_export_files(exportPath)
+        params.set_out_files(outPath)
+
+        params.init()
+        params.set_model(models.TransE)
+        params.run()
+        params.test(logPath)
+
+        f = open(logPath, 'a')
+        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
+        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
+        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
+        f.write('--margin:\t%f\n' % float(paramMap['margin']))
+        f.write('--bern:\t%d\n' % int(paramMap['bern']))
+        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
         f.close()
 
-        paramMap = self.parseParams(configLines[0])
-        threads = int(paramMap['threads'])
-        start = int(paramMap['start'])
-        count = int(paramMap['count'])
+        end()
 
-        for i in range(start, start + count):
-            self.begin(name + '_' + str(i))
+    end()
 
-            paramMap = self.parseParams(configLines[i])
 
-            params = self.initParams(paramMap)
-            params.set_work_threads(threads)
-            params.set_opt_method("SGD")
+def TransH():
+    global logPath, parsedConfig
 
-            exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
-            outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
+    name = 'TransH'
+    initVariables(name)
 
-            params.set_export_files(exportPath)
-            params.set_out_files(outPath)
+    begin(name)
 
-            params.init()
-            params.set_model(models.TransE)
-            params.run()
-            params.test(self.logPath)
+    f = open(parsedConfig.config, 'r')
+    configLines = f.readlines()
+    f.close()
 
-            f = open(self.logPath, 'a')
-            f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-            f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-            f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-            f.write('--margin:\t%f\n' % float(paramMap['margin']))
-            f.write('--bern:\t%d\n' % int(paramMap['bern']))
-            f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-            f.close()
+    paramMap = parseParams(configLines[0])
+    threads = int(paramMap['threads'])
+    start = int(paramMap['start'])
+    count = int(paramMap['count'])
 
-            self.end()
+    for i in range(start, start + count):
+        begin(name + '_' + str(i))
 
-        self.end()
+        paramMap = parseParams(configLines[i])
 
-    def TransH(self):
-        name = 'TransH'
-        self.initVariables(name)
+        params = initParams(paramMap)
+        params.set_work_threads(threads)
+        params.set_opt_method("SGD")
 
-        self.begin(name)
+        exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--config', type=str, required=True)
-        parsedConfig = parser.parse_args()
+        params.set_export_files(exportPath)
+        params.set_out_files(outPath)
 
-        f = open(parsedConfig.config, 'r')
-        configLines = f.readlines()
+        params.init()
+        params.set_model(models.TransE)
+        params.run()
+        params.test(logPath)
+
+        f = open(logPath, 'a')
+        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
+        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
+        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
+        f.write('--margin:\t%f\n' % float(paramMap['margin']))
+        f.write('--bern:\t%d\n' % int(paramMap['bern']))
+        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
         f.close()
 
-        paramMap = self.parseParams(configLines[0])
-        threads = int(paramMap['threads'])
-        start = int(paramMap['start'])
-        count = int(paramMap['count'])
+        end()
 
-        for i in range(start, start + count):
-            self.begin(name + '_' + str(i))
+    end()
 
-            paramMap = self.parseParams(configLines[i])
 
-            params = self.initParams(paramMap)
-            params.set_work_threads(threads)
-            params.set_opt_method("SGD")
+def DistMult():
+    global logPath, parsedConfig
 
-            exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
-            outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
+    name = 'DistMult'
+    initVariables(name)
 
-            params.set_export_files(exportPath)
-            params.set_out_files(outPath)
+    begin(name)
 
-            params.init()
-            params.set_model(models.TransE)
-            params.run()
-            params.test(self.logPath)
+    f = open(parsedConfig.config, 'r')
+    configLines = f.readlines()
+    f.close()
 
-            f = open(self.logPath, 'a')
-            f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-            f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-            f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-            f.write('--margin:\t%f\n' % float(paramMap['margin']))
-            f.write('--bern:\t%d\n' % int(paramMap['bern']))
-            f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-            f.close()
+    paramMap = parseParams(configLines[0])
+    threads = int(paramMap['threads'])
+    start = int(paramMap['start'])
+    count = int(paramMap['count'])
 
-            self.end()
+    for i in range(start, start + count):
+        begin(name + '_' + str(i))
 
-        self.end()
+        paramMap = parseParams(configLines[i])
 
-    def DistMult(self):
-        name = 'DistMult'
-        self.initVariables(name)
+        params = initParams(paramMap)
+        params.set_work_threads(threads)
+        params.set_opt_method("Adagrad")
 
-        self.begin(name)
+        exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--config', type=str, required=True)
-        parsedConfig = parser.parse_args()
+        params.set_export_files(exportPath)
+        params.set_out_files(outPath)
 
-        f = open(parsedConfig.config, 'r')
-        configLines = f.readlines()
+        params.init()
+        params.set_model(models.DistMult)
+        params.run()
+        params.test(logPath)
+
+        f = open(logPath, 'a')
+        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
+        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
+        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
+        f.write('--margin:\t%f\n' % float(paramMap['margin']))
+        f.write('--bern:\t%d\n' % int(paramMap['bern']))
+        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
         f.close()
 
-        paramMap = self.parseParams(configLines[0])
-        threads = int(paramMap['threads'])
-        start = int(paramMap['start'])
-        count = int(paramMap['count'])
+        end()
 
-        for i in range(start, start + count):
-            self.begin(name + '_' + str(i))
+    end()
 
-            paramMap = self.parseParams(configLines[i])
 
-            params = self.initParams(paramMap)
-            params.set_work_threads(threads)
-            params.set_opt_method("Adagrad")
+def ComplEx():
+    global logPath, parsedConfig
 
-            exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
-            outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
+    name = 'ComplEx'
+    initVariables(name)
 
-            params.set_export_files(exportPath)
-            params.set_out_files(outPath)
+    begin(name)
 
-            params.init()
-            params.set_model(models.DistMult)
-            params.run()
-            params.test(self.logPath)
+    f = open(parsedConfig.config, 'r')
+    configLines = f.readlines()
+    f.close()
 
-            f = open(self.logPath, 'a')
-            f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-            f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-            f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-            f.write('--margin:\t%f\n' % float(paramMap['margin']))
-            f.write('--bern:\t%d\n' % int(paramMap['bern']))
-            f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-            f.close()
+    paramMap = parseParams(configLines[0])
+    threads = int(paramMap['threads'])
+    start = int(paramMap['start'])
+    count = int(paramMap['count'])
 
-            self.end()
+    for i in range(start, start + count):
+        begin(name + '_' + str(i))
 
-        self.end()
+        paramMap = parseParams(configLines[i])
 
-    def ComplEx(self):
-        name = 'ComplEx'
-        self.initVariables(name)
+        params = initParams(paramMap)
+        params.set_work_threads(threads)
+        params.set_lmbda(float(paramMap['lmbda']))
+        params.set_opt_method("Adagrad")
 
-        self.begin(name)
+        exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--config', type=str, required=True)
-        parsedConfig = parser.parse_args()
+        params.set_export_files(exportPath)
+        params.set_out_files(outPath)
 
-        f = open(parsedConfig.config, 'r')
-        configLines = f.readlines()
+        params.init()
+        params.set_model(models.DistMult)
+        params.run()
+        params.test(logPath)
+
+        f = open(logPath, 'a')
+        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
+        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
+        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
+        f.write('--margin:\t%f\n' % float(paramMap['margin']))
+        f.write('--bern:\t%d\n' % int(paramMap['bern']))
+        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
         f.close()
 
-        paramMap = self.parseParams(configLines[0])
-        threads = int(paramMap['threads'])
-        start = int(paramMap['start'])
-        count = int(paramMap['count'])
+        end()
 
-        for i in range(start, start + count):
-            self.begin(name + '_' + str(i))
+    end()
 
-            paramMap = self.parseParams(configLines[i])
 
-            params = self.initParams(paramMap)
-            params.set_work_threads(threads)
-            params.set_lmbda(float(paramMap['lmbda']))
-            params.set_opt_method("Adagrad")
+parser = argparse.ArgumentParser()
+parser.add_argument('--config', type=str, required=True)
+parser.add_argument('--method', type=str, required=True)
+parsedConfig = parser.parse_args()
 
-            exportPath = '../res/' + name + '/' + str(i) + '/model.vec.tf'
-            outPath = '../res/' + name + '/' + str(i) + '/embedding.vec.json'
-
-            params.set_export_files(exportPath)
-            params.set_out_files(outPath)
-
-            params.init()
-            params.set_model(models.DistMult)
-            params.run()
-            params.test(self.logPath)
-
-            f = open(self.logPath, 'a')
-            f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-            f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-            f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-            f.write('--margin:\t%f\n' % float(paramMap['margin']))
-            f.write('--bern:\t%d\n' % int(paramMap['bern']))
-            f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-            f.close()
-
-            self.end()
-
-        self.end()
+method = parsedConfig.method.lower()
+if method == 'transe':
+    TransE()
+elif method == 'transh':
+    TransH()
+elif method == 'distmult':
+    DistMult()
+elif method == 'complex':
+    ComplEx()
+else:
+    print('Invalid method!')
