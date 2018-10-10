@@ -1,0 +1,8 @@
+7
+work_in	0
+author_is_in_field	1
+paper_is_written_by	2
+paper_is_in_field	3
+paper_publish_on	4
+paper_cit_paper	5
+field_is_part_of	6
