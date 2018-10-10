@@ -261,7 +261,7 @@ map = parseParams(configLines[0])
 threads = int(map['threads'])
 start = int(map['start'])
 count = int(map['count'])
-dataset = parentDir + '/benchmark/' + map['dataset'] + '/'
+dataset = parentDir + '/benchmarks/' + map['dataset'] + '/'
 
 method = parsedConfig.method.lower()
 if method == 'transe':
