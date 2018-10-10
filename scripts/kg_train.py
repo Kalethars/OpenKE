@@ -295,4 +295,4 @@ elif method == 'distmult':
 elif method == 'complex':
     ComplEx()
 else:
-    print('Invalid method!')
+    print 'Invalid method!'
