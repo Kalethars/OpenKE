@@ -76,21 +76,12 @@ def parseParams(line):
 
 
 def TransE():
-    global logPath, parsedConfig
+    global logPath, threads, start, count, dataset
 
     name = 'TransE'
     initVariables(name)
 
     begin(name)
-
-    f = open(parsedConfig.config, 'r')
-    configLines = f.readlines()
-    f.close()
-
-    paramMap = parseParams(configLines[0])
-    threads = int(paramMap['threads'])
-    start = int(paramMap['start'])
-    count = int(paramMap['count'])
 
     for i in range(start, start + count):
         begin(name + '_' + str(i))
@@ -98,6 +89,7 @@ def TransE():
         paramMap = parseParams(configLines[i])
 
         params = initParams(paramMap)
+        params.set_in_path(dataset)
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
@@ -127,21 +119,12 @@ def TransE():
 
 
 def TransH():
-    global logPath, parsedConfig
+    global logPath, threads, start, count, dataset
 
     name = 'TransH'
     initVariables(name)
 
     begin(name)
-
-    f = open(parsedConfig.config, 'r')
-    configLines = f.readlines()
-    f.close()
-
-    paramMap = parseParams(configLines[0])
-    threads = int(paramMap['threads'])
-    start = int(paramMap['start'])
-    count = int(paramMap['count'])
 
     for i in range(start, start + count):
         begin(name + '_' + str(i))
@@ -149,6 +132,7 @@ def TransH():
         paramMap = parseParams(configLines[i])
 
         params = initParams(paramMap)
+        params.set_in_path(dataset)
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
@@ -178,21 +162,12 @@ def TransH():
 
 
 def DistMult():
-    global logPath, parsedConfig
+    global logPath, threads, start, count, dataset
 
     name = 'DistMult'
     initVariables(name)
 
     begin(name)
-
-    f = open(parsedConfig.config, 'r')
-    configLines = f.readlines()
-    f.close()
-
-    paramMap = parseParams(configLines[0])
-    threads = int(paramMap['threads'])
-    start = int(paramMap['start'])
-    count = int(paramMap['count'])
 
     for i in range(start, start + count):
         begin(name + '_' + str(i))
@@ -200,6 +175,7 @@ def DistMult():
         paramMap = parseParams(configLines[i])
 
         params = initParams(paramMap)
+        params.set_in_path(dataset)
         params.set_work_threads(threads)
         params.set_opt_method("Adagrad")
 
@@ -229,21 +205,12 @@ def DistMult():
 
 
 def ComplEx():
-    global logPath, parsedConfig
+    global logPath, threads, start, count, dataset
 
     name = 'ComplEx'
     initVariables(name)
 
     begin(name)
-
-    f = open(parsedConfig.config, 'r')
-    configLines = f.readlines()
-    f.close()
-
-    paramMap = parseParams(configLines[0])
-    threads = int(paramMap['threads'])
-    start = int(paramMap['start'])
-    count = int(paramMap['count'])
 
     for i in range(start, start + count):
         begin(name + '_' + str(i))
@@ -251,6 +218,7 @@ def ComplEx():
         paramMap = parseParams(configLines[i])
 
         params = initParams(paramMap)
+        params.set_in_path(dataset)
         params.set_work_threads(threads)
         params.set_lmbda(float(paramMap['lmbda']))
         params.set_opt_method("Adagrad")
@@ -285,6 +253,16 @@ parser.add_argument('--config', type=str, required=True)
 parser.add_argument('--method', type=str, required=True)
 parsedConfig = parser.parse_args()
 
+f = open(parsedConfig.config, 'r')
+configLines = f.readlines()
+f.close()
+
+map = parseParams(configLines[0])
+threads = int(map['threads'])
+start = int(map['start'])
+count = int(map['count'])
+dataset = parentDir + '/benchmark/' + map['dataset']
+
 method = parsedConfig.method.lower()
 if method == 'transe':
     TransE()
@@ -295,4 +273,5 @@ elif method == 'distmult':
 elif method == 'complex':
     ComplEx()
 else:
-    print 'Invalid method!'
+    print
+    'Invalid method!'

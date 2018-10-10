@@ -11,7 +11,7 @@ def buildString(params):
 def generate():
     f = open('../config/TransE.config', 'w')
 
-    globalParams = {'threads': 32, 'start': 1, 'count': 256}
+    globalParams = {'threads': 32, 'start': 1, 'count': 256, 'dataset': 'ACE17K'}
     f.write(buildString(globalParams))
 
     for epoch in [1000, 1500]:
@@ -35,7 +35,7 @@ def generate():
 def generateStandalone():
     f = open('../config/TransE_standalone.config', 'w')
 
-    globalParams = {'threads': 4, 'start': 1, 'count': 8}
+    globalParams = {'threads': 4, 'start': 1, 'count': 8, 'dataset': 'ACE17K'}
     f.write(buildString(globalParams))
 
     for epoch in [1000, 1500]:
