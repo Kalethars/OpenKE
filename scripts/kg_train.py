@@ -97,11 +97,11 @@ def TransE():
         paramMap = parseParams(configLines[i])
 
         params = initParams(paramMap)
-        params.set_in_path(dataset)
+        params.set_in_path(datasetPath)
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
-        mkdir(['res', dataset.split('/')[-2], name, str(i)])
+        mkdir(['res', dataset, name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -141,11 +141,11 @@ def TransH():
         paramMap = parseParams(configLines[i])
 
         params = initParams(paramMap)
-        params.set_in_path(dataset)
+        params.set_in_path(datasetPath)
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
-        mkdir(['res', dataset.split('/')[-2], name, str(i)])
+        mkdir(['res', dataset, name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -185,11 +185,11 @@ def DistMult():
         paramMap = parseParams(configLines[i])
 
         params = initParams(paramMap)
-        params.set_in_path(dataset)
+        params.set_in_path(datasetPath)
         params.set_work_threads(threads)
         params.set_opt_method("Adagrad")
 
-        mkdir(['res', dataset.split('/')[-2], name, str(i)])
+        mkdir(['res', dataset, name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -229,12 +229,12 @@ def ComplEx():
         paramMap = parseParams(configLines[i])
 
         params = initParams(paramMap)
-        params.set_in_path(dataset)
+        params.set_in_path(datasetPath)
         params.set_work_threads(threads)
         params.set_lmbda(float(paramMap['lmbda']))
         params.set_opt_method("Adagrad")
 
-        mkdir(['res', dataset.split('/')[-2], name, str(i)])
+        mkdir(['res', dataset, name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -275,7 +275,8 @@ map = parseParams(configLines[0])
 threads = int(map['threads'])
 start = int(map['start'])
 count = int(map['count'])
-dataset = parentDir + '/benchmarks/' + map['dataset'] + '/'
+dataset = map['dataset']
+datasetPath = parentDir + '/benchmarks/' + map['dataset'] + '/'
 
 method = parsedConfig.method.lower()
 if method == 'transe':
