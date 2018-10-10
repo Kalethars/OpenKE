@@ -139,3 +139,4 @@ venv.bak/
 # Customized
 reference/
 .idea/
+res/

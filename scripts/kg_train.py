@@ -27,6 +27,7 @@ def end():
 
     log = open(logPath, 'a')
 
+    log.write('\n')
     log.write('Total Time: ' + str(time.time() - startTime) + ' seconds\n')
     log.write('End of ' + module + '\n')
     log.write('-' * 50 + '\n')
@@ -74,12 +75,25 @@ def initParams(map):
 
 
 def parseParams(line):
+    global logPath
+
     paramMap = dict()
     splitedLine = line.split()
     for each in splitedLine:
         pos = each.find('=')
         if pos >= 0:
             paramMap[each[:pos]] = each[pos + 1:]
+
+    f = open(logPath, 'a')
+    f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
+    f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
+    f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
+    f.write('--margin:\t%f\n' % float(paramMap['margin']))
+    f.write('--bern:\t%d\n' % int(paramMap['bern']))
+    f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
+    f.write('\n')
+    f.close()
+
     return paramMap
 
 
@@ -112,15 +126,6 @@ def TransE():
         params.set_model(models.TransE)
         params.run()
         params.test(logPath)
-
-        f = open(logPath, 'a')
-        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-        f.write('--margin:\t%f\n' % float(paramMap['margin']))
-        f.write('--bern:\t%d\n' % int(paramMap['bern']))
-        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-        f.close()
 
         end()
 
@@ -157,15 +162,6 @@ def TransH():
         params.run()
         params.test(logPath)
 
-        f = open(logPath, 'a')
-        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-        f.write('--margin:\t%f\n' % float(paramMap['margin']))
-        f.write('--bern:\t%d\n' % int(paramMap['bern']))
-        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-        f.close()
-
         end()
 
     end()
@@ -200,15 +196,6 @@ def DistMult():
         params.set_model(models.DistMult)
         params.run()
         params.test(logPath)
-
-        f = open(logPath, 'a')
-        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-        f.write('--margin:\t%f\n' % float(paramMap['margin']))
-        f.write('--bern:\t%d\n' % int(paramMap['bern']))
-        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-        f.close()
 
         end()
 
@@ -245,15 +232,6 @@ def ComplEx():
         params.set_model(models.DistMult)
         params.run()
         params.test(logPath)
-
-        f = open(logPath, 'a')
-        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-        f.write('--margin:\t%f\n' % float(paramMap['margin']))
-        f.write('--bern:\t%d\n' % int(paramMap['bern']))
-        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-        f.close()
 
         end()
 
