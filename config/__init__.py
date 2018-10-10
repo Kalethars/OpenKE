@@ -1,1 +1,2 @@
-from .Config import Config
+from . import Config
+from Config import *
