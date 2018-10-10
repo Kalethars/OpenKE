@@ -8,10 +8,10 @@ def buildString(params):
     return s + '\n'
 
 
-def generate():
+def generate(dataset):
     f = open('../config/TransE.config', 'w')
 
-    globalParams = {'threads': 32, 'start': 1, 'count': 256, 'dataset': 'ACE17K'}
+    globalParams = {'threads': 32, 'start': 1, 'count': 256, 'dataset': 'ACE17K' if dataset is None else dataset}
     f.write(buildString(globalParams))
 
     for epoch in [1000, 1500]:
@@ -32,10 +32,10 @@ def generate():
     f.close()
 
 
-def generateStandalone():
+def generateStandalone(dataset):
     f = open('../config/TransE_standalone.config', 'w')
 
-    globalParams = {'threads': 4, 'start': 1, 'count': 8, 'dataset': 'ACE17K'}
+    globalParams = {'threads': 4, 'start': 1, 'count': 8, 'dataset': 'ACE17K' if dataset is None else dataset}
     f.write(buildString(globalParams))
 
     for epoch in [1000, 1500]:
@@ -57,9 +57,10 @@ def generateStandalone():
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--dataset', type=int, required=False)
 parser.add_argument('--standalone', type=int, required=False)
 parsedConfig = parser.parse_args()
 if parsedConfig.standalone != 1:
-    generate()
+    generate(parsedConfig.dataset)
 else:
-    generateStandalone()
+    generateStandalone(parsedConfig.dataset)

@@ -93,8 +93,8 @@ def TransE():
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
-        exportPath = parentDir + '/res/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = parentDir + '/res/' + name + '/' + str(i) + '/embedding.vec.json'
+        exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
         params.set_export_files(exportPath)
         params.set_out_files(outPath)
@@ -136,8 +136,8 @@ def TransH():
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
-        exportPath = parentDir + '/res/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = parentDir + '/res/' + name + '/' + str(i) + '/embedding.vec.json'
+        exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
         params.set_export_files(exportPath)
         params.set_out_files(outPath)
@@ -179,8 +179,8 @@ def DistMult():
         params.set_work_threads(threads)
         params.set_opt_method("Adagrad")
 
-        exportPath = parentDir + '/res/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = parentDir + '/res/' + name + '/' + str(i) + '/embedding.vec.json'
+        exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
         params.set_export_files(exportPath)
         params.set_out_files(outPath)
@@ -223,8 +223,8 @@ def ComplEx():
         params.set_lmbda(float(paramMap['lmbda']))
         params.set_opt_method("Adagrad")
 
-        exportPath = parentDir + '/res/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = parentDir + '/res/' + name + '/' + str(i) + '/embedding.vec.json'
+        exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
+        outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
         params.set_export_files(exportPath)
         params.set_out_files(outPath)
