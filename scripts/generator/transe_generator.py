@@ -57,7 +57,7 @@ def generateStandalone(dataset):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=int, required=False)
+parser.add_argument('--dataset', type=str, required=False)
 parser.add_argument('--standalone', type=int, required=False)
 parsedConfig = parser.parse_args()
 if parsedConfig.standalone != 1:
