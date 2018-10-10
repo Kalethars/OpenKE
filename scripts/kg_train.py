@@ -35,8 +35,16 @@ def end():
     log.close()
 
 
+def mkdir(folders):
+    path = parentDir + '/'
+    for i in range(len(folders)):
+        path += str(folders[i]) + '/'
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+
 def initVariables(co_name):
-    global logPath, module, startTime, parentdir
+    global logPath, module, startTime
 
     module = ''
     startTime = time.time()
@@ -76,7 +84,7 @@ def parseParams(line):
 
 
 def TransE():
-    global logPath, threads, start, count, dataset
+    global logPath
 
     name = 'TransE'
     initVariables(name)
@@ -93,6 +101,7 @@ def TransE():
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
+        mkdir(['res', dataset, name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -119,7 +128,7 @@ def TransE():
 
 
 def TransH():
-    global logPath, threads, start, count, dataset
+    global logPath
 
     name = 'TransH'
     initVariables(name)
@@ -136,6 +145,7 @@ def TransH():
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
+        mkdir(['res', dataset, name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -162,7 +172,7 @@ def TransH():
 
 
 def DistMult():
-    global logPath, threads, start, count, dataset
+    global logPath
 
     name = 'DistMult'
     initVariables(name)
@@ -179,6 +189,7 @@ def DistMult():
         params.set_work_threads(threads)
         params.set_opt_method("Adagrad")
 
+        mkdir(['res', dataset, name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -205,7 +216,7 @@ def DistMult():
 
 
 def ComplEx():
-    global logPath, threads, start, count, dataset
+    global logPath
 
     name = 'ComplEx'
     initVariables(name)
@@ -223,6 +234,7 @@ def ComplEx():
         params.set_lmbda(float(paramMap['lmbda']))
         params.set_opt_method("Adagrad")
 
+        mkdir(['res', dataset, name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
