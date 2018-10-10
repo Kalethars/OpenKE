@@ -35,8 +35,10 @@ def end():
     log.close()
 
 
-def mkdir(folders):
-    path = parentDir + '/'
+def mkdir(basePath, folders):
+    if not os.path.exists(basePath):
+        os.mkdir(basePath)
+    path = basePath
     for i in range(len(folders)):
         path += str(folders[i]) + '/'
         if not os.path.exists(path):
@@ -101,7 +103,7 @@ def TransE():
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
-        mkdir(['res', dataset, name, str(i)])
+        mkdir(dataset, [name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -145,7 +147,7 @@ def TransH():
         params.set_work_threads(threads)
         params.set_opt_method("SGD")
 
-        mkdir(['res', dataset, name, str(i)])
+        mkdir(dataset, [name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -189,7 +191,7 @@ def DistMult():
         params.set_work_threads(threads)
         params.set_opt_method("Adagrad")
 
-        mkdir(['res', dataset, name, str(i)])
+        mkdir(dataset, [name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -234,7 +236,7 @@ def ComplEx():
         params.set_lmbda(float(paramMap['lmbda']))
         params.set_opt_method("Adagrad")
 
-        mkdir(['res', dataset, name, str(i)])
+        mkdir(dataset, [name, str(i)])
         exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
         outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
 
@@ -260,6 +262,8 @@ def ComplEx():
     end()
 
 
+mkdir(parentDir, ['log'])
+mkdir(parentDir, ['res'])
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, required=True)
 parser.add_argument('--method', type=str, required=True)
