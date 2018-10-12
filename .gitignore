@@ -140,3 +140,4 @@ venv.bak/
 reference/
 .idea/
 res/
+database.config
