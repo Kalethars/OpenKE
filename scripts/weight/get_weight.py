@@ -1,6 +1,7 @@
 import os
 
 import pymysql
+import math
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -77,17 +78,20 @@ def paperIsWrittenBy():
 
         conn = connectSQL()
         cursor = conn.cursor()
-        for triplet in triplets[3]:
+        for triplet in triplets[2]:
             query = 'select PaperId, AuthorId, AffiliationId, AuthorSequenceNumber from PaperAuthorAffiliations \
                      where PaperId="%(head)s" and AuthorId="%(tail)s"' \
                     % {'head': triplet[0][1:], 'tail': triplet[1][1:]}
             cursor.execute(query)
-            results = cursor.fetchall
+            results = cursor.fetchall()
             for result in results:
                 f.write('\t'.join(map(lambda x: str(x), result)) + '\n')
         disconnectSQL(conn)
 
         f.close()
+
+    def calcWeight(seqNum):
+        return str(1.0/min(float(seqNum),10.0))
 
     filename = 'PaperAuthorAffiliations.data'
     data = loadData(filename)
@@ -96,14 +100,14 @@ def paperIsWrittenBy():
         data = loadData(filename)
     f = open(weightPath, 'a')
     for line in data:
-        f.write(buildWeightString(3, 'p' + line[0], 'a' + line[1], line[3]))
+        f.write(buildWeightString(2, 'p' + line[0], 'a' + line[1], calcWeight(line[3])))
 
 
 def paperIsInField():
     # relation = 3, head = paper, tail = field
     f = open(weightPath, 'a')
     for triplet in triplets[3]:
-        f.write(buildWeightString(3, triplet[0], triplet[1], 1))
+        f.write(buildWeightString(3, triplet[0], triplet[1], 1.0))
 
 
 def fieldIsPartOfField():
