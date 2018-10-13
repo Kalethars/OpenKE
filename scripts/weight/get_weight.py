@@ -40,7 +40,7 @@ def loadTriplets():
     for line in s:
         splited = line.split()
         if len(splited) == 3:
-            triplets[int(splited[0])].append([splited[1][1:], splited[2][1:]])
+            triplets[int(splited[0])].append([splited[1], splited[2]])
 
 
 def getDataPath(filename):
@@ -66,6 +66,46 @@ def parseData(fullPath):
     return data
 
 
+def buildWeightString(relation, head, tail, weight):
+    return ' '.join([str(relation), head, tail, str(weight)]) + '\n'
+
+
+def paperIsWrittenBy():
+    # relaation = 2, head = paper, tail = author
+    def downloadData():
+        f = open(getDataPath(filename), 'w')
+
+        conn = connectSQL()
+        cursor = conn.cursor()
+        for triplet in triplets[3]:
+            query = 'select PaperId, AuthorId, AffiliationId, AuthorSequenceNumber from PaperAuthorAffiliations \
+                     where PaperId="%(head)s" and AuthorId="%(tail)s"' \
+                    % {'head': triplet[0][1:], 'tail': triplet[1][1:]}
+            cursor.execute(query)
+            results = cursor.fetchall
+            for result in results:
+                f.write('\t'.join(map(lambda x: str(x), result)) + '\n')
+        disconnectSQL(conn)
+
+        f.close()
+
+    filename = 'PaperAuthorAffiliations.data'
+    data = loadData(filename)
+    if data is None:
+        downloadData()
+        data = loadData(filename)
+    f = open(weightPath, 'a')
+    for line in data:
+        f.write(buildWeightString(3, 'p' + line[0], 'a' + line[1], line[3]))
+
+
+def paperIsInField():
+    # relation = 3, head = paper, tail = field
+    f = open(weightPath, 'a')
+    for triplet in triplets[3]:
+        f.write(buildWeightString(3, triplet[0], triplet[1], 1))
+
+
 def fieldIsPartOfField():
     # relation = 6, head = field, tail = field
     def downloadData():
@@ -73,25 +113,26 @@ def fieldIsPartOfField():
 
         conn = connectSQL()
         cursor = conn.cursor()
-        for entities in triplets[6]:
+        for triplet in triplets[6]:
             query = 'select ChildFieldOfStudyID, ParentFieldOfStudyID, Confidence from FieldOfStudyHierarchy \
-                where ChildFieldOfStudyID="%(head)s" and ParentFieldOfStudyID="%(tail)s"' \
-                    % {'head': entities[0], 'tail': entities[1]}
+                     where ChildFieldOfStudyID="%(head)s" and ParentFieldOfStudyID="%(tail)s"' \
+                    % {'head': triplet[0][1:], 'tail': triplet[1][1:]}
             cursor.execute(query)
             results = cursor.fetchall()
-            for each in results:
-                f.write('\t'.join(map(lambda x: str(x), each)) + '\n')
+            for result in results:
+                f.write('\t'.join(map(lambda x: str(x), result)) + '\n')
+        disconnectSQL(conn)
 
         f.close()
 
-    filename = 'field_is_part_of_field.data'
+    filename = 'FieldOfStudyHierarchy.data'
     data = loadData(filename)
     if data is None:
         downloadData()
         data = loadData(filename)
     f = open(weightPath, 'a')
     for line in data:
-        f.write('6 f%(head)s f%(tail)s %(confidence)s\n' % {'head': line[0], 'tail': line[1], 'confidence': line[2]})
+        f.write(buildWeightString(6, 'f' + line[0], 'f' + line[1], line[2]))
     f.close()
 
 
@@ -104,4 +145,6 @@ weightPath = parentDir + '/benchmarks/ACE17K/triplets_weight.txt'
 f = open(weightPath, 'w')
 f.close()
 
+paperIsWrittenBy()
+paperIsInField()
 fieldIsPartOfField()
