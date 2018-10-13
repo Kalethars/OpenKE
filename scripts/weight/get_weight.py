@@ -71,16 +71,20 @@ def buildWeightString(relation, head, tail, weight):
     return ' '.join([str(relation), head, tail, str(weight)]) + '\n'
 
 
-def paperIsWrittenBy():
-    # relaation = 2, head = paper, tail = author
-    def downloadData():
+def downloadData():
+    # For work_in, paper_is_written_by
+    def paperAuthorAffiliations():
+        filename = 'PaperAuthorAffiliations.data'
+        if os.path.exists(getDataPath(filename)):
+            return
+
         f = open(getDataPath(filename), 'w')
 
         conn = connectSQL()
         cursor = conn.cursor()
         for triplet in triplets[2]:
             query = 'select PaperId, AuthorId, AffiliationId, AuthorSequenceNumber from PaperAuthorAffiliations \
-                     where PaperId="%(head)s" and AuthorId="%(tail)s"' \
+                             where PaperId="%(head)s" and AuthorId="%(tail)s"' \
                     % {'head': triplet[0][1:], 'tail': triplet[1][1:]}
             cursor.execute(query)
             results = cursor.fetchall()
@@ -90,29 +94,12 @@ def paperIsWrittenBy():
 
         f.close()
 
-    def calcWeight(seqNum):
-        return str(1.0/min(float(seqNum),10.0))
+    # For field_is_part_of_field
+    def fieldOfStudyHierarchy():
+        filename = 'FieldOfStudyHierarchy.data'
+        if os.path.exists(getDataPath(filename)):
+            return
 
-    filename = 'PaperAuthorAffiliations.data'
-    data = loadData(filename)
-    if data is None:
-        downloadData()
-        data = loadData(filename)
-    f = open(weightPath, 'a')
-    for line in data:
-        f.write(buildWeightString(2, 'p' + line[0], 'a' + line[1], calcWeight(line[3])))
-
-
-def paperIsInField():
-    # relation = 3, head = paper, tail = field
-    f = open(weightPath, 'a')
-    for triplet in triplets[3]:
-        f.write(buildWeightString(3, triplet[0], triplet[1], 1.0))
-
-
-def fieldIsPartOfField():
-    # relation = 6, head = field, tail = field
-    def downloadData():
         f = open(getDataPath(filename), 'w')
 
         conn = connectSQL()
@@ -129,11 +116,54 @@ def fieldIsPartOfField():
 
         f.close()
 
+    paperAuthorAffiliations()
+    fieldOfStudyHierarchy()
+
+
+def workIn():
+    # relation = 2, head = author, tail = institute
+    def calcWeight(triplet):
+        return detailedCount.get('a' + triplet[0], dict()).get('i' + triplet[1], 0) / \
+               float(totalCount.get('i' + triplet[1], 1))
+
+    filename = 'PaperAuthorAffiliations.data'
+    data = loadData(filename)
+
+    totalCount = dict()
+    detailedCount = dict()
+    for line in data:
+        totalCount[line[1]] = totalCount.get(line[1], 0) + 1
+        if detailedCount.get(line[1], 0) == 0:
+            detailedCount[line[1]] = dict()
+        detailedCount[line[1]][line[2]] = detailedCount[line[1]].get(line[2], 0) + 1
+    f = open(weightPath, 'a')
+    for triplet in triplets[0]:
+        f.write(buildWeightString(0, triplet[0], triplet[1], calcWeight(triplet)))
+
+
+def paperIsWrittenBy():
+    # relaation = 2, head = paper, tail = author
+    def calcWeight(seqNum):
+        return str(1.0 / min(float(seqNum), 10.0))
+
+    filename = 'PaperAuthorAffiliations.data'
+    data = loadData(filename)
+    f = open(weightPath, 'a')
+    for line in data:
+        f.write(buildWeightString(2, 'p' + line[0], 'a' + line[1], calcWeight(line[3])))
+
+
+def paperIsInField():
+    # relation = 3, head = paper, tail = field
+    f = open(weightPath, 'a')
+    for triplet in triplets[3]:
+        f.write(buildWeightString(3, triplet[0], triplet[1], 1.0))
+
+
+def fieldIsPartOfField():
+    # relation = 6, head = field, tail = field
     filename = 'FieldOfStudyHierarchy.data'
     data = loadData(filename)
-    if data is None:
-        downloadData()
-        data = loadData(filename)
     f = open(weightPath, 'a')
     for line in data:
         f.write(buildWeightString(6, 'f' + line[0], 'f' + line[1], line[2]))
@@ -149,6 +179,9 @@ weightPath = parentDir + '/benchmarks/ACE17K/triplets_weight.txt'
 f = open(weightPath, 'w')
 f.close()
 
+downloadData()
+
+workIn()
 paperIsWrittenBy()
 paperIsInField()
 fieldIsPartOfField()
