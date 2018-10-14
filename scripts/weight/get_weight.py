@@ -4,6 +4,7 @@ import pymysql
 import math
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+entityMap = {'a': 0, 'f': 1, 'i': 2, 'p': 3, 'v': 4}
 
 
 def connectSQL():
@@ -32,15 +33,14 @@ def loadConfig():
 
 def loadEntities():
     global entities
-    entityMap = {'a': 0, 'f': 1, 'i': 2, 'p': 3, 'v': 4}
     f = open(parentDir + '/benchmarks/ACE17K/entity2id.txt', 'r')
     s = f.read().split('\n')
     f.close()
-    entities = [[] for i in range(5)]
+    entities = [dict() for i in range(5)]
     for line in s:
         splited = line.split()
         if len(splited) == 2:
-            entities[entityMap[splited[0][0]]].append(splited[0])
+            entities[entityMap[splited[0][0]]][splited[0]] = splited[1]
 
 
 def loadTriplets():
@@ -55,6 +55,10 @@ def loadTriplets():
         splited = line.split()
         if len(splited) == 3:
             triplets[int(splited[0])].append([splited[1], splited[2]])
+
+
+def getEntityNum(entity):
+    return entities[entityMap[entity[0]]][entity]
 
 
 def getDataPath(filename):
@@ -81,7 +85,7 @@ def parseData(fullPath):
 
 
 def buildWeightString(relation, head, tail, weight):
-    return ' '.join([str(relation), head, tail, str(weight)]) + '\n'
+    return '\t'.join([str(relation), head, tail, str(weight)]) + '\n'
 
 
 def guarantee(weight, low, high):
@@ -121,7 +125,7 @@ def downloadData():
 
         conn = connectSQL()
         cursor = conn.cursor()
-        for paper in entities[3]:
+        for paper in entities[3].keys():
             query = 'select PaperId, PaperPublishYear from PaperYears where PaperId="%(paper)s"' % {'paper': paper[1:]}
             cursor.execute(query)
             results = cursor.fetchall()
@@ -286,13 +290,13 @@ def normalization():
         tripletCount[line[0]] = tripletCount.get(line[0], 0) + 1
     f = open(weightPath, 'w')
     for line in data:
-        f.write(buildWeightString(line[0], line[1], line[2], calcWeight(line)))
+        f.write(buildWeightString(line[0], getEntityNum(line[1]), getEntityNum(line[2]), calcWeight(line)))
     f.close()
 
 
 config = dict()
 loadConfig()
-entities = [[] for i in range(5)]  # 0 for author, 1 for field, 2 for institute, 3 for paper, 4 for venue
+entities = [dict() for i in range(5)]  # 0 for author, 1 for field, 2 for institute, 3 for paper, 4 for venue
 loadEntities()
 triplets = [[] for i in range(7)]
 loadTriplets()
