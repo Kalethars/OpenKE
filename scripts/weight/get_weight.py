@@ -30,8 +30,21 @@ def loadConfig():
             config[splited[0]] = splited[1]
 
 
+def loadEntities():
+    global entities
+    entityMap = {'a': 0, 'f': 1, 'i': 2, 'p': 3, 'v': 4}
+    f = open(parentDir + '/benchmarks/ACE17K/entity2id.txt', 'r')
+    s = f.read().split('\n')
+    f.close()
+    entities = [[] for i in range(5)]
+    for line in s:
+        splited = line.split()
+        if len(splited) == 2:
+            entities[entityMap[splited[0][0]]].append(splited[0])
+
+
 def loadTriplets():
-    # triplets[relation]=list of [head, tail]
+    # triplets[relation] = list of [head, tail]
 
     global triplets
     f = open(parentDir + '/benchmarks/ACE17K/triplets_sort_relation.txt', 'r')
@@ -68,7 +81,7 @@ def parseData(fullPath):
 
 
 def buildWeightString(relation, head, tail, weight):
-    return ' '.join([str(relation), head, tail, str(weight)]) + '\n'
+    return ' '.join([str(relation), head, tail, '%.2f' % weight]) + '\n'
 
 
 def downloadData():
@@ -82,10 +95,30 @@ def downloadData():
 
         conn = connectSQL()
         cursor = conn.cursor()
-        for triplet in triplets[2]:
+        for triplet in triplets[2]:  # paper_is_written_by
             query = 'select PaperId, AuthorId, AffiliationId, AuthorSequenceNumber from PaperAuthorAffiliations \
                              where PaperId="%(head)s" and AuthorId="%(tail)s"' \
                     % {'head': triplet[0][1:], 'tail': triplet[1][1:]}
+            cursor.execute(query)
+            results = cursor.fetchall()
+            for result in results:
+                f.write('\t'.join(map(lambda x: str(x), result)) + '\n')
+        disconnectSQL(conn)
+
+        f.close()
+
+    # For paper_publish_on, paper_cit_paper
+    def paperYears():
+        filename = 'PaperYears.data'
+        if os.path.exists(getDataPath(filename)):
+            return
+
+        f = open(getDataPath(filename), 'w')
+
+        conn = connectSQL()
+        cursor = conn.cursor()
+        for paper in entities[3]:
+            query = 'select PaperId, PaperPublishYear from PaperYears where PaperId="%(paper)s"' % {'paper': paper[1:]}
             cursor.execute(query)
             results = cursor.fetchall()
             for result in results:
@@ -104,7 +137,7 @@ def downloadData():
 
         conn = connectSQL()
         cursor = conn.cursor()
-        for triplet in triplets[6]:
+        for triplet in triplets[6]:  # field_is_in_field
             query = 'select ChildFieldOfStudyID, ParentFieldOfStudyID, Confidence from FieldOfStudyHierarchy \
                      where ChildFieldOfStudyID="%(head)s" and ParentFieldOfStudyID="%(tail)s"' \
                     % {'head': triplet[0][1:], 'tail': triplet[1][1:]}
@@ -117,20 +150,21 @@ def downloadData():
         f.close()
 
     paperAuthorAffiliations()
+    paperYears()
     fieldOfStudyHierarchy()
 
 
 def workIn():
-    # relation = 2, head = author, tail = institute
+    # relation = 0, head = author, tail = institute
     def calcWeight(triplet):
-        return detailedCount.get('a' + triplet[0], dict()).get('i' + triplet[1], 0) / \
-               float(totalCount.get('i' + triplet[1], 1))
+        return detailedCount.get(triplet[0][1:], dict()).get(triplet[1][1:], 0) / \
+               float(totalCount.get(triplet[0][1:], 1))
 
     filename = 'PaperAuthorAffiliations.data'
     data = loadData(filename)
 
-    totalCount = dict()
-    detailedCount = dict()
+    totalCount = dict()  # Total number of papers published by an author
+    detailedCount = dict()  # Number of papers published by an author from an institute
     for line in data:
         totalCount[line[1]] = totalCount.get(line[1], 0) + 1
         if detailedCount.get(line[1], 0) == 0:
@@ -139,18 +173,45 @@ def workIn():
     f = open(weightPath, 'a')
     for triplet in triplets[0]:
         f.write(buildWeightString(0, triplet[0], triplet[1], calcWeight(triplet)))
+    f.close()
+
+
+def authorIsInField():
+    # relation = 1, head = author, tail = field
+    def calcWeight(triplet):
+        return detailedCount.get(triplet[0], dict()).get(triplet[1], 0) / float(totalCount.get(triplet[0], 1))
+
+    totalCount = dict()  # Total number of papers published by an author
+    detailedCount = dict()  # Number of papers published by an author in a field
+    paperAuthor = dict()
+    for triplet in triplets[2]:  # paper_is_written_by
+        try:
+            paperAuthor[triplet[0]].append(triplet[1])
+        except:
+            paperAuthor[triplet[0]] = [triplet[1]]
+        totalCount[triplet[1]] = totalCount.get(triplet[1], 0) + 1
+    for triplet in triplets[3]:  # paper_is_in_field
+        for author in paperAuthor.get(triplet[0], []):
+            if detailedCount.get(author, 0) == 0:
+                detailedCount[author] = dict()
+            detailedCount[author][triplet[1]] = detailedCount[author].get(triplet[1], 0) + 1
+    f = open(weightPath, 'a')
+    for triplet in triplets[1]:
+        f.write(buildWeightString(1, triplet[0], triplet[1], calcWeight(triplet)))
+    f.close()
 
 
 def paperIsWrittenBy():
     # relaation = 2, head = paper, tail = author
     def calcWeight(seqNum):
-        return str(1.0 / min(float(seqNum), 10.0))
+        return 1.0 / min(float(seqNum), 10.0)
 
     filename = 'PaperAuthorAffiliations.data'
     data = loadData(filename)
     f = open(weightPath, 'a')
     for line in data:
         f.write(buildWeightString(2, 'p' + line[0], 'a' + line[1], calcWeight(line[3])))
+    f.close()
 
 
 def paperIsInField():
@@ -158,6 +219,26 @@ def paperIsInField():
     f = open(weightPath, 'a')
     for triplet in triplets[3]:
         f.write(buildWeightString(3, triplet[0], triplet[1], 1.0))
+    f.close()
+
+
+def paperPublishOn():
+    # relation = 4, head = paper, tail = venue
+    def calcWeight(paper):
+        return max(1 - 0.04 * (lastYear - paperYears.get(paper, 0)), 0.2)
+
+    filename = 'PaperYears.data'
+    data = loadData(filename)
+    paperYears = dict()
+    lastYear = 0
+    for line in data:
+        paperYears['p' + line[0]] = int(line[1])
+        if int(line[1]) > lastYear:
+            lastYear = int(line[1])
+    f = open(weightPath, 'a')
+    for triplet in triplets[4]:
+        f.write(buildWeightString(4, triplet[0], triplet[1], calcWeight(triplet[0])))
+    f.close()
 
 
 def fieldIsPartOfField():
@@ -166,12 +247,14 @@ def fieldIsPartOfField():
     data = loadData(filename)
     f = open(weightPath, 'a')
     for line in data:
-        f.write(buildWeightString(6, 'f' + line[0], 'f' + line[1], line[2]))
+        f.write(buildWeightString(6, 'f' + line[0], 'f' + line[1], float(line[2])))
     f.close()
 
 
 config = dict()
 loadConfig()
+entities = [[] for i in range(5)]  # 0 for author, 1 for field, 2 for institute, 3 for paper, 4 for venue
+loadEntities()
 triplets = [[] for i in range(7)]
 loadTriplets()
 
@@ -182,6 +265,8 @@ f.close()
 downloadData()
 
 workIn()
+authorIsInField()
 paperIsWrittenBy()
 paperIsInField()
+paperPublishOn()
 fieldIsPartOfField()
