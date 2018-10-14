@@ -81,7 +81,7 @@ def parseData(fullPath):
 
 
 def buildWeightString(relation, head, tail, weight):
-    return ' '.join([str(relation), head, tail, '%.2f' % weight]) + '\n'
+    return ' '.join([str(relation), head, tail, str(weight)]) + '\n'
 
 
 def downloadData():
@@ -267,6 +267,23 @@ def fieldIsPartOfField():
     f.close()
 
 
+def normalization():
+    # make average weight of each relation to 1
+    def calcWeight(line):
+        return round(float(line[3]) * tripletCount[line[0]] / weightSum[line[0]], 2)
+
+    data = parseData(parentDir + '/benchmarks/ACE17K/triplets_weight.txt')
+    weightSum = dict()
+    tripletCount = dict()
+    for line in data:
+        weightSum[line[0]] = weightSum.get(line[0], 0) + float(line[3])
+        tripletCount[line[0]] = tripletCount.get(line[0], 0) + 1
+    f = open(weightPath, 'w')
+    for line in data:
+        f.write(buildWeightString(line[0], line[1], line[2], calcWeight(line)))
+    f.close()
+
+
 config = dict()
 loadConfig()
 entities = [[] for i in range(5)]  # 0 for author, 1 for field, 2 for institute, 3 for paper, 4 for venue
@@ -287,3 +304,5 @@ paperIsInField()
 paperPublishOn()
 paperCitPaper()
 fieldIsPartOfField()
+
+normalization()
