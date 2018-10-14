@@ -241,6 +241,22 @@ def paperPublishOn():
     f.close()
 
 
+def paperCitPaper():
+    # relation =5, head = paper, tail = paper
+    def calcWeight(triplet):
+        return max(1 - 0.04 * abs(paperYears.get(triplet[0], 1000) - paperYears.get(triplet[1], 0)), 0.2)
+
+    filename = 'PaperYears.data'
+    data = loadData(filename)
+    paperYears = dict()
+    for line in data:
+        paperYears['p' + line[0]] = int(line[1])
+    f = open(weightPath, 'a')
+    for triplet in triplets[5]:
+        f.write(buildWeightString(5, triplet[0], triplet[1], calcWeight(triplet)))
+    f.close()
+
+
 def fieldIsPartOfField():
     # relation = 6, head = field, tail = field
     filename = 'FieldOfStudyHierarchy.data'
@@ -269,4 +285,5 @@ authorIsInField()
 paperIsWrittenBy()
 paperIsInField()
 paperPublishOn()
+paperCitPaper()
 fieldIsPartOfField()
