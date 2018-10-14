@@ -84,6 +84,10 @@ def buildWeightString(relation, head, tail, weight):
     return ' '.join([str(relation), head, tail, str(weight)]) + '\n'
 
 
+def guarantee(weight, low, high):
+    return weight * (high - low) + low
+
+
 def downloadData():
     # For work_in, paper_is_written_by
     def paperAuthorAffiliations():
@@ -157,8 +161,8 @@ def downloadData():
 def workIn():
     # relation = 0, head = author, tail = institute
     def calcWeight(triplet):
-        return detailedCount.get(triplet[0][1:], dict()).get(triplet[1][1:], 0) / \
-               float(totalCount.get(triplet[0][1:], 1))
+        return guarantee(detailedCount.get(triplet[0][1:], dict()).get(triplet[1][1:], 0) /
+                         float(totalCount.get(triplet[0][1:], 1)), 0.1, 1)
 
     filename = 'PaperAuthorAffiliations.data'
     data = loadData(filename)
@@ -179,7 +183,8 @@ def workIn():
 def authorIsInField():
     # relation = 1, head = author, tail = field
     def calcWeight(triplet):
-        return detailedCount.get(triplet[0], dict()).get(triplet[1], 0) / float(totalCount.get(triplet[0], 1))
+        return guarantee(detailedCount.get(triplet[0], dict()).get(triplet[1], 0) /
+                         float(totalCount.get(triplet[0], 1)), 0.1, 1)
 
     totalCount = dict()  # Total number of papers published by an author
     detailedCount = dict()  # Number of papers published by an author in a field
@@ -204,7 +209,7 @@ def authorIsInField():
 def paperIsWrittenBy():
     # relaation = 2, head = paper, tail = author
     def calcWeight(seqNum):
-        return 1.0 / min(float(seqNum), 10.0)
+        return guarantee(1 / float(seqNum), 0.1, 1)
 
     filename = 'PaperAuthorAffiliations.data'
     data = loadData(filename)
@@ -218,14 +223,14 @@ def paperIsInField():
     # relation = 3, head = paper, tail = field
     f = open(weightPath, 'a')
     for triplet in triplets[3]:
-        f.write(buildWeightString(3, triplet[0], triplet[1], 1.0))
+        f.write(buildWeightString(3, triplet[0], triplet[1], 1))
     f.close()
 
 
 def paperPublishOn():
     # relation = 4, head = paper, tail = venue
     def calcWeight(paper):
-        return max(1 - 0.04 * (lastYear - paperYears.get(paper, 0)), 0.2)
+        return guarantee(max(1 - 0.05 * (lastYear - paperYears.get(paper, 0)), 0), 0.1, 1)
 
     filename = 'PaperYears.data'
     data = loadData(filename)
@@ -244,7 +249,8 @@ def paperPublishOn():
 def paperCitPaper():
     # relation =5, head = paper, tail = paper
     def calcWeight(triplet):
-        return max(1 - 0.04 * abs(paperYears.get(triplet[0], 1000) - paperYears.get(triplet[1], 0)), 0.2)
+        return guarantee(max(1 - 0.05 * abs(paperYears.get(triplet[0], 1000) - paperYears.get(triplet[1], 0)), 0.1),
+                         0.1, 1)
 
     filename = 'PaperYears.data'
     data = loadData(filename)
