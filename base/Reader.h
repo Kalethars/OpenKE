@@ -103,12 +103,12 @@ void importTrainFiles() {
 	left_mean = (REAL *)calloc(relationTotal,sizeof(REAL));
 	right_mean = (REAL *)calloc(relationTotal,sizeof(REAL));
 	for (INT i = 0; i < entityTotal; i++) {
-		for (INT j = lefHead[i] + 1; j <= rigHead[i]; j++)
+		for (INT j = lefHead[i] + 1; j < rigHead[i]; j++)
 			if (trainHead[j].r != trainHead[j - 1].r)
 				left_mean[trainHead[j].r] += 1.0;
 		if (lefHead[i] <= rigHead[i])
 			left_mean[trainHead[lefHead[i]].r] += 1.0;
-		for (INT j = lefTail[i] + 1; j <= rigTail[i]; j++)
+		for (INT j = lefTail[i] + 1; j < rigTail[i]; j++)
 			if (trainTail[j].r != trainTail[j - 1].r)
 				right_mean[trainTail[j].r] += 1.0;
 		if (lefTail[i] <= rigTail[i])
@@ -202,46 +202,20 @@ void importTestFiles() {
 	validRig[validList[validTotal - 1].r] = validTotal - 1;
 }
 
-INT* head_lef;
-INT* head_rig;
-INT* tail_lef;
-INT* tail_rig;
-INT* head_type;
-INT* tail_type;
+
+INT head_lef[10000];
+INT head_rig[10000];
+INT tail_lef[10000];
+INT tail_rig[10000];
+INT head_type[1000000];
+INT tail_type[1000000];
 
 extern "C"
 void importTypeFiles() {
-
-	head_lef = (INT *)calloc(relationTotal, sizeof(INT));
-	head_rig = (INT *)calloc(relationTotal, sizeof(INT));
-	tail_lef = (INT *)calloc(relationTotal, sizeof(INT));
-	tail_rig = (INT *)calloc(relationTotal, sizeof(INT));
-
 	INT total_lef = 0;
     INT total_rig = 0;
     FILE* f_type = fopen((inPath + "type_constrain.txt").c_str(),"r");
     INT tmp;
-    tmp = fscanf(f_type, "%ld", &tmp);
-    for (INT i = 0; i < relationTotal; i++) {
-        INT rel, tot;
-        tmp = fscanf(f_type, "%ld %ld", &rel, &tot);
-        for (INT j = 0; j < tot; j++) {
-            tmp = fscanf(f_type, "%ld", &tmp);
-            total_lef++;
-        }
-        tmp = fscanf(f_type, "%ld%ld", &rel, &tot);
-        for (INT j = 0; j < tot; j++) {
-            tmp = fscanf(f_type, "%ld", &tmp);
-            total_rig++;
-        }
-    }
-    fclose(f_type);
-
-	head_type = (INT *)calloc(total_lef, sizeof(INT));
-	tail_type = (INT *)calloc(total_rig, sizeof(INT));
-	total_lef = 0;
-    total_rig = 0;
-    f_type = fopen((inPath + "type_constrain.txt").c_str(),"r");
     tmp = fscanf(f_type, "%ld", &tmp);
     for (INT i = 0; i < relationTotal; i++) {
         INT rel, tot;
