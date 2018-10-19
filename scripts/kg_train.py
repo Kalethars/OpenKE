@@ -74,7 +74,7 @@ def initParams(map):
     return params
 
 
-def parseParams(line):
+def parseParams(line, output=True):
     global logPath
 
     paramMap = dict()
@@ -84,15 +84,16 @@ def parseParams(line):
         if pos >= 0:
             paramMap[each[:pos]] = each[pos + 1:]
 
-    f = open(logPath, 'a')
-    f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-    f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-    f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-    f.write('--margin:\t%f\n' % float(paramMap['margin']))
-    f.write('--bern:\t%d\n' % int(paramMap['bern']))
-    f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
-    f.write('\n')
-    f.close()
+    if output:
+        f = open(logPath, 'a')
+        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
+        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
+        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
+        f.write('--margin:\t%f\n' % float(paramMap['margin']))
+        f.write('--bern:\t%d\n' % int(paramMap['bern']))
+        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
+        f.write('\n')
+        f.close()
 
     return paramMap
 
@@ -249,7 +250,7 @@ f = open(parsedConfig.config, 'r')
 configLines = f.readlines()
 f.close()
 
-map = parseParams(configLines[0])
+map = parseParams(configLines[0], False)
 threads = int(map['threads'])
 start = int(map['start'])
 count = int(map['count'])
