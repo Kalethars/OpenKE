@@ -19,6 +19,9 @@ Triple *trainRel;
 INT *testLef, *testRig;
 INT *validLef, *validRig;
 
+// Only "filter" result is counted
+REAL *meanRank, *meanRankReciprocal, *hitAt10, *hitAt3, *hitAt1;
+
 extern "C"
 void importTrainFiles() {
 
@@ -187,7 +190,6 @@ void importTestFiles() {
 	testLef[testList[0].r] = 0;
 	testRig[testList[testTotal - 1].r] = testTotal - 1;
 
-
 	validLef = (INT *)calloc(relationTotal, sizeof(INT));
 	validRig = (INT *)calloc(relationTotal, sizeof(INT));
 	memset(validLef, -1, sizeof(INT)*relationTotal);
@@ -200,6 +202,19 @@ void importTestFiles() {
 	}
 	validLef[validList[0].r] = 0;
 	validRig[validList[validTotal - 1].r] = validTotal - 1;
+
+    // Left: 0 ~ relationTotal-1
+    // Right: relationTotal ~ 2*relationTotal-1
+	meanRank = (REAL *)calloc(relationTotal*2, sizeof(REAL));
+	meanRankReciprocal = (REAL *)calloc(relationTotal*2, sizeof(REAL));
+	hitAt10 = (REAL *)calloc(relationTotal*2, sizeof(REAL));
+	hitAt3 = (REAL *)calloc(relationTotal*2, sizeof(REAL));
+	hitAt1 = (REAL *)calloc(relationTotal*2, sizeof(REAL));
+	memset(meanRank, 0, sizeof(REAL)*relationTotal*2);
+	memset(meanRankReciprocal, 0, sizeof(REAL)*relationTotal*2);
+	memset(hitAt10, 0, sizeof(REAL)*relationTotal*2);
+	memset(hitAt3, 0, sizeof(REAL)*relationTotal*2);
+	memset(hitAt1, 0, sizeof(REAL)*relationTotal*2);
 }
 
 

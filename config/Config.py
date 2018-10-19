@@ -10,9 +10,9 @@ import json
 
 class Config(object):
     def __init__(self):
-        parentDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.parentDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-        self.lib = ctypes.cdll.LoadLibrary(parentDir + "/release/Base.so")
+        self.lib = ctypes.cdll.LoadLibrary(self.parentDir + "/release/Base.so")
         self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
                                       ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
         self.lib.getHeadBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]

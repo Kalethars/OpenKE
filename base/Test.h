@@ -50,15 +50,26 @@ void testHead(REAL *con) {
         }
     }
 
-    if (l_filter_s < 10) l_filter_tot += 1;
+    if (l_filter_s < 10) {
+        l_filter_tot += 1;
+        hitAt10[r] += 1;
+    }
     if (l_s < 10) l_tot += 1;
-    if (l_filter_s < 3) l3_filter_tot += 1;
+    if (l_filter_s < 3) {
+        l3_filter_tot += 1;
+        hitAt3[r] += 1;
+    }
     if (l_s < 3) l3_tot += 1;
-    if (l_filter_s < 1) l1_filter_tot += 1;
+    if (l_filter_s < 1) {
+        l1_filter_tot += 1;
+        hitAt1[r] += 1;
+    }
     if (l_s < 1) l1_tot += 1;
     l_filter_rank += (l_filter_s+1);
+    meanRank[r] += (l_filter_s+1);
     l_rank += (1+l_s);
     l_filter_reci_rank += 1.0/(l_filter_s+1);
+    meanRankReciprocal[r] += 1.0/(l_filter_s+1);
     l_reci_rank += 1.0/(l_s+1);
     lastHead++;
     printf("l_filter_s: %ld\n", l_filter_s);
@@ -85,15 +96,26 @@ void testTail(REAL *con) {
         }
     }
 
-    if (r_filter_s < 10) r_filter_tot += 1;
+    if (r_filter_s < 10) {
+        r_filter_tot += 1;
+        hitAt10[relationTotal+r] += 1;
+    }
     if (r_s < 10) r_tot += 1;
-    if (r_filter_s < 3) r3_filter_tot += 1;
+    if (r_filter_s < 3) {
+        r3_filter_tot += 1;
+        hitAt3[relationTotal+r] += 1;
+    }
     if (r_s < 3) r3_tot += 1;
-    if (r_filter_s < 1) r1_filter_tot += 1;
+    if (r_filter_s < 1) {
+        r1_filter_tot += 1;
+        hitAt1[relationTotal+r] += 1;
+    }
     if (r_s < 1) r1_tot += 1;
     r_filter_rank += (1+r_filter_s);
+    meanRank[relationTotal+r] += (1+r_filter_s);
     r_rank += (1+r_s);
     r_filter_reci_rank += 1.0/(1+r_filter_s);
+    meanRankReciprocal[relationTotal+r] += 1.0/(1+r_filter_s);
     r_reci_rank += 1.0/(1+r_s);
     lastTail++;
     printf("r_filter_s: %ld\n", r_filter_s);
@@ -128,6 +150,16 @@ void test_link_prediction(const char* output) {
     r_filter_tot /= testTotal;
     r3_filter_tot /= testTotal;
     r1_filter_tot /= testTotal;
+
+    // relation specific
+    for (i = 0; i < relationTotal*2; i++){
+        meanRank[i] /= testTotal;
+        meanRankReciprocal[i] /= testTotal;
+        hitAt10[i] /= testTotal;
+        hitAt3[i] /= testTotal;
+        hitAt1[i] /= testTotal;
+    }
+
     FILE* fp=fopen(output, "a");
     fprintf(fp,"Overall results:\n");
     
@@ -141,6 +173,25 @@ void test_link_prediction(const char* output) {
     fprintf(fp,"r(filter):\t\t %f \t %f \t %f \t %f \t %f \n", r_filter_reci_rank, r_filter_rank, r_filter_tot, r3_filter_tot, r1_filter_tot);
     fprintf(fp,"averaged(filter):\t %f \t %f \t %f \t %f \t %f \n",
             (l_filter_reci_rank+r_filter_reci_rank)/2, (l_filter_rank+r_filter_rank)/2, (l_filter_tot+r_filter_tot)/2, (l3_filter_tot+r3_filter_tot)/2, (l1_filter_tot+r1_filter_tot)/2);
+    fprintf(fp,"\n");
+    for (i = 0; i < relationTotal; i++){
+        fprintf(fp,"Relation %i:\t\t\t MRR \t\t MR \t\t hit@10 \t hit@3  \t hit@1 \n",i);
+        fprintf(fp,"Head Prediction:\t\t\t %f \t %f \t %f \t %f \t %f \n",
+                meanRank[i],
+                meanRankReciprocal[i],
+                hitAt10[i],
+                hitAt3[i],
+                hitAt1[i]
+        );
+        fprintf(fp,"Tail Prediction:\t\t\t %f \t %f \t %f \t %f \t %f \n",
+                meanRank[relationTotal+i],
+                meanRankReciprocal[relationTotal+i],
+                hitAt10[relationTotal+i]
+                hitAt3[relationTotal+i]
+                hitAt1[relationTotal+i]
+        );
+    }
+    fprintf(fp,"\n");
     fclose(fp);
 }
 
