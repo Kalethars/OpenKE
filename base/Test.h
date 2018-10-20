@@ -193,7 +193,6 @@ void test_link_prediction(const char* output) {
                 hitAt1[relationTotal+i]
         );
     }
-    fprintf(fp,"\n");
     fclose(fp);
 }
 

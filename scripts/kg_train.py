@@ -236,8 +236,6 @@ f.close()
 
 map = parseParams(configLines[0], False)
 threads = int(map['threads'])
-start = int(map['start'])
-count = int(map['count'])
 dataset = map['dataset']
 datasetPath = parentDir + '/benchmarks/' + map['dataset'] + '/'
 
