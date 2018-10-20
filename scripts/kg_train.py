@@ -239,8 +239,8 @@ threads = int(map['threads'])
 dataset = map['dataset']
 datasetPath = parentDir + '/benchmarks/' + map['dataset'] + '/'
 
-order = int(parsedConfig.order)
-configLine = configLines[order]
+order = str(parsedConfig.order)
+configLine = configLines[parsedConfig.order]
 
 method = parsedConfig.method.lower()
 if method == 'transe':
