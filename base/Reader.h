@@ -21,6 +21,7 @@ INT *validLef, *validRig;
 
 // Only "filter" result is counted
 REAL *meanRank, *meanRankReciprocal, *hitAt10, *hitAt3, *hitAt1;
+INT *relationCount;
 
 extern "C"
 void importTrainFiles() {
@@ -215,6 +216,9 @@ void importTestFiles() {
 	memset(hitAt10, 0, sizeof(REAL)*relationTotal*2);
 	memset(hitAt3, 0, sizeof(REAL)*relationTotal*2);
 	memset(hitAt1, 0, sizeof(REAL)*relationTotal*2);
+
+	relationCount = (INT *)calloc(relationTotal*2, sizeof(INT));
+	memset(relationCount, 0, sizeof(INT)*relationTotal*2);
 }
 
 

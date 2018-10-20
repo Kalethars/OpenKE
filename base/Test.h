@@ -50,6 +50,7 @@ void testHead(REAL *con) {
         }
     }
 
+    relationCount[r] += 1;
     if (l_filter_s < 10) {
         l_filter_tot += 1;
         hitAt10[r] += 1;
@@ -96,6 +97,7 @@ void testTail(REAL *con) {
         }
     }
 
+    relationCount[relationTotal+r] += 1;
     if (r_filter_s < 10) {
         r_filter_tot += 1;
         hitAt10[relationTotal+r] += 1;
@@ -153,11 +155,11 @@ void test_link_prediction(const char* output) {
 
     // relation specific
     for (INT i = 0; i < relationTotal*2; i++){
-        meanRank[i] /= testTotal;
-        meanRankReciprocal[i] /= testTotal;
-        hitAt10[i] /= testTotal;
-        hitAt3[i] /= testTotal;
-        hitAt1[i] /= testTotal;
+        meanRank[i] /= relationCount[i];
+        meanRankReciprocal[i] /= relationCount[i];
+        hitAt10[i] /= relationCount[i];
+        hitAt3[i] /= relationCount[i];
+        hitAt1[i] /= relationCount[i];
     }
 
     FILE* fp=fopen(output, "a");
@@ -176,14 +178,14 @@ void test_link_prediction(const char* output) {
     fprintf(fp,"\n");
     for (INT i = 0; i < relationTotal; i++){
         fprintf(fp,"Relation %ld:\t\t\t MRR \t\t MR \t\t hit@10 \t hit@3  \t hit@1 \n", i);
-        fprintf(fp,"Head Prediction:\t\t\t %f \t %f \t %f \t %f \t %f \n",
+        fprintf(fp,"Head Prediction:\t\t %f \t %f \t %f \t %f \t %f \n",
                 meanRank[i],
                 meanRankReciprocal[i],
                 hitAt10[i],
                 hitAt3[i],
                 hitAt1[i]
         );
-        fprintf(fp,"Tail Prediction:\t\t\t %f \t %f \t %f \t %f \t %f \n",
+        fprintf(fp,"Tail Prediction:\t\t %f \t %f \t %f \t %f \t %f \n",
                 meanRank[relationTotal+i],
                 meanRankReciprocal[relationTotal+i],
                 hitAt10[relationTotal+i],

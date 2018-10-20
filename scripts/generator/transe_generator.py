@@ -5,15 +5,16 @@ def buildString(params):
     s = ''
     for (key, value) in params.items():
         s += str(key) + '=' + str(value) + '\t'
-    return s + '\n'
+    return s[:-1] + '\n'
 
 
 def generate(dataset):
     f = open('../config/TransE.config', 'w')
 
-    globalParams = {'threads': 32, 'start': 1, 'count': 256, 'dataset': 'ACE17K' if dataset is None else dataset}
+    globalParams = {'threads': 32, 'dataset': 'ACE17K' if dataset is None else dataset}
     f.write(buildString(globalParams))
 
+    count = 0
     for epoch in [1000, 1500]:
         for nbatches in [100, 200]:
             for alpha in [0.001, 0.01]:
@@ -28,16 +29,27 @@ def generate(dataset):
                                 'bern': bern,
                                 'dimension': dimension
                             }))
+                            count += 1
 
+    f.close()
+
+    f = open('../bash/TransE.sh', 'w')
+    f.write('#!/usr/bin/env bash\n')
+    f.write('source ~/wangrj/tensorflow/bin/activate\n')
+    for i in range(count):
+        f.write(
+            'CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE.config --order=' +
+            str(i + 1) + '\n')
     f.close()
 
 
 def generateStandalone(dataset):
     f = open('../config/TransE_standalone.config', 'w')
 
-    globalParams = {'threads': 4, 'start': 1, 'count': 8, 'dataset': 'ACE17K' if dataset is None else dataset}
+    globalParams = {'threads': 4, 'dataset': 'ACE17K' if dataset is None else dataset}
     f.write(buildString(globalParams))
 
+    count = 0
     for epoch in [1000, 1500]:
         for nbatches in [200]:
             for alpha in [0.001]:
@@ -52,7 +64,17 @@ def generateStandalone(dataset):
                                 'bern': bern,
                                 'dimension': dimension
                             }))
+                            count += 1
 
+    f.close()
+
+    f = open('../bash/TransE_standalone.sh', 'w')
+    f.write('#!/usr/bin/env bash\n')
+    f.write('source ~/wangrj/tensorflow/bin/activate\n')
+    for i in range(count):
+        f.write(
+            'CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=' +
+            str(i + 1) + '\n')
     f.close()
 
 

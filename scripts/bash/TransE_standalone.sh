@@ -1,2 +1,10 @@
 #!/usr/bin/env bash
-CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config
+source ~/wangrj/tensorflow/bin/activate
+CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=1
+CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=2
+CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=3
+CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=4
+CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=5
+CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=6
+CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=7
+CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE_standalone.config --order=8

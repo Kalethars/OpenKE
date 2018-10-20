@@ -45,12 +45,15 @@ def mkdir(folders):
 
 
 def initVariables(co_name):
-    global logPath, module, startTime
+    global logPath, module, startTime, order
 
     module = ''
     startTime = time.time()
     logPath = parentDir + '/log/' + co_name + '.log'
-    log = open(logPath, 'w')
+    if order == 1:
+        log = open(logPath, 'w')
+    else:
+        log = open(logPath, 'a')
     log.close()
 
 
@@ -99,142 +102,122 @@ def parseParams(line, output=True):
 
 
 def TransE():
-    global logPath
+    global logPath, order, configLine
 
     name = 'TransE'
     initVariables(name)
 
-    begin(name)
+    begin(name + '_' + str(order))
 
-    for i in range(start, start + count):
-        begin(name + '_' + str(i))
+    paramMap = parseParams(configLine)
 
-        paramMap = parseParams(configLines[i])
+    params = initParams(paramMap)
+    params.set_in_path(datasetPath)
+    params.set_work_threads(threads)
+    params.set_opt_method("SGD")
 
-        params = initParams(paramMap)
-        params.set_in_path(datasetPath)
-        params.set_work_threads(threads)
-        params.set_opt_method("SGD")
+    mkdir(['res', dataset, name, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/embedding.vec.json'
 
-        mkdir(['res', dataset, name, str(i)])
-        exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
+    params.set_export_files(exportPath)
+    params.set_out_files(outPath)
 
-        params.set_export_files(exportPath)
-        params.set_out_files(outPath)
-
-        params.init()
-        params.set_model(models.TransE)
-        params.run()
-        params.test(logPath)
-
-        end()
+    params.init()
+    params.set_model(models.TransE)
+    params.run()
+    params.test(logPath)
 
     end()
 
 
 def TransH():
-    global logPath
+    global logPath, order, configLine
 
     name = 'TransH'
     initVariables(name)
 
-    begin(name)
+    begin(name + '_' + order)
 
-    for i in range(start, start + count):
-        begin(name + '_' + str(i))
+    paramMap = parseParams(configLine)
 
-        paramMap = parseParams(configLines[i])
+    params = initParams(paramMap)
+    params.set_in_path(datasetPath)
+    params.set_work_threads(threads)
+    params.set_opt_method("SGD")
 
-        params = initParams(paramMap)
-        params.set_in_path(datasetPath)
-        params.set_work_threads(threads)
-        params.set_opt_method("SGD")
+    mkdir(['res', dataset, name, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/embedding.vec.json'
 
-        mkdir(['res', dataset, name, str(i)])
-        exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
+    params.set_export_files(exportPath)
+    params.set_out_files(outPath)
 
-        params.set_export_files(exportPath)
-        params.set_out_files(outPath)
-
-        params.init()
-        params.set_model(models.TransE)
-        params.run()
-        params.test(logPath)
-
-        end()
+    params.init()
+    params.set_model(models.TransE)
+    params.run()
+    params.test(logPath)
 
     end()
 
 
 def DistMult():
-    global logPath
+    global logPath, order, configLine
 
     name = 'DistMult'
     initVariables(name)
 
-    begin(name)
+    begin(name + '_' + order)
 
-    for i in range(start, start + count):
-        begin(name + '_' + str(i))
+    paramMap = parseParams(configLine)
 
-        paramMap = parseParams(configLines[i])
+    params = initParams(paramMap)
+    params.set_in_path(datasetPath)
+    params.set_work_threads(threads)
+    params.set_opt_method("Adagrad")
 
-        params = initParams(paramMap)
-        params.set_in_path(datasetPath)
-        params.set_work_threads(threads)
-        params.set_opt_method("Adagrad")
+    mkdir(['res', dataset, name, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/embedding.vec.json'
 
-        mkdir(['res', dataset, name, str(i)])
-        exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
+    params.set_export_files(exportPath)
+    params.set_out_files(outPath)
 
-        params.set_export_files(exportPath)
-        params.set_out_files(outPath)
-
-        params.init()
-        params.set_model(models.DistMult)
-        params.run()
-        params.test(logPath)
-
-        end()
+    params.init()
+    params.set_model(models.DistMult)
+    params.run()
+    params.test(logPath)
 
     end()
 
 
 def ComplEx():
-    global logPath
+    global logPath, order, configLine
 
     name = 'ComplEx'
     initVariables(name)
 
-    begin(name)
+    begin(name + '_' + order)
 
-    for i in range(start, start + count):
-        begin(name + '_' + str(i))
+    paramMap = parseParams(configLine)
 
-        paramMap = parseParams(configLines[i])
+    params = initParams(paramMap)
+    params.set_in_path(datasetPath)
+    params.set_work_threads(threads)
+    params.set_lmbda(float(paramMap['lmbda']))
+    params.set_opt_method("Adagrad")
 
-        params = initParams(paramMap)
-        params.set_in_path(datasetPath)
-        params.set_work_threads(threads)
-        params.set_lmbda(float(paramMap['lmbda']))
-        params.set_opt_method("Adagrad")
+    mkdir(['res', dataset, name, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/embedding.vec.json'
 
-        mkdir(['res', dataset, name, str(i)])
-        exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/model.vec.tf'
-        outPath = parentDir + '/res/' + dataset + '/' + name + '/' + str(i) + '/embedding.vec.json'
+    params.set_export_files(exportPath)
+    params.set_out_files(outPath)
 
-        params.set_export_files(exportPath)
-        params.set_out_files(outPath)
-
-        params.init()
-        params.set_model(models.DistMult)
-        params.run()
-        params.test(logPath)
-
-        end()
+    params.init()
+    params.set_model(models.DistMult)
+    params.run()
+    params.test(logPath)
 
     end()
 
@@ -244,6 +227,7 @@ mkdir(['res'])
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, required=True)
 parser.add_argument('--method', type=str, required=True)
+parser.add_argument('--order', type=int, required=True)
 parsedConfig = parser.parse_args()
 
 f = open(parsedConfig.config, 'r')
@@ -256,6 +240,9 @@ start = int(map['start'])
 count = int(map['count'])
 dataset = map['dataset']
 datasetPath = parentDir + '/benchmarks/' + map['dataset'] + '/'
+
+order = int(parsedConfig.order)
+configLine = configLines[order]
 
 method = parsedConfig.method.lower()
 if method == 'transe':
