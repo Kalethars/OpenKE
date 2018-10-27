@@ -179,15 +179,15 @@ void test_link_prediction(const char* output) {
     for (INT i = 0; i < relationTotal; i++){
         fprintf(fp,"Relation %ld:\t\t\t MRR \t\t MR \t\t hit@10 \t hit@3  \t hit@1 \n", i);
         fprintf(fp,"Head Prediction:\t\t %f \t %f \t %f \t %f \t %f \n",
-                meanRank[i],
                 meanRankReciprocal[i],
+                meanRank[i],
                 hitAt10[i],
                 hitAt3[i],
                 hitAt1[i]
         );
         fprintf(fp,"Tail Prediction:\t\t %f \t %f \t %f \t %f \t %f \n",
-                meanRank[relationTotal+i],
                 meanRankReciprocal[relationTotal+i],
+                meanRank[relationTotal+i],
                 hitAt10[relationTotal+i],
                 hitAt3[relationTotal+i],
                 hitAt1[relationTotal+i]
