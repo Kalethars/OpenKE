@@ -25,8 +25,7 @@ def formattedRound(number, digit):
 
 def parameterValueToString(parameterValue, parameterName):
     if parameterName == 'alpha':
-        tmpString = ' ' + str(parameterValue)
-        return str(tmpString.strip('0')[1:])
+        return str(str(parameterValue).rstrip('0'))
     elif parameterName in ['bern', 'dimension', 'epoch', 'nbatches']:
         return str(round(parameterValue))
     elif parameterName == 'margin':
@@ -61,7 +60,7 @@ for line in s:
     if len(splited) == 2:
         relationMap[splited[1][:-1]] = splited[0]
 
-method = 'TransE_0'
+method = 'TransE_1'
 resultPath = '../log/%s.log' % method
 f = open(resultPath, 'r')
 s = f.readlines()
