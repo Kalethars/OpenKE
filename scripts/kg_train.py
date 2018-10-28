@@ -50,7 +50,7 @@ def initVariables(co_name):
     module = ''
     startTime = time.time()
     logPath = parentDir + '/log/' + co_name + '.log'
-    if order == 1:
+    if order == '1':
         log = open(logPath, 'w')
     else:
         log = open(logPath, 'a')

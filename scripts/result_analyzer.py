@@ -6,8 +6,29 @@ def buildEquation(name, value):
     return str(name) + ' = ' + str(round(value, 6))
 
 
-def score(averageResult):
-    return averageResult['hit@10'] + averageResult['hit@3'] + averageResult['hit@1'] + averageResult['MRR']
+def solveMetricMistake(metric):
+    if metric == 'MR':
+        return 'MRR'
+    elif metric == 'MRR':
+        return 'MR'
+    else:
+        return metric
+
+
+def score(result):
+    if result.get('scoreResults', 0) == 0:
+        sumByMetric = dict()
+        result['scoreResults'] = dict()
+        for relationName in result['relationResults'].keys():
+            for predictEntity in result['relationResults'][relationName].keys():
+                for metric in result['relationResults'][relationName][predictEntity].keys():
+                    sumByMetric[metric] = sumByMetric.get(metric, 0) + \
+                                          result['relationResults'][relationName][predictEntity][metric]
+        relationNumber = len(result['relationResults'].keys())
+        for metric in sumByMetric.keys():
+            result['scoreResults'][solveMetricMistake(metric)] = round(sumByMetric[metric] / (relationNumber * 2), 6)
+    scoreResults = result['scoreResults']
+    return scoreResults['hit@10'] + scoreResults['hit@3'] + scoreResults['hit@1'] + scoreResults['MRR']
 
 
 dataset = 'ACE17K'
@@ -91,14 +112,14 @@ for rawResult in rawResults:
                     results[seqNum]['relationResults'][relationName][predictEntity][metrics[k]] = float(each)
                     k += 1
 
-sortedResults = sorted(results.keys(), key=lambda x: score(results[x]['averageResults']), reverse=True)
+sortedResults = sorted(results.keys(), key=lambda x: score(results[x]), reverse=True)
 for i in range(len(sortedResults)):
     print(i + 1)
     print('seqNum: ' + str(sortedResults[i]))
-    print('score: ' + str(round(score(results[sortedResults[i]]['averageResults']), 6)))
+    print('score: ' + str(round(score(results[sortedResults[i]]), 6)))
     print('time: ' + str(results[sortedResults[i]]['time']))
     print(results[sortedResults[i]]['parameters'])
-    print(results[sortedResults[i]]['averageResults'])
+    print(results[sortedResults[i]]['scoreResults'])
     for relationName in relationMap.values():
         print(relationName + ': ', end='')
         print(results[sortedResults[i]]['relationResults'][relationName])
@@ -106,7 +127,7 @@ for i in range(len(sortedResults)):
 
 parameterMetric = dict()
 for seqNum in results.keys():
-    for metric in list(results[seqNum]['averageResults'].keys()) + ['time', 'score']:
+    for metric in list(results[seqNum]['scoreResults'].keys()) + ['time', 'score']:
         for parameterName in results[seqNum]['parameters'].keys():
             if parameterMetric.get(parameterName, 0) == 0:
                 parameterMetric[parameterName] = dict()
@@ -116,11 +137,11 @@ for seqNum in results.keys():
             if parameterMetric[parameterName][parameterValue].get(metric, 0) == 0:
                 parameterMetric[parameterName][parameterValue][metric] = []
             if not metric in ['time', 'score']:
-                parameterMetric[parameterName][parameterValue][metric].append(results[seqNum]['averageResults'][metric])
+                parameterMetric[parameterName][parameterValue][metric].append(results[seqNum]['scoreResults'][metric])
             elif metric == 'time':
                 parameterMetric[parameterName][parameterValue][metric].append(results[seqNum]['time'])
             elif metric == 'score':
-                parameterMetric[parameterName][parameterValue][metric].append(score(results[seqNum]['averageResults']))
+                parameterMetric[parameterName][parameterValue][metric].append(score(results[seqNum]))
 
 for parameterName in sorted(parameterMetric.keys()):
     for parameterValue in sorted(parameterMetric[parameterName].keys()):
@@ -134,12 +155,19 @@ for parameterName in sorted(parameterMetric.keys()):
 
 
 def outputAsLatex(parameterMetric):
+    def formattedRound(number, digit):
+        if digit == 0:
+            return str(round(number))
+        else:
+            rounded = str(round(number, digit))
+            return rounded + (digit - len(rounded.split('.')[1])) * '0'
+
     for parameterName in sorted(parameterMetric.keys()):
         for parameterValue in sorted(parameterMetric[parameterName].keys()):
             print('$\\mathrm{' + parameterName + '}=' + str(parameterValue) + '$ ', end='')
             for metric in [('MRR', 4), ('hit@10', 4), ('hit@3', 4), ('hit@1', 4), ('time', 0), ('score', 3)]:
                 print('& ' + str(
-                    round(average(parameterMetric[parameterName][parameterValue][metric[0]]), metric[1])) + ' ',
+                    formattedRound(average(parameterMetric[parameterName][parameterValue][metric[0]]), metric[1])) + ' ',
                       end='')
             print('\\\\')
 
