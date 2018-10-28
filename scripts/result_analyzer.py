@@ -15,6 +15,24 @@ def solveMetricMistake(metric):
         return metric
 
 
+def formattedRound(number, digit):
+    if digit == 0:
+        return str(round(number))
+    else:
+        rounded = str(round(number, digit))
+        return rounded + (digit - len(rounded.split('.')[1])) * '0'
+
+
+def parameterValueToString(parameterValue, parameterName):
+    if parameterName == 'alpha':
+        tmpString = ' ' + str(parameterValue)
+        return str(tmpString.strip('0')[1:])
+    elif parameterName in ['bern', 'dimension', 'epoch', 'nbatches']:
+        return str(round(parameterValue))
+    elif parameterName == 'margin':
+        return str(formattedRound(parameterValue, 1))
+
+
 def score(result):
     if result.get('scoreResults', 0) == 0:
         sumByMetric = dict()
@@ -43,7 +61,7 @@ for line in s:
     if len(splited) == 2:
         relationMap[splited[1][:-1]] = splited[0]
 
-method = 'TransE'
+method = 'TransE_0'
 resultPath = '../log/%s.log' % method
 f = open(resultPath, 'r')
 s = f.readlines()
@@ -154,22 +172,35 @@ for parameterName in sorted(parameterMetric.keys()):
         print()
 
 
-def outputAsLatex(parameterMetric):
-    def formattedRound(number, digit):
-        if digit == 0:
-            return str(round(number))
-        else:
-            rounded = str(round(number, digit))
-            return rounded + (digit - len(rounded.split('.')[1])) * '0'
+def outputAsLatexForSortedResults(sortedResults, results):
+    if len(sortedResults) < 6:
+        return
+    for i in [0, 1, 2, -3, -2, -1]:
+        print('\t', end='')
+        print(i if i >= 0 else len(sortedResults) + i + 1, end=' ')
+        for parameterName in sorted(results[sortedResults[i]]['parameters'].keys()):
+            print('& ' + parameterValueToString(results[sortedResults[i]]['parameters'][parameterName], parameterName),
+                  end=' ')
+        for metric in [('MRR', 4), ('hit@10', 4), ('hit@3', 4), ('hit@1', 4)]:
+            print('& ' + formattedRound(results[sortedResults[i]]['scoreResults'][metric[0]], metric[1]), end=' ')
+        print('& ' + formattedRound(results[sortedResults[i]]['time'], 0), end=' ')
+        print('& ' + formattedRound(score(results[sortedResults[i]]), 3), end=' ')
+        print('\\\\')
+    print()
 
+
+def outputAsLatexForAverageResults(parameterMetric):
     for parameterName in sorted(parameterMetric.keys()):
         for parameterValue in sorted(parameterMetric[parameterName].keys()):
-            print('$\\mathrm{' + parameterName + '}=' + str(parameterValue) + '$ ', end='')
+            print('\t', end='')
+            print('$\\mathrm{' + parameterName + '}=' + str(parameterValue) + '$', end=' ')
             for metric in [('MRR', 4), ('hit@10', 4), ('hit@3', 4), ('hit@1', 4), ('time', 0), ('score', 3)]:
                 print('& ' + str(
-                    formattedRound(average(parameterMetric[parameterName][parameterValue][metric[0]]), metric[1])) + ' ',
-                      end='')
+                    formattedRound(average(parameterMetric[parameterName][parameterValue][metric[0]]), metric[1])),
+                      end=' ')
             print('\\\\')
+    print()
 
 
-outputAsLatex(parameterMetric)
+outputAsLatexForSortedResults(sortedResults, results)
+outputAsLatexForAverageResults(parameterMetric)

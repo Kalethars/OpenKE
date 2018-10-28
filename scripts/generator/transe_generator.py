@@ -3,8 +3,8 @@ import argparse
 
 def buildString(params):
     s = ''
-    for (key, value) in params.items():
-        s += str(key) + '=' + str(value) + '\t'
+    for key in sorted(params.keys()):
+        s += str(key) + '=' + str(params[key]) + '\t'
     return s[:-1] + '\n'
 
 
@@ -15,12 +15,12 @@ def generate(dataset):
     f.write(buildString(globalParams))
 
     count = 0
-    for epoch in [1500, 2000, 2500]:
+    for epoch in [2500, 5000]:
         for nbatches in [100]:
-            for alpha in [0.001, 0.01]:
-                for margin in [1, 2]:
+            for alpha in [0.0005, 0.001, 0.002]:
+                for margin in [2, 3]:
                     for bern in [0]:
-                        for dimension in [250, 300, 400]:
+                        for dimension in [400, 1000]:
                             f.write(buildString({
                                 'epoch': epoch,
                                 'nbatches': nbatches,
@@ -38,7 +38,7 @@ def generate(dataset):
     f.write('source ~/wangrj/tensorflow/bin/activate\n')
     for i in range(count):
         f.write(
-            'CUDA_VISIBLE_DEVICES="0" python ../kg_train.py --method=TransE --config=../config/TransE.config --order=' +
+            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=TransE --config=../config/TransE.config --order=' +
             str(i + 1) + '\n')
     f.close()
 
