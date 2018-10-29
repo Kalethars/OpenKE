@@ -62,8 +62,8 @@ for line in s:
     if len(splited) == 2:
         relationMap[splited[1][:-1]] = splited[0]
 
-method = 'TransE_1'
-metricMistake = True
+method = 'TransE'
+metricMistake = False
 resultPath = '../log/%s.log' % method
 f = open(resultPath, 'r')
 s = f.readlines()

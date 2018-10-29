@@ -17,8 +17,8 @@ def generate(dataset):
     count = 0
     for epoch in [5000, 2500, 1500]:
         for nbatches in [100]:
-            for alpha in [0.0005, 0.001, 0.002, 0.01]:
-                for margin in [2, 3]:
+            for alpha in [0.001]:
+                for margin in [2]:
                     for bern in [0]:
                         for dimension in [1000, 500, 250]:
                             f.write(buildString({
@@ -52,8 +52,8 @@ def generateStandalone(dataset):
     count = 0
     for epoch in [5000, 2500, 1500]:
         for nbatches in [100]:
-            for alpha in [0.0005, 0.001, 0.002, 0.01]:
-                for margin in [2, 3]:
+            for alpha in [0.001]:
+                for margin in [2]:
                     for bern in [0]:
                         for dimension in [1000, 500, 250]:
                             f.write(buildString({
