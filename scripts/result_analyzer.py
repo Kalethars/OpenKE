@@ -7,6 +7,8 @@ def buildEquation(name, value):
 
 
 def solveMetricMistake(metric):
+    if not metricMistake:
+        return metric
     if metric == 'MR':
         return 'MRR'
     elif metric == 'MRR':
@@ -45,7 +47,7 @@ def score(result):
         for metric in sumByMetric.keys():
             result['scoreResults'][solveMetricMistake(metric)] = round(sumByMetric[metric] / (relationNumber * 2), 6)
     scoreResults = result['scoreResults']
-    return scoreResults['hit@10'] + scoreResults['hit@3'] + scoreResults['hit@1'] + scoreResults['MRR']
+    return scoreResults['MRR'] * (scoreResults['hit@10'] + scoreResults['hit@3'] + scoreResults['hit@1'])
 
 
 dataset = 'ACE17K'
@@ -61,6 +63,7 @@ for line in s:
         relationMap[splited[1][:-1]] = splited[0]
 
 method = 'TransE_1'
+metricMistake = True
 resultPath = '../log/%s.log' % method
 f = open(resultPath, 'r')
 s = f.readlines()
