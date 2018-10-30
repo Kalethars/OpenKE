@@ -260,7 +260,7 @@ parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=True)
 parsedConfig = parser.parse_args()
 
-f = open(configName, 'r')
+f = open(parsedConfig.config, 'r')
 configLines = f.readlines()
 f.close()
 configName = parsedConfig.config.split('.')[0]
