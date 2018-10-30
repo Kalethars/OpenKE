@@ -44,12 +44,12 @@ def mkdir(folders):
             os.mkdir(path)
 
 
-def initVariables(co_name):
-    global logPath, module, startTime, order
+def initVariables():
+    global logPath, module, startTime, order, configName
 
     module = ''
     startTime = time.time()
-    logPath = parentDir + '/log/' + co_name + '.log'
+    logPath = parentDir + '/log/' + configName + '.log'
     if order == '1':
         log = open(logPath, 'w')
     else:
@@ -102,10 +102,10 @@ def parseParams(line, output=True):
 
 
 def TransE():
-    global logPath, order, configLine
+    global logPath, order, configLine, configName
 
     name = 'TransE'
-    initVariables(name)
+    initVariables()
 
     begin(name + '_' + str(order))
 
@@ -116,9 +116,9 @@ def TransE():
     params.set_work_threads(threads)
     params.set_opt_method("SGD")
 
-    mkdir(['res', dataset, name, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/embedding.vec.json'
+    mkdir(['res', dataset, configName, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
@@ -132,10 +132,10 @@ def TransE():
 
 
 def TransH():
-    global logPath, order, configLine
+    global logPath, order, configLine, configName
 
     name = 'TransH'
-    initVariables(name)
+    initVariables()
 
     begin(name + '_' + order)
 
@@ -146,9 +146,9 @@ def TransH():
     params.set_work_threads(threads)
     params.set_opt_method("SGD")
 
-    mkdir(['res', dataset, name, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/embedding.vec.json'
+    mkdir(['res', dataset, configName, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
@@ -162,10 +162,10 @@ def TransH():
 
 
 def DistMult():
-    global logPath, order, configLine
+    global logPath, order, configLine, configName
 
     name = 'DistMult'
-    initVariables(name)
+    initVariables()
 
     begin(name + '_' + order)
 
@@ -176,9 +176,9 @@ def DistMult():
     params.set_work_threads(threads)
     params.set_opt_method("Adagrad")
 
-    mkdir(['res', dataset, name, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/embedding.vec.json'
+    mkdir(['res', dataset, configName, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
@@ -192,10 +192,10 @@ def DistMult():
 
 
 def ComplEx():
-    global logPath, order, configLine
+    global logPath, order, configLine, configName
 
     name = 'ComplEx'
-    initVariables(name)
+    initVariables()
 
     begin(name + '_' + order)
 
@@ -207,15 +207,45 @@ def ComplEx():
     params.set_lmbda(float(paramMap['lmbda']))
     params.set_opt_method("Adagrad")
 
-    mkdir(['res', dataset, name, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + name + '/' + order + '/embedding.vec.json'
+    mkdir(['res', dataset, configName, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
 
     params.init()
     params.set_model(models.DistMult)
+    params.run()
+    params.test(logPath)
+
+    end()
+
+
+def HolE():
+    global logPath, order, configLine, configName
+
+    name = 'HolE'
+    initVariables()
+
+    begin(name + '_' + order)
+
+    paramMap = parseParams(configLine)
+
+    params = initParams(paramMap)
+    params.set_in_path(datasetPath)
+    params.set_work_threads(threads)
+    params.set_opt_method("SGD")
+
+    mkdir(['res', dataset, configName, order])
+    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
+
+    params.set_export_files(exportPath)
+    params.set_out_files(outPath)
+
+    params.init()
+    params.set_model(models.HolE)
     params.run()
     params.test(logPath)
 
@@ -230,9 +260,10 @@ parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=True)
 parsedConfig = parser.parse_args()
 
-f = open(parsedConfig.config, 'r')
+f = open(configName, 'r')
 configLines = f.readlines()
 f.close()
+configName = parsedConfig.config.split('.')[0]
 
 map = parseParams(configLines[0], False)
 threads = int(map['threads'])
@@ -251,5 +282,7 @@ elif method == 'distmult':
     DistMult()
 elif method == 'complex':
     ComplEx()
+elif method == 'hole':
+    HolE()
 else:
     print 'Invalid method!'

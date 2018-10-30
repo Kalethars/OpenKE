@@ -177,9 +177,9 @@ for parameterName in sorted(parameterMetric.keys()):
 def outputAsLatexForSortedResults(sortedResults, results):
     if len(sortedResults) < 6:
         return
-    for i in [0, 1, 2, -3, -2, -1]:
+    for i in [0, 1, 2, -3, -2, -1] if len(sortedResults) >= 10 else range(len(sortedResults)):
         print('\t', end='')
-        print(i if i >= 0 else len(sortedResults) + i + 1, end=' ')
+        print(i + 1 if i >= 0 else len(sortedResults) + i + 1, end=' ')
         for parameterName in sorted(results[sortedResults[i]]['parameters'].keys()):
             print('& ' + parameterValueToString(results[sortedResults[i]]['parameters'][parameterName], parameterName),
                   end=' ')
