@@ -62,7 +62,7 @@ for line in s:
     if len(splited) == 2:
         relationMap[splited[1][:-1]] = splited[0]
 
-method = 'TransE'
+method = 'TransE_detailed'
 metricMistake = False
 resultPath = '../log/%s.log' % method
 f = open(resultPath, 'r')
@@ -175,8 +175,6 @@ for parameterName in sorted(parameterMetric.keys()):
 
 
 def outputAsLatexForSortedResults(sortedResults, results):
-    if len(sortedResults) < 6:
-        return
     for i in [0, 1, 2, -3, -2, -1] if len(sortedResults) >= 10 else range(len(sortedResults)):
         print('\t', end='')
         print(i + 1 if i >= 0 else len(sortedResults) + i + 1, end=' ')
