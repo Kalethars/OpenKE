@@ -21,7 +21,7 @@ def disconnectSQL(conn):
 
 def loadConfig():
     global config
-    f = open(parentDir + '/scripts/database.config')
+    f = open(parentDir + '/scripts/database.config', 'r')
     s = f.read().split('\n')
     f.close()
     config = dict()
