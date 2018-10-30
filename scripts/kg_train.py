@@ -263,7 +263,7 @@ parsedConfig = parser.parse_args()
 f = open(parsedConfig.config, 'r')
 configLines = f.readlines()
 f.close()
-configName = parsedConfig.config.split('.')[0]
+configName = parsedConfig.config.split('.')[-2]
 
 map = parseParams(configLines[0], False)
 threads = int(map['threads'])
