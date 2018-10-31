@@ -20,7 +20,7 @@ def generate(dataset):
             for alpha in [0.001]:
                 for margin in [2]:
                     for bern in [0]:
-                        for dimension in [1000, 500, 250]:
+                        for dimension in [500, 250]:
                             f.write(buildString({
                                 'epoch': epoch,
                                 'nbatches': nbatches,

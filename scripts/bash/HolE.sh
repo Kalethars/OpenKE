@@ -6,6 +6,3 @@ CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../c
 CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../config/HolE.config --order=4
 CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../config/HolE.config --order=5
 CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../config/HolE.config --order=6
-CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../config/HolE.config --order=7
-CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../config/HolE.config --order=8
-CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../config/HolE.config --order=9
