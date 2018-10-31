@@ -34,6 +34,10 @@ def parameterValueToString(parameterValue, parameterName):
         return str(formattedRound(parameterValue, 1))
 
 
+def calcScore(scoreResults):
+    return scoreResults['MRR'] * (scoreResults['hit@10'] + scoreResults['hit@3'] + scoreResults['hit@1'])
+
+
 def score(result):
     if result.get('scoreResults', 0) == 0:
         sumByMetric = dict()
@@ -46,8 +50,7 @@ def score(result):
         relationNumber = len(result['relationResults'].keys())
         for metric in sumByMetric.keys():
             result['scoreResults'][solveMetricMistake(metric)] = round(sumByMetric[metric] / (relationNumber * 2), 6)
-    scoreResults = result['scoreResults']
-    return scoreResults['MRR'] * (scoreResults['hit@10'] + scoreResults['hit@3'] + scoreResults['hit@1'])
+    return calcScore(result['scoreResults'])
 
 
 dataset = 'ACE17K'
@@ -62,7 +65,7 @@ for line in s:
     if len(splited) == 2:
         relationMap[splited[1][:-1]] = splited[0]
 
-method = 'TransE_detailed'
+method = 'TransE'
 metricMistake = False
 resultPath = '../log/%s.log' % method
 f = open(resultPath, 'r')
@@ -202,5 +205,37 @@ def outputAsLatexForAverageResults(parameterMetric):
     print()
 
 
+def outputAsLatexForRelationResults(relationResults):
+    relations = [('paper_is_written_by', 'paper\_is\_written\_by\_author'),
+                 ('paper_is_in_field', 'paper\_is\_in\_field'),
+                 ('paper_publish_on', 'paper\_publish\_on\_venue'),
+                 ('paper_cit_paper', 'paper\_cite\_paper'),
+                 ('work_in', 'author\_work\_in\_institute'),
+                 ('author_is_in_field', 'author\_is\_in\_field'),
+                 ('field_is_part_of', 'field\_is\_part\_of\_field')]
+    typeCHN = {'paper': '论文', 'author': '学者', 'venue': '期刊/会议', 'institute': '机构', 'field': '领域'}
+    for i in range(len(relations)):
+        head = relationResults[relations[i][0]]['Head']
+        tail = relationResults[relations[i][0]]['Tail']
+        print('\t\multirow{2}{*}{%s} & 头实体 & %s & %s & %s & %s & %s & %s \\\\'
+              % (relations[i][1],
+                 typeCHN[relations[i][1].split('\\')[0]],
+                 formattedRound(head['MRR'], 4),
+                 formattedRound(head['hit@10'], 4),
+                 formattedRound(head['hit@3'], 4),
+                 formattedRound(head['hit@1'], 4),
+                 formattedRound(calcScore(head), 3))
+              )
+        print('\t& 尾实体 & %s & %s & %s & %s & %s & %s \\\\'
+              % (typeCHN[relations[i][1].split('_')[-1]],
+                 formattedRound(tail['MRR'], 4),
+                 formattedRound(tail['hit@10'], 4),
+                 formattedRound(tail['hit@3'], 4),
+                 formattedRound(tail['hit@1'], 4),
+                 formattedRound(calcScore(tail), 3))
+              )
+
+
 outputAsLatexForSortedResults(sortedResults, results)
 outputAsLatexForAverageResults(parameterMetric)
+outputAsLatexForRelationResults(results[sortedResults[0]]['relationResults'])
