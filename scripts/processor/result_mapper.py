@@ -19,14 +19,16 @@ def parseParams(line):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--database', type=str, required=True)
+parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=True)
+parser.add_argument('--update', type=bool, required=False)
 parsedArgs = parser.parse_args()
 
-database = parsedArgs.database
+database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method
 order = parsedArgs.order
+update = parsedArgs.update if parsedArgs.update else False
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -51,12 +53,26 @@ parsedParams = parseParams(s[order])
 
 resultPath = parentDir + '/res/' + database + '/' + method + '/' + str(order) + '/'
 f = open(resultPath + 'embedding.vec.json', 'r')
-s = f.read().split('"ent_embeddings": [')[1].split('}')[0].split('], ')
+s = str(f.read())
 f.close()
 
+relationRaw = s.split('"rel_embeddings": [')[1].split(']],')[0].split('], ')
+entityRaw = s.split('"ent_embeddings": [')[1].split('}')[0].split('], ')
+
+dataSavePath = resultPath + 'relationVector.data'
+if update or not os.path.exists(dataSavePath):
+    f = open(dataSavePath, 'w')
+    for i in range(len(relationRaw)):
+        line = entityRaw[i][1:]
+        splited = line.split(', ')
+        if len(splited) != int(parsedParams['dimension']):
+            continue
+        f.write('\t'.join(splited) + '\n')
+    f.close()
+
 vectors = dict()
-for i in range(len(s)):
-    line = s[i][1:]
+for i in range(len(entityRaw)):
+    line = entityRaw[i][1:]
     splited = line.split(', ')
     if len(splited) != int(parsedParams['dimension']):
         continue
@@ -72,6 +88,9 @@ for type in types:
     f.close()
 
     dataSavePath = resultPath + type + 'Vector.data'
+    if not update:
+        if os.path.exists(dataSavePath):
+            continue
     f = open(dataSavePath, 'w')
     for line in s:
         splited = line.split()

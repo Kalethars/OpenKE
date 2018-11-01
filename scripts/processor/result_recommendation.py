@@ -198,18 +198,18 @@ def instituteRecommendation():
     s = f.read().split('\n')
     f.close()
 
-    institutePaper = dict()
+    institutePapers = dict()
     for line in s:
         splited = line.split()
         if len(splited) != 4:
             continue
-        if institutePaper.get(splited[2], 0) == 0:
-            institutePaper[splited[2]] = set()
-        institutePaper[splited[2]].add(splited[0])
+        if institutePapers.get(splited[2], 0) == 0:
+            institutePapers[splited[2]] = set()
+            institutePapers[splited[2]].add(splited[0])
 
     institutePaperCount = dict()
-    for entityId in institutePaper.keys():
-        institutePaperCount[entityId] = len(institutePaper[entityId])
+    for entityId in institutePapers.keys():
+        institutePaperCount[entityId] = len(institutePapers[entityId])
 
     name = dict()
     vectors = dict()
