@@ -68,8 +68,8 @@ def venueDownloader(entities):
     if not update:
         if os.path.exists(infoSavePath):
             return
-    f = open(infoSavePath, 'w')
 
+    f = open(infoSavePath, 'w')
     print('Downloading venue info...')
     print(len(entities))
     count = 0
@@ -117,8 +117,8 @@ def paperDownloader(entities):
     if not update:
         if os.path.exists(infoSavePath):
             return
-    f = open(infoSavePath, 'w')
 
+    f = open(infoSavePath, 'w')
     print('Downloading paper info...')
     print(len(entities))
     count = 0
@@ -147,8 +147,8 @@ def authorDownloader(entities):
     if not update:
         if os.path.exists(infoSavePath):
             return
-    f = open(infoSavePath, 'w')
 
+    f = open(infoSavePath, 'w')
     print('Downloading author info...')
     print(len(entities))
     count = 0
@@ -177,8 +177,8 @@ def instituteDownloader(entities):
     if not update:
         if os.path.exists(infoSavePath):
             return
-    f = open(infoSavePath, 'w')
 
+    f = open(infoSavePath, 'w')
     print('Downloading institute info...')
     print(len(entities))
     count = 0
@@ -207,8 +207,8 @@ def fieldDownloader(entities):
     if not update:
         if os.path.exists(infoSavePath):
             return
-    f = open(infoSavePath, 'w')
 
+    f = open(infoSavePath, 'w')
     print('Downloading field info...')
     print(len(entities))
     count = 0

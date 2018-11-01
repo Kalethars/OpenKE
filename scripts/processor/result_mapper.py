@@ -1,5 +1,8 @@
 # -*- coding: UTF-8 -*-
 
+# Execution order:
+# result_mapper -> pca_results_saver -> result_recommendation
+
 import argparse
 import os
 
@@ -25,7 +28,7 @@ database = parsedArgs.database
 method = parsedArgs.method
 order = parsedArgs.order
 
-parentDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 types = ['paper', 'author', 'institute', 'field', 'venue']
 
@@ -60,7 +63,7 @@ for i in range(len(s)):
     vectors[entities[i]] = splited
 
 for type in types:
-    infoReadPath = parentDir + '/data/' + database + '/index/' + type + 'Index.data'
+    infoReadPath = parentDir + '/data/' + database + '/info/' + type + 'Info.data'
     if not os.path.exists(infoReadPath):
         continue
 
@@ -68,7 +71,7 @@ for type in types:
     s = f.read().split('\n')
     f.close()
 
-    dataSavePath = resultPath + type + 'Data.data'
+    dataSavePath = resultPath + type + 'Vector.data'
     f = open(dataSavePath, 'w')
     for line in s:
         splited = line.split()
@@ -76,6 +79,6 @@ for type in types:
             continue
         vector = vectors[splited[0]]
         for i in range(len(vector)):
-            f.write(str(vector[i]))
+            f.write(str(vector[i]).strip('[]'))
             f.write('\t' if i < len(vector) - 1 else '\n')
     f.close()

@@ -3,7 +3,7 @@ path='../../res/ACE17K/TransE/3/';
 fid=fopen('../../data/ACE17K/info/venueInfo.data','r');
 index=textscan(fid,'%s\t%s\t%s\t%s\t%s');
 fclose(fid);
-embedding=load([path,'venueData.data']);
+embedding=load([path,'venueVector.data']);
 % [coeff,data,~,~,~,~]=pca(embedding);
 [coeff,data,latent,~]=princomp(embedding);
 scatter(data(:,1),data(:,2),'Marker','.');
