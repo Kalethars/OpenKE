@@ -235,7 +235,7 @@ def HolE():
     params = initParams(paramMap)
     params.set_in_path(datasetPath)
     params.set_work_threads(threads)
-    params.set_opt_method("SGD")
+    params.set_opt_method("Adagrad")
 
     mkdir(['res', dataset, configName, order])
     exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
