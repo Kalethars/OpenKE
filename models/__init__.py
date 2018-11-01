@@ -9,3 +9,5 @@ from .DistMult import DistMult
 from .HolE import HolE
 from .ComplEx import ComplEx
 from .Analogy import Analogy
+
+from .WTransE import WTransE

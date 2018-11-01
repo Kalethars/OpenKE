@@ -9,7 +9,8 @@ def buildString(params):
 
 
 def generate(dataset):
-    f = open('../config/TransE.config', 'w')
+    configName = 'TransE'
+    f = open('../config/%s.config' % configName, 'w')
 
     globalParams = {'threads': 32, 'dataset': 'ACE17K' if dataset is None else dataset}
     f.write(buildString(globalParams))
@@ -33,20 +34,21 @@ def generate(dataset):
 
     f.close()
 
-    f = open('../bash/TransE.sh', 'w')
+    f = open('../bash/%s.sh' % configName, 'w')
     f.write('#!/usr/bin/env bash\n')
     f.write('source ~/wangrj/tensorflow/bin/activate\n')
     for i in range(count):
         f.write(
-            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=TransE --config=../config/TransE.config --order=' +
-            str(i + 1) + '\n')
+            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=TransE --config=../config/%s.config --order=%i\n' % (
+                configName, i + 1))
     f.close()
 
 
 def generateDetailed(dataset):
-    f = open('../config/TransE_detailed.config', 'w')
+    configName = 'TransE_detailed'
+    f = open('../config/%s.config' % configName, 'w')
 
-    globalParams = {'threads': 4, 'dataset': 'ACE17K' if dataset is None else dataset}
+    globalParams = {'threads': 32, 'dataset': 'ACE17K' if dataset is None else dataset}
     f.write(buildString(globalParams))
 
     count = 0
@@ -68,21 +70,65 @@ def generateDetailed(dataset):
 
     f.close()
 
-    f = open('../bash/TransE_detailed.sh', 'w')
+    f = open('../bash/%s.sh' % configName, 'w')
     f.write('#!/usr/bin/env bash\n')
     f.write('source ~/wangrj/tensorflow/bin/activate\n')
     for i in range(count):
         f.write(
-            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=TransE --config=../config/TransE_detailed.config --order=' +
-            str(i + 1) + '\n')
+            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=TransE --config=../config/%s.config --order=%i\n' % (
+                configName, i + 1))
+    f.close()
+
+
+def generateWeighted(dataset):
+    configName = 'WTransE'
+    f = open('../config/%s.config' % configName, 'w')
+
+    globalParams = {'threads': 32, 'dataset': 'ACE17K' if dataset is None else dataset}
+    f.write(buildString(globalParams))
+
+    count = 0
+    for epoch in [10]:
+        for nbatches in [100]:
+            for alpha in [0.001]:
+                for margin in [2]:
+                    for bern in [0]:
+                        for dimension in [50]:
+                            f.write(buildString({
+                                'epoch': epoch,
+                                'nbatches': nbatches,
+                                'alpha': alpha,
+                                'margin': margin,
+                                'bern': bern,
+                                'dimension': dimension
+                            }))
+                            count += 1
+
+    f.close()
+
+    f = open('../bash/%s.sh' % configName, 'w')
+    f.write('#!/usr/bin/env bash\n')
+    f.write('source ~/wangrj/tensorflow/bin/activate\n')
+    for i in range(count):
+        f.write(
+            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=TransE --weighted=True --config=../config/%s.config --order=%i\n' % (
+                configName, i + 1))
     f.close()
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str, required=False)
-parser.add_argument('--detailed', type=int, required=False)
+parser.add_argument('--detailed', type=bool, required=False)
+parser.add_argument('--weighted', type=bool, required=False)
 parsedConfig = parser.parse_args()
-if parsedConfig.detailed != 1:
-    generate(parsedConfig.dataset)  # Test epoch & dimension
+
+detailed = parsedConfig.detailed if parsedConfig.detailed else False
+weighted = parsedConfig.weighted if parsedConfig.weighted else False
+
+if not detailed:
+    if not weighted:
+        generate(parsedConfig.dataset)  # Test epoch & dimension
+    else:
+        generateWeighted(parsedConfig.dataset)
 else:
     generateDetailed(parsedConfig.dataset)  # Test alpha & margin

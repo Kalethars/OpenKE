@@ -48,6 +48,7 @@ class Config(object):
         self.optimizer = None
         self.test_link_prediction = False
         self.test_triple_classification = False
+        self.weight_considered = False
 
     def init(self):
         self.trainModel = None

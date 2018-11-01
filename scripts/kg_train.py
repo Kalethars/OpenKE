@@ -124,7 +124,10 @@ def TransE():
     params.set_out_files(outPath)
 
     params.init()
-    params.set_model(models.TransE)
+    if weighted:
+        params.set_model(models.WTransE)
+    else:
+        params.set_model(models.TransE)
     params.run()
     params.test(logPath)
 
@@ -258,6 +261,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, required=True)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=True)
+parser.add_argument('--weighted', type=bool, required=True)
 parsedConfig = parser.parse_args()
 
 f = open(parsedConfig.config, 'r')
@@ -269,6 +273,7 @@ map = parseParams(configLines[0], False)
 threads = int(map['threads'])
 dataset = map['dataset']
 datasetPath = parentDir + '/benchmarks/' + map['dataset'] + '/'
+weighted = parsedConfig.weighted if parsedConfig.weighted else False
 
 order = str(parsedConfig.order)
 configLine = configLines[parsedConfig.order]
