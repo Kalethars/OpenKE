@@ -58,6 +58,8 @@ def initVariables():
 
 
 def initParams(map):
+    global weighted
+
     params = config.Config()
 
     params.set_test_flag(True)
@@ -66,6 +68,7 @@ def initParams(map):
 
     params.set_test_triple_classification(False)
     params.set_test_link_prediction(True)
+    params.set_weight_considered(weighted)
 
     params.set_train_times(int(map['epoch']))
     params.set_nbatches(int(map['nbatches']))
@@ -124,10 +127,7 @@ def TransE():
     params.set_out_files(outPath)
 
     params.init()
-    if weighted:
-        params.set_model(models.WTransE)
-    else:
-        params.set_model(models.TransE)
+    params.set_model(models.TransE)
     params.run()
     params.test(logPath)
 
@@ -261,7 +261,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, required=True)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=True)
-parser.add_argument('--weighted', type=bool, required=True)
+parser.add_argument('--weighted', type=bool, required=False)
 parsedConfig = parser.parse_args()
 
 f = open(parsedConfig.config, 'r')
@@ -290,4 +290,5 @@ elif method == 'complex':
 elif method == 'hole':
     HolE()
 else:
-    print 'Invalid method!'
+    print
+    'Invalid method!'

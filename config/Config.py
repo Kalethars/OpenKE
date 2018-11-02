@@ -117,6 +117,9 @@ class Config(object):
     def get_rel_total(self):
         return self.relTotal
 
+    def set_weight_considered(self, flag):
+        self.weight_considered = flag
+
     def set_test_flag(self, test_flag):
         self.test_flag = test_flag
 
@@ -314,8 +317,10 @@ class Config(object):
                         self.sampling()
                         res += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
                     if self.log_on:
-                        print times
-                        print res
+                        print
+                        times
+                        print
+                        res
                     if self.exportName != None and (self.export_steps != 0 and times % self.export_steps == 0):
                         self.save_tensorflow()
                 if self.exportName != None:
@@ -339,7 +344,8 @@ class Config(object):
                         res = self.test_step(self.test_h, self.test_t, self.test_r)
                         self.lib.testTail(res.__array_interface__['data'][0])
                         if self.log_on:
-                            print times
+                            print
+                            times
                     self.lib.test_link_prediction(output)
                 if self.test_triple_classification:
                     self.lib.getValidBatch(self.valid_pos_h_addr, self.valid_pos_t_addr, self.valid_pos_r_addr,

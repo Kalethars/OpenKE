@@ -15,7 +15,7 @@ def generate(dataset):
     f.write(buildString(globalParams))
 
     count = 0
-    for epoch in [1500]:
+    for epoch in [1000]:
         for nbatches in [100]:
             for alpha in [0.001]:
                 for margin in [2]:
@@ -46,16 +46,16 @@ def generate(dataset):
 def generateDetailed(dataset):
     f = open('../config/HolE_detailed.config', 'w')
 
-    globalParams = {'threads': 4, 'dataset': 'ACE17K' if dataset is None else dataset}
+    globalParams = {'threads': 32, 'dataset': 'ACE17K' if dataset is None else dataset}
     f.write(buildString(globalParams))
 
     count = 0
-    for epoch in [1500]:
+    for epoch in [1000]:
         for nbatches in [100]:
             for alpha in [0.0005, 0.001, 0.002, 0.01]:
                 for margin in [1, 2, 3, 4]:
                     for bern in [0]:
-                        for dimension in [200]:
+                        for dimension in [100]:
                             f.write(buildString({
                                 'epoch': epoch,
                                 'nbatches': nbatches,
