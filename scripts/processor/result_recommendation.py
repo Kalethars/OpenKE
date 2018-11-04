@@ -282,7 +282,7 @@ for type in types:
     recommendationDir = vectorReadDir + 'recommendation/'
 
     outputPath = recommendationDir + type + 'Recommendation' + \
-                 ('' if nonPCA else 'PCA') + '_norm=' + str(round(norm, 2)) + '.txt'
+                 ('' if nonPCA else 'PCA') + '_norm=' + str(round(norm, 2)).rstrip('.0') + '.txt'
     if not update:
         if os.path.exists(outputPath):
             continue

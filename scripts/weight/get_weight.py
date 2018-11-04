@@ -1,7 +1,9 @@
 import os
-
+import argparse
 import pymysql
-import math
+import win_unicode_console
+
+win_unicode_console.enable()
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 entityMap = {'a': 0, 'f': 1, 'i': 2, 'p': 3, 'v': 4}
@@ -33,7 +35,7 @@ def loadConfig():
 
 def loadEntities():
     global entities
-    f = open(parentDir + '/benchmarks/ACE17K/entity2id.txt', 'r')
+    f = open(databaseDir + 'entity2id.txt', 'r')
     s = f.read().split('\n')
     f.close()
     entities = [dict() for i in range(5)]
@@ -47,14 +49,14 @@ def loadTriplets():
     # triplets[relation] = list of [head, tail]
 
     global triplets
-    f = open(parentDir + '/benchmarks/ACE17K/triplets_sort_relation.txt', 'r')
+    f = open(databaseDir + 'triplets.txt', 'r')
     s = f.read().split('\n')
     f.close()
     triplets = [[] for i in range(7)]
     for line in s:
         splited = line.split()
         if len(splited) == 3:
-            triplets[int(splited[0])].append([splited[1], splited[2]])
+            triplets[int(splited[1])].append([splited[0], splited[2]])
 
 
 def getEntityNum(entity):
@@ -62,7 +64,7 @@ def getEntityNum(entity):
 
 
 def getDataPath(filename):
-    return parentDir + '/data/ACE17K/' + filename
+    return parentDir + '/data/%s/' % database + filename
 
 
 def loadData(filename):
@@ -282,7 +284,7 @@ def normalization():
     def calcWeight(line):
         return round(float(line[3]) * tripletCount[line[0]] / weightSum[line[0]], 2)
 
-    data = parseData(parentDir + '/benchmarks/ACE17K/triplets_weight.txt')
+    data = parseData(weightPath)
     weightSum = dict()
     tripletCount = dict()
     for line in data:
@@ -294,6 +296,12 @@ def normalization():
     f.close()
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--database', type=str, required=False)
+parsedArgs = parser.parse_args()
+database = parsedArgs.database if parsedArgs.database else 'ACE17K'
+databaseDir = parentDir + '/benchmarks/' + database + '/'
+
 config = dict()
 loadConfig()
 entities = [dict() for i in range(5)]  # 0 for author, 1 for field, 2 for institute, 3 for paper, 4 for venue
@@ -301,7 +309,7 @@ loadEntities()
 triplets = [[] for i in range(7)]
 loadTriplets()
 
-weightPath = parentDir + '/benchmarks/ACE17K/triplets_weight.txt'
+weightPath = databaseDir + 'triplets_weight.txt'
 f = open(weightPath, 'w')
 f.close()
 
