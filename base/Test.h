@@ -73,6 +73,7 @@ void testHead(REAL *con) {
     meanRankReciprocal[r] += 1.0/(l_filter_s+1);
     l_reci_rank += 1.0/(l_s+1);
     lastHead++;
+    printf("h: %ld r: %ld t:%ld value:%f\n", h, r, t, minimal);
     printf("l_filter_s: %ld\n", l_filter_s);
     printf("%f %f %f %f \n", l_tot / lastHead, l_filter_tot / lastHead, l_rank / lastHead, l_filter_rank / lastHead);
 }
@@ -120,6 +121,7 @@ void testTail(REAL *con) {
     meanRankReciprocal[relationTotal+r] += 1.0/(1+r_filter_s);
     r_reci_rank += 1.0/(1+r_s);
     lastTail++;
+    printf("h: %ld r: %ld t:%ld value:%f\n", h, r, t, minimal);
     printf("r_filter_s: %ld\n", r_filter_s);
     printf("%f %f %f %f\n", r_tot /lastTail, r_filter_tot /lastTail, r_rank /lastTail, r_filter_rank /lastTail);
 }

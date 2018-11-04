@@ -1,5 +1,9 @@
+import tensorflow as tf
+import numpy as np
 import argparse
 import os
+
+# result_mapper -> transe_test_tensorflow
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -8,7 +12,6 @@ parser.add_argument('--dataset', type=str, required=False)
 parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--order', type=int, required=True)
 parser.add_argument('--superfilter', type=bool, required=False)
-parser.add_argument('--pca', type=int, required=False)
 parser.add_argument('--norm', type=float, required=False)
 parsedConfig = parser.parse_args()
 
@@ -30,34 +33,40 @@ f.close()
 idIndex = dict()
 typeIndex = dict()
 entities = dict()
-for type in types:
-    entities[type] = []
+entityLocation = dict()
+for typ in types:
+    entities[typ] = []
+entityNum = int(s[0])
 for line in s:
     splited = line.split('\t')
     if len(splited) != 2:
         continue
     if len(splited[0]) != 9:
         continue
-    idIndex[splited[0][1:]] = splited[1]
-    idIndex[splited[1]] = splited[0][1:]
-    typeIndex[splited[0][1:]] = typeMap[splited[0][0]]
-    entities[typeMap[splited[0][0]]].append(splited[0][1:])
+    dbId = splited[0][1:]
+    typeAbbr = splited[0][0]
+    numId = int(splited[1])
+    idIndex[dbId] = numId
+    idIndex[numId] = dbId
+    typeIndex[numId] = typeMap[typeAbbr]
+    entityLocation[numId] = len(entities[typeMap[typeAbbr]])
+    entities[typeMap[typeAbbr]].append(numId)
 
 configReadPath = parentDir + '/scripts/config/' + method + '.config'
 f = open(configReadPath, 'r')
 s = f.read().split('\n')[order]
 f.close()
 dimension = int(s.split('dimension=')[1].split()[0])
-pcaDimension = max(min(parsedConfig.pca, dimension), 1) if parsedConfig.pca else None
 
 infoReadDir = parentDir + '/data/' + dataset + '/info/'
 vectorReadDir = parentDir + '/res/' + '/'.join([dataset, method, str(order)]) + '/'
 
-entityVectors = dict()
-latent = dict()
-coeff = []
-for type in types:
-    infoReadPath = infoReadDir + type + 'Info.data'
+entityVectors = [[] for i in range(entityNum)]
+latent = [[] for i in range(len(types))]
+coeff = [[] for i in range(len(types))]
+for n in range(len(types)):
+    typ = types[n]
+    infoReadPath = infoReadDir + typ + 'Info.data'
     f = open(infoReadPath, 'r')
     s = f.read().split('\n')
     f.close()
@@ -66,9 +75,9 @@ for type in types:
         splited = line.split('\t')
         if len(splited) < 2:
             continue
-        entityList.append(splited[0])
+        entityList.append(idIndex[splited[0]])
 
-    vectorReadPath = vectorReadDir + type + 'Vector.data'
+    vectorReadPath = vectorReadDir + typ + 'Vector.data'
     f = open(vectorReadPath, 'r')
     s = f.read().split('\n')
     f.close()
@@ -78,7 +87,7 @@ for type in types:
             continue
         entityVectors[entityList[i]] = list(map(lambda x: float(x), splited))
 
-    coeffReadPath = vectorReadDir + 'pca/' + type + 'Coeff.data'
+    coeffReadPath = vectorReadDir + 'pca/' + typ + 'Coeff.data'
     f = open(coeffReadPath, 'r')
     s = f.read().split('\n')
     f.close()
@@ -86,25 +95,29 @@ for type in types:
         splited = line.split()
         if len(splited) != dimension:
             continue
-        coeff.append(list(map(lambda x: float(x), splited)))
+        coeff[n].append(list(map(lambda x: float(x), splited)))
 
-    latentReadPath = vectorReadDir + 'pca/' + type + 'Latent.data'
+    latentReadPath = vectorReadDir + 'pca/' + typ + 'Latent.data'
     f = open(latentReadPath, 'r')
     s = f.read().split('\n')[0].split()
     f.close()
-    latent[type] = list(map(lambda x: float(x), s))
+    latent[n] = list(map(lambda x: float(x), s))
 
-relationVectors = dict()
+for i in range(len(entityVectors)):
+    if len(entityVectors[i]) != dimension:
+        entityVectors[i] = [0] * dimension
+
 relationReadPath = vectorReadDir + 'relationVector.data'
 f = open(relationReadPath, 'r')
 s = f.read().split('\n')
 f.close()
+relationVectors = []
 for i in range(len(s)):
     splited = s[i].split('\t')
     if len(splited) != dimension:
         continue
-    relationVectors[str(i)] = list(map(lambda x: float(x), splited))
-relations = sorted(relationVectors.keys())
+    relationVectors.append(list(map(lambda x: float(x), splited)))
+relationNum = len(relationVectors)
 
 relation2idReadPath = benchmarkDir + 'relation2id.txt'
 f = open(relation2idReadPath, 'r')
@@ -115,11 +128,11 @@ for line in s:
     splited = line.split()
     if len(splited) != 2:
         continue
-    relationName[splited[1]] = splited[0]
+    relationName[int(splited[1])] = splited[0]
 
 
 def triplets(head, tail, relation):
-    return '\t'.join([head, tail, relation])
+    return '\t'.join([str(head), str(tail), str(relation)])
 
 
 tripletsReadPath = benchmarkDir + 'triplets.txt'
@@ -131,31 +144,20 @@ for line in s:
     splited = line.split()
     if len(splited) != 3:
         continue
-    tripletsFinder.add(triplets(splited[0][1:], splited[2][1:], splited[1]))
+    tripletsFinder.add(triplets(idIndex[splited[0][1:]], idIndex[splited[2][1:]], splited[1]))
+
+# Now we have lists: entityVectors, latent, coeff, relationVectors
+sess = tf.InteractiveSession()
+sess.run(tf.global_variables_initializer())
+
+tfEntityVectors = tf.convert_to_tensor(entityVectors)
+tfLatent = tf.convert_to_tensor(latent)
+tfCoeff = tf.convert_to_tensor(coeff)
+tfRelationVectors = tf.convert_to_tensor(relationVectors)
 
 
-def calcDistance(v1, v2, norm):
-    if len(v1) != len(v2) or len(v1) != dimension:
-        raise RuntimeError('Dimension not aligned!')
-    d = 0
-    for i in range(dimension):
-        d += abs(v1[i] - v2[i]) ** norm
-    return d
-
-
-def calcDistancePCA(v1, v2, type):
-    if len(v1) != len(v2) or len(v1) != dimension:
-        raise RuntimeError('Dimension not aligned!')
-    v1PCA = [0] * dimension
-    v2PCA = [0] * dimension
-    for i in range(pcaDimension):
-        for j in range(dimension):
-            v1PCA[i] += v1[j] * coeff[j][i]
-            v2PCA[i] += v2[j] * coeff[j][i]
-    d = 0
-    for i in range(pcaDimension):
-        d += ((v1PCA[i] - v2PCA[i]) * latent[type][i]) ** 2
-    return d
+def calcDistance(h, r, t):
+    return tf.norm(h + r - t, norm, axis=1)
 
 
 def updateStatistics(rank, relation, predictObject):
@@ -164,6 +166,11 @@ def updateStatistics(rank, relation, predictObject):
     hit10[predictObject][relation] = hit10[predictObject].get(relation, 0) + (1 if rank <= 10 else 0)
     hit3[predictObject][relation] = hit3[predictObject].get(relation, 0) + (1 if rank <= 3 else 0)
     hit1[predictObject][relation] = hit1[predictObject].get(relation, 0) + (1 if rank <= 1 else 0)
+
+
+def output(f, s='', end='\n'):
+    print(str(s) + end, end='')
+    f.write(str(s) + end)
 
 
 testReadPath = benchmarkDir + 'test2id.txt'
@@ -179,40 +186,40 @@ for predictObject in ['head', 'tail']:
     hit10[predictObject] = dict()
     hit3[predictObject] = dict()
     hit1[predictObject] = dict()
-relationCount = dict()
+relationCount = [0] * relationNum
 testCount = 0
-print('Total test triplets:\t' + s[0])
+f = open(vectorReadDir + 'test_norm=' + str(round(norm, 2)).rstrip('.0') + '.log', 'w')
+output(f, 'Total test triplets:\t' + s[0])
 for line in s:
     splited = line.split()
     if len(splited) != 3:
         continue
     testCount += 1
-    print(testCount, end='\t')
-    head = idIndex[splited[0]]
-    tail = idIndex[splited[1]]
-    relation = splited[2]
-    headVector = entityVectors[head]
-    tailVector = entityVectors[tail]
-    relationVector = relationVectors[relation]
+    output(f, testCount, end='\t')
+    head = int(splited[0])
+    tail = int(splited[1])
+    relation = int(splited[2])
+    headVector = tf.nn.embedding_lookup(tfEntityVectors, head)
+    tailVector = tf.nn.embedding_lookup(tfEntityVectors, tail)
+    relationVector = tf.nn.embedding_lookup(tfRelationVectors, relation)
     headType = typeIndex[head]
     tailType = typeIndex[tail]
-    relationCount[relation] = relationCount.get(relation, 0) + 1
-    print(headType[0] + head, end='\t')
-    print(tailType[0] + tail, end='\t')
+    relationCount[relation] += 1
+    output(f, headType[0] + idIndex[head], end='\t')
+    output(f, tailType[0] + idIndex[tail], end='\t')
 
     # Predict head
-    headPredictVector = [tailVector[i] - relationVector[i] for i in range(dimension)]
+    testTripletsNum = len(entities[headType])
 
-    distance = dict()
-    for entity in entities[headType]:
-        if pcaDimension is None:
-            distance[entity] = calcDistance(headPredictVector, entityVectors[entity], norm)
-        else:
-            distance[entity] = calcDistancePCA(headPredictVector, entityVectors[entity], headType)
-    sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
+    testHeads = tf.nn.embedding_lookup(tfEntityVectors, entities[headType])
+    testTails = tf.nn.embedding_lookup(tfEntityVectors, [tail] * testTripletsNum)
+    testRelations = tf.nn.embedding_lookup(tfRelationVectors, [relation] * testTripletsNum)
+
+    testResults = calcDistance(testHeads, testRelations, testTails).eval()
+    sortedDistance = sorted(entities[headType], key=lambda x: testResults[entityLocation[x]])
 
     rank = 1
-    for i in range(len(sortedDistance)):
+    for i in range(testTripletsNum):
         entity = sortedDistance[i]
         if superFilter:
             if not triplets(entity, tail, relation) in tripletsFinder:
@@ -225,21 +232,20 @@ for line in s:
             if not triplets(entity, tail, relation) in tripletsFinder:
                 rank += 1
     updateStatistics(rank, relation, 'head')
-    print('Head rank: ' + str(rank), end='\t')
+    output(f, 'Head rank: ' + str(rank), end='\t')
 
     # Predict tail
-    tailPredictVector = [headVector[i] + relationVector[i] for i in range(dimension)]
+    testTripletsNum = len(entities[tailType])
 
-    distance = dict()
-    for entity in entities[tailType]:
-        if pcaDimension is None:
-            distance[entity] = calcDistance(tailPredictVector, entityVectors[entity], norm)
-        else:
-            distance[entity] = calcDistancePCA(tailPredictVector, entityVectors[entity], tailType)
-    sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
+    testHeads = tf.nn.embedding_lookup(tfEntityVectors, [head] * testTripletsNum)
+    testTails = tf.nn.embedding_lookup(tfEntityVectors, entities[tailType])
+    testRelations = tf.nn.embedding_lookup(tfRelationVectors, [relation] * testTripletsNum)
+
+    testResults = calcDistance(testHeads, testRelations, testTails).eval()
+    sortedDistance = sorted(entities[tailType], key=lambda x: testResults[entityLocation[x]])
 
     rank = 1
-    for i in range(len(sortedDistance)):
+    for i in range(testTripletsNum):
         entity = sortedDistance[i]
         if superFilter:
             if not triplets(head, entity, relation) in tripletsFinder:
@@ -252,10 +258,10 @@ for line in s:
             if not triplets(head, entity, relation) in tripletsFinder:
                 rank += 1
     updateStatistics(rank, relation, 'tail')
-    print('Tail rank: ' + str(rank), end='\n')
+    output(f, 'Tail rank: ' + str(rank))
 
 for predictObject in ['head', 'tail']:
-    for relation in relations:
+    for relation in range(relationNum):
         MRR[predictObject][relation] /= float(relationCount[relation])
         hit10[predictObject][relation] /= float(relationCount[relation])
         hit3[predictObject][relation] /= float(relationCount[relation])
@@ -266,10 +272,10 @@ for predictObject in ['head', 'tail']:
         hit3['overall'] = hit3.get('overall', 0) + hit3[predictObject][relation]
         hit1['overall'] = hit1.get('overall', 0) + hit1[predictObject][relation]
 
-MRR['overall'] /= len(relations) * 2
-hit10['overall'] /= len(relations) * 2
-hit3['overall'] /= len(relations) * 2
-hit1['overall'] /= len(relations) * 2
+MRR['overall'] /= relationNum * 2
+hit10['overall'] /= relationNum * 2
+hit3['overall'] /= relationNum * 2
+hit1['overall'] /= relationNum * 2
 
 
 def formattedRound(number, digit):
@@ -280,18 +286,20 @@ def formattedRound(number, digit):
         return rounded + (digit - len(rounded.split('.')[1])) * '0'
 
 
-print('Overall:')
-print('MRR\thit@10\thit@3\thit@1')
-print('\t'.join(
+output(f, 'Overall:')
+output(f, '\tMRR\thit@10\thit@3\thit@1')
+output(f, '\t'.join(
     [formattedRound(MRR['overall'], 4), formattedRound(hit10['overall'], 4), formattedRound(hit3['overall'], 4),
      formattedRound(hit1['overall'], 4)]))
-print()
+output(f)
 
-for relation in relations:
-    print(relationName[relation])
-    print('\tMRR\thit@10\thit@3\thit@1')
+for relation in range(relationNum):
+    output(f, relationName[relation])
+    output(f, '\t\tMRR\thit@10\thit@3\thit@1')
     for predictObject in ['head', 'tail']:
-        print(predictObject + '\t'.join(
+        output(f, predictObject + '\t'.join(
             ['', formattedRound(MRR[predictObject][relation], 4), formattedRound(hit10[predictObject][relation], 4),
              formattedRound(hit3[predictObject][relation], 4), formattedRound(hit1[predictObject][relation], 4)]))
-    print()
+    output(f)
+
+f.close()
