@@ -157,7 +157,7 @@ def TransH():
     params.set_out_files(outPath)
 
     params.init()
-    params.set_model(models.TransE)
+    params.set_model(models.TransH)
     params.run()
     params.test(logPath)
 
@@ -218,7 +218,7 @@ def ComplEx():
     params.set_out_files(outPath)
 
     params.init()
-    params.set_model(models.DistMult)
+    params.set_model(models.ComplEx)
     params.run()
     params.test(logPath)
 
