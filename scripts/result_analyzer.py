@@ -1,3 +1,9 @@
+import argparse
+import win_unicode_console
+
+win_unicode_console.enable()
+
+
 def average(list):
     return float(sum(list)) / len(list)
 
@@ -53,7 +59,12 @@ def score(result):
     return calcScore(result['scoreResults'])
 
 
-dataset = 'ACE17K'
+parser = argparse.ArgumentParser()
+parser.add_argument('--dataset', type=str, required=False)
+parser.add_argument('--method', type=str, required=False)
+parsedArgs = parser.parse_args()
+
+dataset = parsedArgs.dataset if parsedArgs.dataset else 'ACE17K'
 relation2idPath = '../benchmarks/%s/relation2id.txt' % dataset
 f = open(relation2idPath, 'r')
 s = f.readlines()
@@ -65,7 +76,7 @@ for line in s:
     if len(splited) == 2:
         relationMap[splited[1][:-1]] = splited[0]
 
-method = 'TransE'
+method = parsedArgs.method if parsedArgs.method else 'TransE'
 metricMistake = False
 resultPath = '../log/%s.log' % method
 f = open(resultPath, 'r')

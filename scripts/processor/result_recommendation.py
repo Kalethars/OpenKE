@@ -3,6 +3,9 @@
 
 import argparse
 import os
+import win_unicode_console
+
+win_unicode_console.enable()
 
 
 def paperRecommendation():
@@ -34,7 +37,7 @@ def paperRecommendation():
             if entityId == entityId2:
                 continue
             distance[entityId2] = \
-                sum([(vectors[entityId][i] - vectors[entityId2][i]) ** 2 for i in range(dimension)])
+                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
         f.write('-' * 50 + '\n')
@@ -77,7 +80,7 @@ def venueRecommendation():
             if entityId == entityId2:
                 continue
             distance[entityId2] = \
-                sum([(vectors[entityId][i] - vectors[entityId2][i]) ** 2 for i in range(dimension)])
+                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] +
                 '\t' + venueType[entityId] + '\t' + category[entityId] + '\n')
@@ -130,7 +133,7 @@ def authorRecommendation():
             if entityId == entityId2 or authorPaperCount.get(entityId2, 0) < 3:
                 continue
             distance[entityId2] = \
-                sum([(vectors[entityId][i] - vectors[entityId2][i]) ** 2 for i in range(dimension)])
+                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
         f.write('-' * 50 + '\n')
@@ -181,7 +184,7 @@ def fieldRecommendation():
             if entityId == entityId2 or fieldPaperCount.get(entityId2, 0) < 5:
                 continue
             distance[entityId2] = \
-                sum([(vectors[entityId][i] - vectors[entityId2][i]) ** 2 for i in range(dimension)])
+                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
         f.write('-' * 50 + '\n')
@@ -205,7 +208,7 @@ def instituteRecommendation():
             continue
         if institutePapers.get(splited[2], 0) == 0:
             institutePapers[splited[2]] = set()
-            institutePapers[splited[2]].add(splited[0])
+        institutePapers[splited[2]].add(splited[0])
 
     institutePaperCount = dict()
     for entityId in institutePapers.keys():
@@ -237,7 +240,7 @@ def instituteRecommendation():
             if entityId == entityId2 or institutePaperCount.get(entityId2, 0) < 5:
                 continue
             distance[entityId2] = \
-                sum([(vectors[entityId][i] - vectors[entityId2][i]) ** 2 for i in range(dimension)])
+                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
         f.write('-' * 50 + '\n')
@@ -254,6 +257,8 @@ parser.add_argument('--order', type=int, required=True)
 parser.add_argument('--update', type=bool, required=False)
 parser.add_argument('--count', type=int, required=False)
 parser.add_argument('--target', type=str, required=False)
+parser.add_argument('--nonpca', type=bool, required=False)
+parser.add_argument('--norm', type=float, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -262,6 +267,8 @@ order = parsedArgs.order
 update = parsedArgs.update if parsedArgs.update else False
 recommendCount = parsedArgs.count if parsedArgs.count and parsedArgs.count > 10 else 10
 target = parsedArgs.target
+nonPCA = parsedArgs.nonpca if parsedArgs.nonpca else False
+norm = parsedArgs.norm if parsedArgs.norm else 2
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -272,17 +279,24 @@ for type in types:
         continue
     infoReadDir = parentDir + '/data/' + database + '/info/'
     vectorReadDir = parentDir + '/res/' + '/'.join([database, method, str(order)]) + '/'
+    recommendationDir = vectorReadDir + 'recommendation/'
 
-    outputPath = vectorReadDir + type + 'Recommendation.txt'
+    outputPath = recommendationDir + type + 'Recommendation' + \
+                 ('' if nonPCA else 'PCA') + '_norm=' + str(round(norm, 2)) + '.txt'
     if not update:
         if os.path.exists(outputPath):
             continue
+    if not os.path.exists(recommendationDir):
+        os.mkdir(recommendationDir)
 
     f = open(infoReadDir + type + 'Info.data', 'r')
     infoLines = f.read().split('\n')
     f.close()
 
-    f = open(vectorReadDir + type + 'Vector.data', 'r')
+    if nonPCA:
+        f = open(vectorReadDir + type + 'Vector.data', 'r')
+    else:
+        f = open(vectorReadDir + 'pca/' + type + 'PCA.data', 'r')
     vectorLines = f.read().split('\n')
     f.close()
 

@@ -1,0 +1,297 @@
+import argparse
+import os
+
+parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--dataset', type=str, required=False)
+parser.add_argument('--method', type=str, required=False)
+parser.add_argument('--order', type=int, required=True)
+parser.add_argument('--superfilter', type=bool, required=False)
+parser.add_argument('--pca', type=int, required=False)
+parser.add_argument('--norm', type=float, required=False)
+parsedConfig = parser.parse_args()
+
+dataset = parsedConfig.dataset if parsedConfig.dataset else 'ACE17K'
+method = parsedConfig.method if parsedConfig.method else 'TransE'
+order = parsedConfig.order
+superFilter = parsedConfig.superfilter if parsedConfig.superfilter else False
+norm = parsedConfig.norm if parsedConfig.norm else False
+
+types = ['paper', 'author', 'institute', 'field', 'venue']
+typeMap = {'p': 'paper', 'a': 'author', 'i': 'institute', 'f': 'field', 'v': 'venue'}
+
+benchmarkDir = parentDir + '/benchmarks/' + dataset + '/'
+
+entity2idReadPath = benchmarkDir + 'entity2id.txt'
+f = open(entity2idReadPath, 'r')
+s = f.read().split('\n')
+f.close()
+idIndex = dict()
+typeIndex = dict()
+entities = dict()
+for type in types:
+    entities[type] = []
+for line in s:
+    splited = line.split('\t')
+    if len(splited) != 2:
+        continue
+    if len(splited[0]) != 9:
+        continue
+    idIndex[splited[0][1:]] = splited[1]
+    idIndex[splited[1]] = splited[0][1:]
+    typeIndex[splited[0][1:]] = typeMap[splited[0][0]]
+    entities[typeMap[splited[0][0]]].append(splited[0][1:])
+
+configReadPath = parentDir + '/scripts/config/' + method + '.config'
+f = open(configReadPath, 'r')
+s = f.read().split('\n')[order]
+f.close()
+dimension = int(s.split('dimension=')[1].split()[0])
+pcaDimension = max(min(parsedConfig.pca, dimension), 1) if parsedConfig.pca else None
+
+infoReadDir = parentDir + '/data/' + dataset + '/info/'
+vectorReadDir = parentDir + '/res/' + '/'.join([dataset, method, str(order)]) + '/'
+
+entityVectors = dict()
+latent = dict()
+coeff = []
+for type in types:
+    infoReadPath = infoReadDir + type + 'Info.data'
+    f = open(infoReadPath, 'r')
+    s = f.read().split('\n')
+    f.close()
+    entityList = []
+    for line in s:
+        splited = line.split('\t')
+        if len(splited) < 2:
+            continue
+        entityList.append(splited[0])
+
+    vectorReadPath = vectorReadDir + type + 'Vector.data'
+    f = open(vectorReadPath, 'r')
+    s = f.read().split('\n')
+    f.close()
+    for i in range(len(s)):
+        splited = s[i].split('\t')
+        if len(splited) != dimension:
+            continue
+        entityVectors[entityList[i]] = list(map(lambda x: float(x), splited))
+
+    coeffReadPath = vectorReadDir + 'pca/' + type + 'Coeff.data'
+    f = open(coeffReadPath, 'r')
+    s = f.read().split('\n')
+    f.close()
+    for line in s:
+        splited = line.split()
+        if len(splited) != dimension:
+            continue
+        coeff.append(list(map(lambda x: float(x), splited)))
+
+    latentReadPath = vectorReadDir + 'pca/' + type + 'Latent.data'
+    f = open(latentReadPath, 'r')
+    s = f.read().split('\n')[0].split()
+    f.close()
+    latent[type] = list(map(lambda x: float(x), s))
+
+relationVectors = dict()
+relationReadPath = vectorReadDir + 'relationVector.data'
+f = open(relationReadPath, 'r')
+s = f.read().split('\n')
+f.close()
+for i in range(len(s)):
+    splited = s[i].split('\t')
+    if len(splited) != dimension:
+        continue
+    relationVectors[str(i)] = list(map(lambda x: float(x), splited))
+relations = sorted(relationVectors.keys())
+
+relation2idReadPath = benchmarkDir + 'relation2id.txt'
+f = open(relation2idReadPath, 'r')
+s = f.read().split('\n')
+f.close()
+relationName = dict()
+for line in s:
+    splited = line.split()
+    if len(splited) != 2:
+        continue
+    relationName[splited[1]] = splited[0]
+
+
+def triplets(head, tail, relation):
+    return '\t'.join([head, tail, relation])
+
+
+tripletsReadPath = benchmarkDir + 'triplets.txt'
+f = open(tripletsReadPath, 'r')
+s = f.read().split('\n')
+f.close()
+tripletsFinder = set()
+for line in s:
+    splited = line.split()
+    if len(splited) != 3:
+        continue
+    tripletsFinder.add(triplets(splited[0][1:], splited[2][1:], splited[1]))
+
+
+def calcDistance(v1, v2, norm):
+    if len(v1) != len(v2) or len(v1) != dimension:
+        raise RuntimeError('Dimension not aligned!')
+    d = 0
+    for i in range(dimension):
+        d += abs(v1[i] - v2[i]) ** norm
+    return d
+
+
+def calcDistancePCA(v1, v2, type):
+    if len(v1) != len(v2) or len(v1) != dimension:
+        raise RuntimeError('Dimension not aligned!')
+    v1PCA = [0] * dimension
+    v2PCA = [0] * dimension
+    for i in range(pcaDimension):
+        for j in range(dimension):
+            v1PCA[i] += v1[j] * coeff[j][i]
+            v2PCA[i] += v2[j] * coeff[j][i]
+    d = 0
+    for i in range(pcaDimension):
+        d += ((v1PCA[i] - v2PCA[i]) * latent[type][i]) ** 2
+    return d
+
+
+def updateStatistics(rank, relation, predictObject):
+    global MRR, hit10, hit3, hit1
+    MRR[predictObject][relation] = MRR[predictObject].get(relation, 0) + 1 / float(rank)
+    hit10[predictObject][relation] = hit10[predictObject].get(relation, 0) + (1 if rank <= 10 else 0)
+    hit3[predictObject][relation] = hit3[predictObject].get(relation, 0) + (1 if rank <= 3 else 0)
+    hit1[predictObject][relation] = hit1[predictObject].get(relation, 0) + (1 if rank <= 1 else 0)
+
+
+testReadPath = benchmarkDir + 'test2id.txt'
+f = open(testReadPath, 'r')
+s = f.read().split('\n')
+f.close()
+MRR = dict()
+hit10 = dict()
+hit3 = dict()
+hit1 = dict()
+for predictObject in ['head', 'tail']:
+    MRR[predictObject] = dict()
+    hit10[predictObject] = dict()
+    hit3[predictObject] = dict()
+    hit1[predictObject] = dict()
+relationCount = dict()
+testCount = 0
+print('Total test triplets:\t' + s[0])
+for line in s:
+    splited = line.split()
+    if len(splited) != 3:
+        continue
+    testCount += 1
+    print(testCount, end='\t')
+    head = idIndex[splited[0]]
+    tail = idIndex[splited[1]]
+    relation = splited[2]
+    headVector = entityVectors[head]
+    tailVector = entityVectors[tail]
+    relationVector = relationVectors[relation]
+    headType = typeIndex[head]
+    tailType = typeIndex[tail]
+    relationCount[relation] = relationCount.get(relation, 0) + 1
+    print(headType[0] + head, end='\t')
+    print(tailType[0] + tail, end='\t')
+
+    # Predict head
+    headPredictVector = [tailVector[i] - relationVector[i] for i in range(dimension)]
+
+    distance = dict()
+    for entity in entities[headType]:
+        if pcaDimension is None:
+            distance[entity] = calcDistance(headPredictVector, entityVectors[entity], norm)
+        else:
+            distance[entity] = calcDistancePCA(headPredictVector, entityVectors[entity], headType)
+    sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
+
+    rank = 1
+    for i in range(len(sortedDistance)):
+        entity = sortedDistance[i]
+        if superFilter:
+            if not triplets(entity, tail, relation) in tripletsFinder:
+                rank += 1
+            else:
+                break
+        else:
+            if entity == head:
+                break
+            if not triplets(entity, tail, relation) in tripletsFinder:
+                rank += 1
+    updateStatistics(rank, relation, 'head')
+    print('Head rank: ' + str(rank), end='\t')
+
+    # Predict tail
+    tailPredictVector = [headVector[i] + relationVector[i] for i in range(dimension)]
+
+    distance = dict()
+    for entity in entities[tailType]:
+        if pcaDimension is None:
+            distance[entity] = calcDistance(tailPredictVector, entityVectors[entity], norm)
+        else:
+            distance[entity] = calcDistancePCA(tailPredictVector, entityVectors[entity], tailType)
+    sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
+
+    rank = 1
+    for i in range(len(sortedDistance)):
+        entity = sortedDistance[i]
+        if superFilter:
+            if not triplets(head, entity, relation) in tripletsFinder:
+                rank += 1
+            else:
+                break
+        else:
+            if entity == tail:
+                break
+            if not triplets(head, entity, relation) in tripletsFinder:
+                rank += 1
+    updateStatistics(rank, relation, 'tail')
+    print('Tail rank: ' + str(rank), end='\n')
+
+for predictObject in ['head', 'tail']:
+    for relation in relations:
+        MRR[predictObject][relation] /= float(relationCount[relation])
+        hit10[predictObject][relation] /= float(relationCount[relation])
+        hit3[predictObject][relation] /= float(relationCount[relation])
+        hit1[predictObject][relation] /= float(relationCount[relation])
+
+        MRR['overall'] = MRR.get('overall', 0) + MRR[predictObject][relation]
+        hit10['overall'] = hit10.get('overall', 0) + hit10[predictObject][relation]
+        hit3['overall'] = hit3.get('overall', 0) + hit3[predictObject][relation]
+        hit1['overall'] = hit1.get('overall', 0) + hit1[predictObject][relation]
+
+MRR['overall'] /= len(relations) * 2
+hit10['overall'] /= len(relations) * 2
+hit3['overall'] /= len(relations) * 2
+hit1['overall'] /= len(relations) * 2
+
+
+def formattedRound(number, digit):
+    if digit == 0:
+        return str(round(number))
+    else:
+        rounded = str(round(number, digit))
+        return rounded + (digit - len(rounded.split('.')[1])) * '0'
+
+
+print('Overall:')
+print('MRR\thit@10\thit@3\thit@1')
+print('\t'.join(
+    [formattedRound(MRR['overall'], 4), formattedRound(hit10['overall'], 4), formattedRound(hit3['overall'], 4),
+     formattedRound(hit1['overall'], 4)]))
+print()
+
+for relation in relations:
+    print(relationName[relation])
+    print('\tMRR\thit@10\thit@3\thit@1')
+    for predictObject in ['head', 'tail']:
+        print(predictObject + '\t'.join(
+            ['', formattedRound(MRR[predictObject][relation], 4), formattedRound(hit10[predictObject][relation], 4),
+             formattedRound(hit3[predictObject][relation], 4), formattedRound(hit1[predictObject][relation], 4)]))
+    print()

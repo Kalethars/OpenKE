@@ -3,6 +3,17 @@
 import pymysql
 import argparse
 import os
+import win_unicode_console
+
+win_unicode_console.enable()
+
+
+def mkdir(folders):
+    path = parentDir + '/'
+    for i in range(len(folders)):
+        path += str(folders[i]) + '/'
+        if not os.path.exists(path):
+            os.mkdir(path)
 
 
 def connectSQL(config):
@@ -238,7 +249,8 @@ parsedArgs = parser.parse_args()
 
 database = parsedArgs.database
 update = parsedArgs.update if parsedArgs.update else False
-target = parsedArgs.target.lower()
+target = parsedArgs.target.lower() if parsedArgs.target else None
+
 if target != None:
     if not target in types:
         raise ValueError('Invalid target! Must be one of {' + ', '.join(types) + '}.')
@@ -261,6 +273,7 @@ for line in s:
         if splited[0][0] == type[0]:
             allEntities[type][int(splited[1])] = splited[0][1:]
 
+mkdir(['data', database, 'info'])
 infoSaveDir = parentDir + '/data/' + database + '/info/'
 
 if target != None:
