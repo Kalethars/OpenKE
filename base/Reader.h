@@ -254,6 +254,8 @@ void importTypeFiles() {
         }
         tail_rig[rel] = total_rig;
         std::sort(tail_type + tail_lef[rel], tail_type + tail_rig[rel]);
+        printf("head_left: %ld head_right: %ld head_type_left:%ld head_type_right:%ld\n", head_lef[rel], head_rig[rel], head_type[head_lef[rel]], head_type[head_rig[rel]]);
+        printf("tail_left: %ld tail_right: %ld tail_type_left:%ld tail_type_right:%ld\n", tail_lef[rel], tail_rig[rel], tail_type[tail_lef[rel]], tail_type[tail_rig[rel]]);
     }
     fclose(f_type);
 }

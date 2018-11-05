@@ -44,6 +44,7 @@ void testHead(REAL *con) {
     REAL minIncorrectValue = -1;
     INT minIncorrectIndex = -1;
 
+    printf("head_left: %ld head_right: %ld head_type_left:%ld head_type_right:%ld\n", head_lef[r], head_rig[r], head_type[head_lef[r]], head_type[head_rig[r]]);
     for (INT i = head_lef[r]; i < head_rig[r]; i++) {
         INT j = head_type[i];
         REAL value = con[j];
@@ -106,6 +107,7 @@ void testTail(REAL *con) {
     REAL minIncorrectValue = -1;
     INT minIncorrectIndex = -1;
 
+    printf("tail_left: %ld tail_right: %ld tail_type_left:%ld tail_type_right:%ld\n", tail_lef[r], tail_rig[r], tail_type[tail_lef[r]], tail_type[tail_rig[r]]);
     for (INT i = tail_lef[r]; i < tail_rig[r]; i++) {
         INT j = tail_type[i];
         REAL value = con[j];
