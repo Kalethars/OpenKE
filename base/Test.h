@@ -42,10 +42,10 @@ void testHead(REAL *con) {
     INT l_s_constrain = 0;
 
     REAL minIncorrectValue = -1;
-    REAL minIncorrectIndex = -1;
+    INT minIncorrectIndex = -1;
 
     for (INT i = head_lef[r]; i < head_rig[r]; i++) {
-        j = head_type[i];
+        INT j = head_type[i];
         REAL value = con[j];
         if (j != h) {
             if (value < minimal) {
@@ -104,10 +104,10 @@ void testTail(REAL *con) {
     INT r_s_constrain = 0;
 
     REAL minIncorrectValue = -1;
-    REAL minIncorrectIndex = -1;
+    INT minIncorrectIndex = -1;
 
     for (INT i = tail_lef[r]; i < tail_rig[r]; i++) {
-        j = tail_type[i];
+        INT j = tail_type[i];
         REAL value = con[j];
         if (j != t) {
             if (value < minimal) {
