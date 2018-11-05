@@ -177,7 +177,7 @@ def calcDistance(v1, v2, norm):
     d = 0
     for i in range(dimension):
         d += abs(v1[i] - v2[i]) ** norm
-    return d / dimension
+    return d
 
 
 def calcDistancePCA(v1, v2, type):
