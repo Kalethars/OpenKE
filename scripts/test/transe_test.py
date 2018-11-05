@@ -1,5 +1,6 @@
 import argparse
 import os
+import gc
 import win_unicode_console
 
 win_unicode_console.enable()
@@ -32,6 +33,7 @@ parser.add_argument('--order', type=int, required=True)
 parser.add_argument('--superfilter', type=bool, required=False)
 parser.add_argument('--pca', type=int, required=False)
 parser.add_argument('--norm', type=float, required=False)
+parser.add_argument('--test', type=str, required=False)
 parsedConfig = parser.parse_args()
 
 dataset = parsedConfig.dataset if parsedConfig.dataset else 'ACE17K'
@@ -39,6 +41,17 @@ method = parsedConfig.method if parsedConfig.method else 'TransE'
 order = parsedConfig.order
 superFilter = parsedConfig.superfilter if parsedConfig.superfilter else False
 norm = parsedConfig.norm if parsedConfig.norm else 1
+testString = parsedConfig.test
+
+if testString != None:
+    splited = testString.split()
+    if len(splited) != 3:
+        raise ValueError('Test format error! Must be like "head tail relation".')
+    for i in range(len(splited)):
+        try:
+            int(splited[i])
+        except:
+            raise ValueError('Test format error! Please input number id!')
 
 types = ['paper', 'author', 'institute', 'field', 'venue']
 typeMap = {'p': 'paper', 'a': 'author', 'i': 'institute', 'f': 'field', 'v': 'venue'}
@@ -164,7 +177,7 @@ def calcDistance(v1, v2, norm):
     d = 0
     for i in range(dimension):
         d += abs(v1[i] - v2[i]) ** norm
-    return d
+    return d / dimension
 
 
 def calcDistancePCA(v1, v2, type):
@@ -191,9 +204,13 @@ def updateStatistics(rank, relation, predictObject):
 
 
 testReadPath = benchmarkDir + 'test2id.txt'
-f = open(testReadPath, 'r')
-s = f.read().split('\n')
-f.close()
+if testString is None:
+    f = open(testReadPath, 'r')
+    s = f.read().split('\n')
+    f.close()
+else:
+    s = ['1', testString]
+
 f = open(vectorReadDir + 'test_norm=' + str(round(norm, 2)).rstrip('.0') + '.log', 'w')
 MRR = dict()
 hit10 = dict()
@@ -265,6 +282,10 @@ for testCount in range(len(testTriplets)):
     updateStatistics(rank, relation, 'head')
     output(f, 'Head rank: ' + str(rank), end='\t')
 
+    del headPredictVector
+    del distance
+    del sortedDistance
+
     # Predict tail
     tailPredictVector = [headVector[i] + relationVector[i] for i in range(dimension)]
 
@@ -301,43 +322,57 @@ for testCount in range(len(testTriplets)):
                 rank += 1
     updateStatistics(rank, relation, 'tail')
     output(f, 'Tail rank: ' + str(rank), end='\n')
+
     if not superFilter:
-        output(f, 'Minimal incorrect head: ' + entityInfo(minIncorrectHead) + '\t' +
+        output(f, 'Value of correct entity: ' + formattedRound(distance[tail], 4))
+        output(f, 'Minimal incorrect head: ' + entityInfo(minIncorrectHead) + ' ' +
                'value: ' + formattedRound(minIncorrectValueHead, 4))
-        output(f, 'Minimal incorrect tail: ' + entityInfo(minIncorrectTail) + '\t' +
+        output(f, 'Minimal incorrect tail: ' + entityInfo(minIncorrectTail) + ' ' +
                'value: ' + formattedRound(minIncorrectValueTail, 4))
 
-for predictObject in ['head', 'tail']:
-    for relation in relations:
-        MRR[predictObject][relation] /= float(relationCount[relation])
-        hit10[predictObject][relation] /= float(relationCount[relation])
-        hit3[predictObject][relation] /= float(relationCount[relation])
-        hit1[predictObject][relation] /= float(relationCount[relation])
+    del tailPredictVector
+    del distance
+    del sortedDistance
 
-        MRR['overall'] = MRR.get('overall', 0) + MRR[predictObject][relation]
-        hit10['overall'] = hit10.get('overall', 0) + hit10[predictObject][relation]
-        hit3['overall'] = hit3.get('overall', 0) + hit3[predictObject][relation]
-        hit1['overall'] = hit1.get('overall', 0) + hit1[predictObject][relation]
+    gc.collect()
 
-MRR['overall'] /= len(relations) * 2
-hit10['overall'] /= len(relations) * 2
-hit3['overall'] /= len(relations) * 2
-hit1['overall'] /= len(relations) * 2
 
-output(f, 'Overall:')
-output(f, 'MRR\thit@10\thit@3\thit@1')
-output(f, '\t'.join(
-    [formattedRound(MRR['overall'], 4), formattedRound(hit10['overall'], 4), formattedRound(hit3['overall'], 4),
-     formattedRound(hit1['overall'], 4)]))
-output(f)
-
-for relation in relations:
-    output(f, relationName[relation])
-    output(f, '\tMRR\thit@10\thit@3\thit@1')
+def overallOutput():
     for predictObject in ['head', 'tail']:
-        output(f, predictObject + '\t'.join(
-            ['', formattedRound(MRR[predictObject][relation], 4), formattedRound(hit10[predictObject][relation], 4),
-             formattedRound(hit3[predictObject][relation], 4), formattedRound(hit1[predictObject][relation], 4)]))
+        for relation in relations:
+            MRR[predictObject][relation] /= float(relationCount[relation])
+            hit10[predictObject][relation] /= float(relationCount[relation])
+            hit3[predictObject][relation] /= float(relationCount[relation])
+            hit1[predictObject][relation] /= float(relationCount[relation])
+
+            MRR['overall'] = MRR.get('overall', 0) + MRR[predictObject][relation]
+            hit10['overall'] = hit10.get('overall', 0) + hit10[predictObject][relation]
+            hit3['overall'] = hit3.get('overall', 0) + hit3[predictObject][relation]
+            hit1['overall'] = hit1.get('overall', 0) + hit1[predictObject][relation]
+
+    MRR['overall'] /= len(relations) * 2
+    hit10['overall'] /= len(relations) * 2
+    hit3['overall'] /= len(relations) * 2
+    hit1['overall'] /= len(relations) * 2
+
+    output(f, 'Overall:')
+    output(f, 'MRR\thit@10\thit@3\thit@1')
+    output(f, '\t'.join(
+        [formattedRound(MRR['overall'], 4), formattedRound(hit10['overall'], 4), formattedRound(hit3['overall'], 4),
+         formattedRound(hit1['overall'], 4)]))
     output(f)
+
+    for relation in relations:
+        output(f, relationName[relation])
+        output(f, '\tMRR\thit@10\thit@3\thit@1')
+        for predictObject in ['head', 'tail']:
+            output(f, predictObject + '\t'.join(
+                ['', formattedRound(MRR[predictObject][relation], 4), formattedRound(hit10[predictObject][relation], 4),
+                 formattedRound(hit3[predictObject][relation], 4), formattedRound(hit1[predictObject][relation], 4)]))
+        output(f)
+
+
+if testString is None:
+    overallOutput()
 
 f.close()
