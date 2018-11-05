@@ -1,5 +1,27 @@
 import argparse
 import os
+import win_unicode_console
+
+win_unicode_console.enable()
+
+
+def formattedRound(number, digit):
+    if digit == 0:
+        return str(round(number))
+    else:
+        rounded = str(round(number, digit))
+        return rounded + (digit - len(rounded.split('.')[1])) * '0'
+
+
+def entityInfo(entity):
+    return typeIndex.get(entity, '_')[0] + entity + \
+           '(' + str(idIndex[entity]) + ')' + ' ' * (len(str(entityNum)) - len(str(idIndex[entity])))
+
+
+def output(f, s='', end='\n'):
+    print(str(s) + end, end='')
+    f.write(str(s) + end)
+
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -27,6 +49,8 @@ entity2idReadPath = benchmarkDir + 'entity2id.txt'
 f = open(entity2idReadPath, 'r')
 s = f.read().split('\n')
 f.close()
+entityNum = int(s[0])
+
 idIndex = dict()
 typeIndex = dict()
 entities = dict()
@@ -170,6 +194,7 @@ testReadPath = benchmarkDir + 'test2id.txt'
 f = open(testReadPath, 'r')
 s = f.read().split('\n')
 f.close()
+f = open(vectorReadDir + 'test_norm=' + str(round(norm, 2)).rstrip('.0') + '.log', 'w')
 MRR = dict()
 hit10 = dict()
 hit3 = dict()
@@ -180,25 +205,28 @@ for predictObject in ['head', 'tail']:
     hit3[predictObject] = dict()
     hit1[predictObject] = dict()
 relationCount = dict()
-testCount = 0
-print('Total test triplets:\t' + s[0])
+output(f, 'Total test triplets:\t' + s[0])
+testTriplets = []
 for line in s:
     splited = line.split()
     if len(splited) != 3:
         continue
-    testCount += 1
-    print(testCount, end='\t')
-    head = idIndex[splited[0]]
-    tail = idIndex[splited[1]]
-    relation = splited[2]
+    testTriplets.append([splited[0], splited[1], splited[2]])
+
+testTriplets.sort(key=lambda x: (int(x[2]), int(x[0]), int(x[1])))
+for testCount in range(len(testTriplets)):
+    output(f, testCount + 1, end='\t')
+    head = idIndex[testTriplets[testCount][0]]
+    tail = idIndex[testTriplets[testCount][1]]
+    relation = testTriplets[testCount][2]
     headVector = entityVectors[head]
     tailVector = entityVectors[tail]
     relationVector = relationVectors[relation]
     headType = typeIndex[head]
     tailType = typeIndex[tail]
     relationCount[relation] = relationCount.get(relation, 0) + 1
-    print(headType[0] + head, end='\t')
-    print(tailType[0] + tail, end='\t')
+    output(f, entityInfo(head), end='\t')
+    output(f, entityInfo(tail), end='\t')
 
     # Predict head
     headPredictVector = [tailVector[i] - relationVector[i] for i in range(dimension)]
@@ -212,6 +240,9 @@ for line in s:
     sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
 
     rank = 1
+    minIncorrectHead = '________'
+    minIncorrectValueHead = -1
+    findFlag = False
     for i in range(len(sortedDistance)):
         entity = sortedDistance[i]
         if superFilter:
@@ -221,11 +252,18 @@ for line in s:
                 break
         else:
             if entity == head:
-                break
+                findFlag = True
+                if minIncorrectValueHead >= 0:
+                    break
             if not triplets(entity, tail, relation) in tripletsFinder:
+                if minIncorrectValueHead < 0:
+                    minIncorrectValueHead = distance[entity]
+                    minIncorrectHead = entity
+                    if findFlag:
+                        break
                 rank += 1
     updateStatistics(rank, relation, 'head')
-    print('Head rank: ' + str(rank), end='\t')
+    output(f, 'Head rank: ' + str(rank), end='\t')
 
     # Predict tail
     tailPredictVector = [headVector[i] + relationVector[i] for i in range(dimension)]
@@ -239,6 +277,9 @@ for line in s:
     sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
 
     rank = 1
+    minIncorrectTail = '________'
+    minIncorrectValueTail = -1
+    findFlag = False
     for i in range(len(sortedDistance)):
         entity = sortedDistance[i]
         if superFilter:
@@ -248,11 +289,23 @@ for line in s:
                 break
         else:
             if entity == tail:
-                break
+                findFlag = True
+                if minIncorrectValueTail >= 0:
+                    break
             if not triplets(head, entity, relation) in tripletsFinder:
+                if minIncorrectValueTail < 0:
+                    minIncorrectValueTail = distance[entity]
+                    minIncorrectTail = entity
+                    if findFlag:
+                        break
                 rank += 1
     updateStatistics(rank, relation, 'tail')
-    print('Tail rank: ' + str(rank), end='\n')
+    output(f, 'Tail rank: ' + str(rank), end='\n')
+    if not superFilter:
+        output(f, 'Minimal incorrect head: ' + entityInfo(minIncorrectHead) + '\t' +
+               'value: ' + formattedRound(minIncorrectValueHead, 4))
+        output(f, 'Minimal incorrect tail: ' + entityInfo(minIncorrectTail) + '\t' +
+               'value: ' + formattedRound(minIncorrectValueTail, 4))
 
 for predictObject in ['head', 'tail']:
     for relation in relations:
@@ -271,27 +324,20 @@ hit10['overall'] /= len(relations) * 2
 hit3['overall'] /= len(relations) * 2
 hit1['overall'] /= len(relations) * 2
 
-
-def formattedRound(number, digit):
-    if digit == 0:
-        return str(round(number))
-    else:
-        rounded = str(round(number, digit))
-        return rounded + (digit - len(rounded.split('.')[1])) * '0'
-
-
-print('Overall:')
-print('MRR\thit@10\thit@3\thit@1')
-print('\t'.join(
+output(f, 'Overall:')
+output(f, 'MRR\thit@10\thit@3\thit@1')
+output(f, '\t'.join(
     [formattedRound(MRR['overall'], 4), formattedRound(hit10['overall'], 4), formattedRound(hit3['overall'], 4),
      formattedRound(hit1['overall'], 4)]))
-print()
+output(f)
 
 for relation in relations:
-    print(relationName[relation])
-    print('\tMRR\thit@10\thit@3\thit@1')
+    output(f, relationName[relation])
+    output(f, '\tMRR\thit@10\thit@3\thit@1')
     for predictObject in ['head', 'tail']:
-        print(predictObject + '\t'.join(
+        output(f, predictObject + '\t'.join(
             ['', formattedRound(MRR[predictObject][relation], 4), formattedRound(hit10[predictObject][relation], 4),
              formattedRound(hit3[predictObject][relation], 4), formattedRound(hit1[predictObject][relation], 4)]))
-    print()
+    output(f)
+
+f.close()

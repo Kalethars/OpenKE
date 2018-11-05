@@ -152,10 +152,10 @@ void importTestFiles() {
     validList = (Triple *)calloc(validTotal, sizeof(Triple));
     tripleList = (Triple *)calloc(tripleTotal, sizeof(Triple));
     for (INT i = 0; i < testTotal; i++) {
-        tmp = fscanf(f_kb1, "%ld", &testList[i].h);
-        tmp = fscanf(f_kb1, "%ld", &testList[i].t);
-        tmp = fscanf(f_kb1, "%ld", &testList[i].r);
-        tripleList[i] = testList[i];
+        tmp = fscanf(f_kb1, "%ld", &tripleList[i].h);
+        tmp = fscanf(f_kb1, "%ld", &tripleList[i].t);
+        tmp = fscanf(f_kb1, "%ld", &tripleList[i].r);
+        testList[i] = tripleList[i];
     }
     for (INT i = 0; i < trainTotal; i++) {
         tmp = fscanf(f_kb2, "%ld", &tripleList[i + testTotal].h);

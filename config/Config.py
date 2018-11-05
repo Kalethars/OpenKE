@@ -58,6 +58,7 @@ class Config(object):
             self.lib.setWorkThreads(self.workThreads)
             self.lib.randReset()
             self.lib.importTrainFiles()
+
             self.relTotal = self.lib.getRelationTotal()
             self.entTotal = self.lib.getEntityTotal()
             self.trainTotal = self.lib.getTrainTotal()
@@ -75,6 +76,8 @@ class Config(object):
             self.batch_y_addr = self.batch_y.__array_interface__['data'][0]
         if self.test_link_prediction:
             self.lib.importTestFiles()
+            self.lib.importTypeFiles()
+
             self.test_h = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
             self.test_t = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
             self.test_r = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
@@ -334,6 +337,8 @@ class Config(object):
                 if self.test_link_prediction:
                     total = self.lib.getTestTotal()
                     for times in range(total):
+                        if self.log_on:
+                            print times
                         self.lib.getHeadBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr)
                         res = self.test_step(self.test_h, self.test_t, self.test_r)
                         self.lib.testHead(res.__array_interface__['data'][0])
@@ -341,8 +346,6 @@ class Config(object):
                         self.lib.getTailBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr)
                         res = self.test_step(self.test_h, self.test_t, self.test_r)
                         self.lib.testTail(res.__array_interface__['data'][0])
-                        if self.log_on:
-                            print times
                     self.lib.test_link_prediction(output)
                 if self.test_triple_classification:
                     self.lib.getValidBatch(self.valid_pos_h_addr, self.valid_pos_t_addr, self.valid_pos_r_addr,
