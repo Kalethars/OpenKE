@@ -219,6 +219,8 @@ void importTestFiles() {
 
 	relationCount = (INT *)calloc(relationTotal*2, sizeof(INT));
 	memset(relationCount, 0, sizeof(INT)*relationTotal*2);
+
+    printf("All triples loaded.\n");
 }
 
 
@@ -231,6 +233,7 @@ INT *tail_type;
 
 extern "C"
 void importTypeFiles() {
+    printf("Start loading type constraint data.\n");
 	INT total_lef = 0;
     INT total_rig = 0;
     FILE* f_type = fopen((inPath + "type_constrain.txt").c_str(),"r");
@@ -240,19 +243,22 @@ void importTypeFiles() {
     head_rig = (INT *)calloc(relationTotal, sizeof(INT));
     tail_lef = (INT *)calloc(relationTotal, sizeof(INT));
     tail_rig = (INT *)calloc(relationTotal, sizeof(INT));
-    tot = fscanf(f_type, "%ld", &tot);
+    tmp = fscanf(f_type, "%ld", &tot);
+    printf("Head total: %ld\t", tot);
     head_type = (INT *)calloc(tot, sizeof(INT));
+    tmp = fscanf(f_type, "%ld", &tot);
+    printf("Tail total: %ld\n", tot);
     tail_type = (INT *)calloc(tot, sizeof(INT));
     for (INT i = 0; i < relationTotal; i++) {
-        printf("Relation id: %ld", rel);
         tmp = fscanf(f_type, "%ld%ld", &rel, &tot);
+        printf("Relation id: %ld\n", rel);
         head_lef[rel] = total_lef;
         for (INT j = 0; j < tot; j++) {
             tmp = fscanf(f_type, "%ld", &head_type[total_lef]);
             total_lef++;
         }
         head_rig[rel] = total_lef;
-        std::sort(head_type + head_lef[rel], head_type + head_rig[rel]);
+        // std::sort(head_type + head_lef[rel], head_type + head_rig[rel]);
         tmp = fscanf(f_type, "%ld%ld", &rel, &tot);
         tail_lef[rel] = total_rig;
         for (INT j = 0; j < tot; j++) {
@@ -260,11 +266,12 @@ void importTypeFiles() {
             total_rig++;
         }
         tail_rig[rel] = total_rig;
-        std::sort(tail_type + tail_lef[rel], tail_type + tail_rig[rel]);
-        printf("head_left: %ld head_right: %ld head_type_left:%ld head_type_right:%ld\n", head_lef[rel], head_rig[rel], head_type[head_lef[rel]], head_type[head_rig[rel]]);
-        printf("tail_left: %ld tail_right: %ld tail_type_left:%ld tail_type_right:%ld\n", tail_lef[rel], tail_rig[rel], tail_type[tail_lef[rel]], tail_type[tail_rig[rel]]);
+        // std::sort(tail_type + tail_lef[rel], tail_type + tail_rig[rel]);
+        printf("head_left: %ld head_right: %ld head_type_left:%ld head_type_right:%ld\n", head_lef[rel], head_rig[rel], head_type[head_lef[rel]], head_type[head_rig[rel]-1]);
+        printf("tail_left: %ld tail_right: %ld tail_type_left:%ld tail_type_right:%ld\n", tail_lef[rel], tail_rig[rel], tail_type[tail_lef[rel]], tail_type[tail_rig[rel]-1]);
     }
     fclose(f_type);
+    printf("All type constraint loaded.\n");
 }
 
 

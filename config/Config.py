@@ -316,11 +316,12 @@ class Config(object):
                     self.restore_tensorflow()
                 for times in range(self.train_times):
                     res = 0.0
+                    if self.log_on:
+                        print times
                     for batch in range(self.nbatches):
                         self.sampling()
                         res += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
                     if self.log_on:
-                        print times
                         print res
                     if self.exportName != None and (self.export_steps != 0 and times % self.export_steps == 0):
                         self.save_tensorflow()

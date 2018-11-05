@@ -44,7 +44,6 @@ void testHead(REAL *con) {
     REAL minIncorrectValue = -1;
     INT minIncorrectIndex = -1;
 
-    printf("head_left: %ld head_right: %ld head_type_left:%ld head_type_right:%ld\n", head_lef[r], head_rig[r], head_type[head_lef[r]], head_type[head_rig[r]]);
     for (INT i = head_lef[r]; i < head_rig[r]; i++) {
         INT j = head_type[i];
         REAL value = con[j];
@@ -87,7 +86,7 @@ void testHead(REAL *con) {
     meanRankReciprocal[r] += 1.0/(l_filter_s+1);
     l_reci_rank += 1.0/(l_s+1);
     lastHead++;
-    printf("h: %ld r: %ld t:%ld value:%f\n", h, r, t, minimal);
+    printf("h: %ld r: %ld t: %ld value: %f\n", h, r, t, minimal);
     printf("minIncH: %ld minIncV: %f\n", minIncorrectIndex, minIncorrectValue);
     printf("l_filter_s: %ld\n", l_filter_s);
     // printf("%f %f %f %f \n", l_tot / lastHead, l_filter_tot / lastHead, l_rank / lastHead, l_filter_rank / lastHead);
@@ -107,7 +106,6 @@ void testTail(REAL *con) {
     REAL minIncorrectValue = -1;
     INT minIncorrectIndex = -1;
 
-    printf("tail_left: %ld tail_right: %ld tail_type_left:%ld tail_type_right:%ld\n", tail_lef[r], tail_rig[r], tail_type[tail_lef[r]], tail_type[tail_rig[r]]);
     for (INT i = tail_lef[r]; i < tail_rig[r]; i++) {
         INT j = tail_type[i];
         REAL value = con[j];

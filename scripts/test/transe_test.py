@@ -115,21 +115,22 @@ for type in types:
             continue
         entityVectors[entityList[i]] = list(map(lambda x: float(x), splited))
 
-    coeffReadPath = vectorReadDir + 'pca/' + type + 'Coeff.data'
-    f = open(coeffReadPath, 'r')
-    s = f.read().split('\n')
-    f.close()
-    for line in s:
-        splited = line.split()
-        if len(splited) != dimension:
-            continue
-        coeff.append(list(map(lambda x: float(x), splited)))
+    if pcaDimension != None:
+        coeffReadPath = vectorReadDir + 'pca/' + type + 'Coeff.data'
+        f = open(coeffReadPath, 'r')
+        s = f.read().split('\n')
+        f.close()
+        for line in s:
+            splited = line.split()
+            if len(splited) != dimension:
+                continue
+            coeff.append(list(map(lambda x: float(x), splited)))
 
-    latentReadPath = vectorReadDir + 'pca/' + type + 'Latent.data'
-    f = open(latentReadPath, 'r')
-    s = f.read().split('\n')[0].split()
-    f.close()
-    latent[type] = list(map(lambda x: float(x), s))
+        latentReadPath = vectorReadDir + 'pca/' + type + 'Latent.data'
+        f = open(latentReadPath, 'r')
+        s = f.read().split('\n')[0].split()
+        f.close()
+        latent[type] = list(map(lambda x: float(x), s))
 
 relationVectors = dict()
 relationReadPath = vectorReadDir + 'relationVector.data'

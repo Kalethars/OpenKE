@@ -65,7 +65,7 @@ triple.close()
 f = open("type_constrain.txt", "w")
 f.write("%d\t%d\t%d\n" % (
     len(rellef), sum([len(rellef[i]) for i in rellef.keys()]), sum([len(relrig[i]) for i in relrig.keys()])))
-for i in rellef:
+for i in sorted(rellef.keys()):
     f.write("%s\t%d" % (i, len(rellef[i])))
     for j in rellef[i]:
         f.write("\t%s" % (j))
