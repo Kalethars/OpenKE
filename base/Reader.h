@@ -222,22 +222,29 @@ void importTestFiles() {
 }
 
 
-INT head_lef[10000];
-INT head_rig[10000];
-INT tail_lef[10000];
-INT tail_rig[10000];
-INT head_type[1000000];
-INT tail_type[1000000];
+INT *head_lef;
+INT *head_rig;
+INT *tail_lef;
+INT *tail_rig;
+INT *head_type;
+INT *tail_type;
 
 extern "C"
 void importTypeFiles() {
 	INT total_lef = 0;
     INT total_rig = 0;
     FILE* f_type = fopen((inPath + "type_constrain.txt").c_str(),"r");
-    INT tmp;
+    INT tmp, rel, tot;
     tmp = fscanf(f_type, "%ld", &tmp);
+    head_lef = (INT *)calloc(relationTotal, sizeof(INT));
+    head_rig = (INT *)calloc(relationTotal, sizeof(INT));
+    tail_lef = (INT *)calloc(relationTotal, sizeof(INT));
+    tail_rig = (INT *)calloc(relationTotal, sizeof(INT));
+    tot = fscanf(f_type, "%ld", &tot);
+    head_type = (INT *)calloc(tot, sizeof(INT));
+    tail_type = (INT *)calloc(tot, sizeof(INT));
     for (INT i = 0; i < relationTotal; i++) {
-        INT rel, tot;
+        printf("Relation id: %ld", rel);
         tmp = fscanf(f_type, "%ld%ld", &rel, &tot);
         head_lef[rel] = total_lef;
         for (INT j = 0; j < tot; j++) {
