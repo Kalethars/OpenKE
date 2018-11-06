@@ -38,7 +38,7 @@ def generate(dataset):
     f.write('source ~/wangrj/tensorflow/bin/activate\n')
     for i in range(count):
         f.write(
-            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../config/HolE.config --order=' +
+            'CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=HolE --config=../config/HolE.config --order=' +
             str(i + 1) + '\n')
     f.close()
 
@@ -73,7 +73,7 @@ def generateDetailed(dataset):
     f.write('source ~/wangrj/tensorflow/bin/activate\n')
     for i in range(count):
         f.write(
-            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=HolE --config=../config/HolE_detailed.config --order=' +
+            'CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=HolE --config=../config/HolE_detailed.config --order=' +
             str(i + 1) + '\n')
     f.close()
 

@@ -39,7 +39,7 @@ def generate(dataset):
     f.write('source ~/wangrj/tensorflow/bin/activate\n')
     for i in range(count):
         f.write(
-            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=TransH --config=../config/%s.config --order=%i\n' % (
+            'CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransH --config=../config/%s.config --order=%i\n' % (
                 configName, i + 1))
     f.close()
 
@@ -75,7 +75,7 @@ def generateDetailed(dataset):
     f.write('source ~/wangrj/tensorflow/bin/activate\n')
     for i in range(count):
         f.write(
-            'CUDA_VISIBLE_DEVICES="0,1,2,3" python ../kg_train.py --method=TransH --config=../config/%s.config --order=%i\n' % (
+            'CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransH --config=../config/%s.config --order=%i\n' % (
                 configName, i + 1))
     f.close()
 
