@@ -4,68 +4,23 @@
 #include "Triple.h"
 #include "Reader.h"
 
-INT corrupt_head(INT id, INT h, INT r) {
-	INT lef, rig, mid, ll, rr;
-	lef = lefHead[h] - 1;
-	rig = rigHead[h];
-	while (lef + 1 < rig) {
-		mid = (lef + rig) >> 1;
-		if (trainHead[mid].r >= r) rig = mid; else
-		lef = mid;
-	}
-	ll = rig;
-	lef = lefHead[h];
-	rig = rigHead[h] + 1;
-	while (lef + 1 < rig) {
-		mid = (lef + rig) >> 1;
-		if (trainHead[mid].r <= r) lef = mid; else
-		rig = mid;
-	}
-	rr = lef;
-	INT tmp = rand_max(id, entityTotal - (rr - ll + 1));
-	if (tmp < trainHead[ll].t) return tmp;
-	if (tmp > trainHead[rr].t - rr + ll - 1) return tmp + rr - ll + 1;
-	lef = ll, rig = rr + 1;
-	while (lef + 1 < rig) {
-		mid = (lef + rig) >> 1;
-		if (trainHead[mid].t - mid + ll - 1 < tmp)
-			lef = mid;
-		else 
-			rig = mid;
-	}
-	return tmp + lef - ll + 1;
+INT corrupt_head(INT id, INT t, INT r) {
+    while true {
+        INT h = head_type[rand_max(id, head_rig[r] - head_lef[r]) + head_lef[r]];
+        if not _find(h, t, r) {
+            return h;
+        }
+    }
 }
 
-INT corrupt_tail(INT id, INT t, INT r) {
-	INT lef, rig, mid, ll, rr;
-	lef = lefTail[t] - 1;
-	rig = rigTail[t];
-	while (lef + 1 < rig) {
-		mid = (lef + rig) >> 1;
-		if (trainTail[mid].r >= r) rig = mid; else
-		lef = mid;
-	}
-	ll = rig;
-	lef = lefTail[t];
-	rig = rigTail[t] + 1;
-	while (lef + 1 < rig) {
-		mid = (lef + rig) >> 1;
-		if (trainTail[mid].r <= r) lef = mid; else
-		rig = mid;
-	}
-	rr = lef;
-	INT tmp = rand_max(id, entityTotal - (rr - ll + 1));
-	if (tmp < trainTail[ll].h) return tmp;
-	if (tmp > trainTail[rr].h - rr + ll - 1) return tmp + rr - ll + 1;
-	lef = ll, rig = rr + 1;
-	while (lef + 1 < rig) {
-		mid = (lef + rig) >> 1;
-		if (trainTail[mid].h - mid + ll - 1 < tmp)
-			lef = mid;
-		else 
-			rig = mid;
-	}
-	return tmp + lef - ll + 1;
+
+INT corrupt_tail(INT id, INT h, INT r) {
+    while true {
+        INT t = tail_type[rand_max(id, tail_rig[r] - tail_lef[r]) + tail_lef[r]];
+        if not _find(h, t, r) {
+            return t;
+        }
+    }
 }
 
 

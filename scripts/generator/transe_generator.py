@@ -73,7 +73,13 @@ paramConfig = {'basic': {'epoch': [2000, 1000],
                             'nbatches': [100],
                             'margin': [1.5, 2.0, 2.5, 3.0],
                             'alpha': [0.0005, 0.001, 0.003, 0.01],
-                            'bern': [0]}
+                            'bern': [0]},
+               'test': {'epoch': [100],
+                        'dimension': [100],
+                        'nbatches': [100],
+                        'margin': [2.0],
+                        'alpha': [0.001],
+                        'bern': [0]}
                }
 
 if method == 'all':

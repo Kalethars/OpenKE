@@ -58,6 +58,7 @@ class Config(object):
             self.lib.setWorkThreads(self.workThreads)
             self.lib.randReset()
             self.lib.importTrainFiles()
+            self.lib.importTypeFiles()
 
             self.relTotal = self.lib.getRelationTotal()
             self.entTotal = self.lib.getEntityTotal()
@@ -76,7 +77,6 @@ class Config(object):
             self.batch_y_addr = self.batch_y.__array_interface__['data'][0]
         if self.test_link_prediction:
             self.lib.importTestFiles()
-            self.lib.importTypeFiles()
 
             self.test_h = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
             self.test_t = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
@@ -86,7 +86,6 @@ class Config(object):
             self.test_r_addr = self.test_r.__array_interface__['data'][0]
         if self.test_triple_classification:
             self.lib.importTestFiles()
-            self.lib.importTypeFiles()
 
             self.test_pos_h = np.zeros(self.lib.getTestTotal(), dtype=np.int64)
             self.test_pos_t = np.zeros(self.lib.getTestTotal(), dtype=np.int64)
