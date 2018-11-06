@@ -41,9 +41,6 @@ void testHead(REAL *con) {
     INT l_filter_s = 0;
     INT l_s_constrain = 0;
 
-    REAL minIncorrectValue = -1;
-    INT minIncorrectIndex = -1;
-
     for (INT i = head_lef[r]; i < head_rig[r]; i++) {
         INT j = head_type[i];
         REAL value = con[j];
@@ -54,10 +51,6 @@ void testHead(REAL *con) {
             if (not _find(j, t, r)) {
                 if (value < minimal) {
                     l_filter_s += 1;
-                }
-                if (value < minIncorrectValue || minIncorrectValue < 0) {
-                    minIncorrectValue = value;
-                    minIncorrectIndex = j;
                 }
             }
         }
@@ -87,8 +80,7 @@ void testHead(REAL *con) {
     l_reci_rank += 1.0/(l_s+1);
     lastHead++;
     printf("h: %ld r: %ld t: %ld value: %f\n", h, r, t, minimal);
-    printf("minIncH: %ld minIncV: %f\n", minIncorrectIndex, minIncorrectValue);
-    printf("l_filter_s: %ld\n", l_filter_s);
+    printf("l_filter_s: %ld\t", l_filter_s);
     // printf("%f %f %f %f \n", l_tot / lastHead, l_filter_tot / lastHead, l_rank / lastHead, l_filter_rank / lastHead);
 }
 
@@ -103,9 +95,6 @@ void testTail(REAL *con) {
     INT r_filter_s = 0;
     INT r_s_constrain = 0;
 
-    REAL minIncorrectValue = -1;
-    INT minIncorrectIndex = -1;
-
     for (INT i = tail_lef[r]; i < tail_rig[r]; i++) {
         INT j = tail_type[i];
         REAL value = con[j];
@@ -116,10 +105,6 @@ void testTail(REAL *con) {
             if (not _find(h, j, r)) {
                 if (value < minimal) {
                     r_filter_s += 1;
-                }
-                if (value < minIncorrectValue || minIncorrectValue < 0) {
-                    minIncorrectValue = value;
-                    minIncorrectIndex = j;
                 }
             }
         }
@@ -149,7 +134,6 @@ void testTail(REAL *con) {
     r_reci_rank += 1.0/(1+r_s);
     lastTail++;
     // printf("h: %ld r: %ld t:%ld value:%f\n", h, r, t, minimal);
-    printf("minIncT: %ld minIncV: %f\n", minIncorrectIndex, minIncorrectValue);
     printf("r_filter_s: %ld\n\n", r_filter_s);
     // printf("%f %f %f %f\n", r_tot /lastTail, r_filter_tot /lastTail, r_rank /lastTail, r_filter_rank /lastTail);
 }

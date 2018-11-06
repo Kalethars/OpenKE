@@ -317,7 +317,7 @@ class Config(object):
                 for times in range(self.train_times):
                     res = 0.0
                     if self.log_on:
-                        print times
+                        print times + 1
                     for batch in range(self.nbatches):
                         self.sampling()
                         res += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
@@ -339,7 +339,7 @@ class Config(object):
                     total = self.lib.getTestTotal()
                     for times in range(total):
                         if self.log_on:
-                            print times
+                            print times + 1
                         self.lib.getHeadBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr)
                         res = self.test_step(self.test_h, self.test_t, self.test_r)
                         self.lib.testHead(res.__array_interface__['data'][0])

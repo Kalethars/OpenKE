@@ -71,7 +71,7 @@ dataSavePath = resultPath + 'relationVector.data'
 if update or not os.path.exists(dataSavePath):
     f = open(dataSavePath, 'w')
     for i in range(len(relationRaw)):
-        line = entityRaw[i][1:]
+        line = relationRaw[i][1:]
         splited = line.split(', ')
         if len(splited) != int(dimension):
             continue

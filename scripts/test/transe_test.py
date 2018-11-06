@@ -258,9 +258,6 @@ for testCount in range(len(testTriplets)):
     sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
 
     rank = 1
-    minIncorrectHead = '________'
-    minIncorrectValueHead = -1
-    findFlag = False
     for i in range(len(sortedDistance)):
         entity = sortedDistance[i]
         if superFilter:
@@ -270,15 +267,8 @@ for testCount in range(len(testTriplets)):
                 break
         else:
             if entity == head:
-                findFlag = True
-                if minIncorrectValueHead >= 0:
-                    break
+                break
             if not triplets(entity, tail, relation) in tripletsFinder:
-                if minIncorrectValueHead < 0:
-                    minIncorrectValueHead = distance[entity]
-                    minIncorrectHead = entity
-                    if findFlag:
-                        break
                 rank += 1
     updateStatistics(rank, relation, 'head')
     output(f, 'Head rank: ' + str(rank), end='\t')
@@ -299,9 +289,6 @@ for testCount in range(len(testTriplets)):
     sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
 
     rank = 1
-    minIncorrectTail = '________'
-    minIncorrectValueTail = -1
-    findFlag = False
     for i in range(len(sortedDistance)):
         entity = sortedDistance[i]
         if superFilter:
@@ -311,25 +298,11 @@ for testCount in range(len(testTriplets)):
                 break
         else:
             if entity == tail:
-                findFlag = True
-                if minIncorrectValueTail >= 0:
-                    break
+                break
             if not triplets(head, entity, relation) in tripletsFinder:
-                if minIncorrectValueTail < 0:
-                    minIncorrectValueTail = distance[entity]
-                    minIncorrectTail = entity
-                    if findFlag:
-                        break
                 rank += 1
     updateStatistics(rank, relation, 'tail')
     output(f, 'Tail rank: ' + str(rank), end='\n')
-
-    if not superFilter:
-        output(f, 'Value of correct entity: ' + formattedRound(distance[tail], 4))
-        output(f, 'Minimal incorrect head: ' + entityInfo(minIncorrectHead) + ' ' +
-               'value: ' + formattedRound(minIncorrectValueHead, 4))
-        output(f, 'Minimal incorrect tail: ' + entityInfo(minIncorrectTail) + ' ' +
-               'value: ' + formattedRound(minIncorrectValueTail, 4))
 
     del tailPredictVector
     del distance
