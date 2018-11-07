@@ -98,14 +98,22 @@ def downloadData():
     # For work_in, paper_is_written_by
     def paperAuthorAffiliations():
         filename = 'PaperAuthorAffiliations.data'
-        if os.path.exists(getDataPath(filename)):
-            return
+        if not update:
+            if os.path.exists(getDataPath(filename)):
+                return
 
         f = open(getDataPath(filename), 'w')
 
         conn = connectSQL()
         cursor = conn.cursor()
+        print('Downloading PaperAuthorAffiliations...')
+        print(len(triplets[2]))
+        count = 0
         for triplet in triplets[2]:  # paper_is_written_by
+            count += 1
+            if int(count * 100 / len(triplets[2])) > int((count - 1) * 100 / len(triplets[2])):
+                print(str(int(count * 100 / len(triplets[2]))) + '%')
+
             query = 'select PaperId, AuthorId, AffiliationId, AuthorSequenceNumber from PaperAuthorAffiliations \
                              where PaperId="%(head)s" and AuthorId="%(tail)s"' \
                     % {'head': triplet[0][1:], 'tail': triplet[1][1:]}
@@ -120,14 +128,22 @@ def downloadData():
     # For paper_publish_on, paper_cit_paper
     def paperYears():
         filename = 'PaperYears.data'
-        if os.path.exists(getDataPath(filename)):
-            return
+        if not update:
+            if os.path.exists(getDataPath(filename)):
+                return
 
         f = open(getDataPath(filename), 'w')
 
         conn = connectSQL()
         cursor = conn.cursor()
+        print('Downloading PaperYears...')
+        print(len(entities[3]))
+        count = 0
         for paper in entities[3].keys():
+            count += 1
+            if int(count * 100 / len(entities[3])) > int((count - 1) * 100 / len(entities[3])):
+                print(str(int(count * 100 / len(entities[3]))) + '%')
+
             query = 'select PaperId, PaperPublishYear from PaperYears where PaperId="%(paper)s"' % {'paper': paper[1:]}
             cursor.execute(query)
             results = cursor.fetchall()
@@ -140,14 +156,22 @@ def downloadData():
     # For field_is_part_of_field
     def fieldOfStudyHierarchy():
         filename = 'FieldOfStudyHierarchy.data'
-        if os.path.exists(getDataPath(filename)):
-            return
+        if not update:
+            if os.path.exists(getDataPath(filename)):
+                return
 
         f = open(getDataPath(filename), 'w')
 
         conn = connectSQL()
         cursor = conn.cursor()
+        print('Downloading FieldOfStudyHierarchy...')
+        print(len(triplets[6]))
+        count = 0
         for triplet in triplets[6]:  # field_is_in_field
+            count += 1
+            if int(count * 100 / len(triplets[6])) > int((count - 1) * 100 / len(triplets[6])):
+                print(str(int(count * 100 / len(triplets[6]))) + '%')
+
             query = 'select ChildFieldOfStudyID, ParentFieldOfStudyID, Confidence from FieldOfStudyHierarchy \
                      where ChildFieldOfStudyID="%(head)s" and ParentFieldOfStudyID="%(tail)s"' \
                     % {'head': triplet[0][1:], 'tail': triplet[1][1:]}
@@ -282,7 +306,7 @@ def fieldIsPartOfField():
 def normalization():
     # make average weight of each relation to 1
     def calcWeight(line):
-        return round(float(line[3]) * tripletCount[line[0]] / weightSum[line[0]], 2)
+        return round(float(line[3]) * tripletCount[line[0]] / weightSum[line[0]], 4)
 
     data = parseData(weightPath)
     weightSum = dict()
@@ -298,8 +322,10 @@ def normalization():
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
+parser.add_argument('--update', type=bool, required=False)
 parsedArgs = parser.parse_args()
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
+update = parsedArgs.update if parsedArgs.update else False
 databaseDir = parentDir + '/benchmarks/' + database + '/'
 
 config = dict()
@@ -324,3 +350,27 @@ paperCitPaper()
 fieldIsPartOfField()
 
 normalization()
+
+
+def train2idWeighted():
+    def triplets(head, tail, relation):
+        return ' '.join([str(head), str(tail), str(relation)])
+
+    weightData = parseData(weightPath)
+    trainData = parseData(databaseDir + 'train2id.txt')
+
+    weight = dict()
+    for line in weightData:
+        if len(line) == 4:
+            weight[triplets(line[1], line[2], line[0])] = line[3]
+
+    f = open(databaseDir + 'train2id_weighted.txt', 'w')
+    for line in trainData:
+        if len(line) != 3:
+            f.write(' '.join(line) + '\n')
+        else:
+            f.write(' '.join(line + [weight[triplets(line[0], line[1], line[2])]]) + '\n')
+    f.close()
+
+
+train2idWeighted()
