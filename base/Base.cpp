@@ -140,6 +140,6 @@ void sampling(INT *batch_h, INT *batch_t, INT *batch_r, REAL *batch_y, REAL *bat
 }
 
 int main() {
-	importTrainFiles();
+	// importTrainFiles();
 	return 0;
 }
