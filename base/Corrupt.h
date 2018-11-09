@@ -13,7 +13,7 @@ bool _find(INT h, INT t, INT r) {
         if ((tripleList[mid]. h < h) || (tripleList[mid]. h == h && tripleList[mid]. r < r) || (tripleList[mid]. h == h && tripleList[mid]. r == r && tripleList[mid]. t < t)) lef = mid; else rig = mid;
     }
     if (tripleList[lef].h == h && tripleList[lef].r == r && tripleList[lef].t == t) return true;
-    if (tripleList[rig].h == h && tripleList[rig].r == r && tripleListcd [rig].t == t) return true;
+    if (tripleList[rig].h == h && tripleList[rig].r == r && tripleList[rig].t == t) return true;
     return false;
 }
 

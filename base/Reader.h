@@ -25,7 +25,6 @@ INT *relationCount;
 
 extern "C"
 void importTrainFiles(bool weighted) {
-
 	printf("The toolkit is importing datasets.\n");
 	FILE *fin;
 	int tmp;

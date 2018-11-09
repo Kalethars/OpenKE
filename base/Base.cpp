@@ -43,7 +43,7 @@ extern "C"
 void randReset();
 
 extern "C"
-void importTrainFiles();
+void importTrainFiles(bool weighted);
 
 struct Parameter {
 	INT id;
@@ -87,10 +87,11 @@ void* getBatch(void* con) {
 		batch_y[batch] = 1;
 		INT last = batchSize;
 		for (INT times = 0; times < negRate; times ++) {
-			if (bernFlag)
+			if (bernFlag) {
 			    INT headTotal = head_rig[trainList[i].r] - head_lef[trainList[i].r];
 			    INT tailTotal = tail_rig[trainList[i].r] - tail_lef[trainList[i].r];
 				prob = 1000 * headTotal / (headTotal + tailTotal);
+			}
 			if (randd(id) % 1000 < prob) {
 				batch_h[batch + last] = corrupt_head(id, trainList[i].t, trainList[i].r);
 				batch_t[batch + last] = trainList[i].t;
