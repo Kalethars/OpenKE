@@ -12,7 +12,3 @@ CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransE --config=../confi
 CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransE --config=../config/TransE_weighted.config --order=10
 CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransE --config=../config/TransE_weighted.config --order=11
 CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransE --config=../config/TransE_weighted.config --order=12
-CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransE --config=../config/TransE_weighted.config --order=13
-CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransE --config=../config/TransE_weighted.config --order=14
-CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransE --config=../config/TransE_weighted.config --order=15
-CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=TransE --config=../config/TransE_weighted.config --order=16

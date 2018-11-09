@@ -58,7 +58,7 @@ threads = parsedConfig.threads if parsedConfig.threads else 32
 
 paramConfig = {'basic': {'epoch': [2000, 1000],
                          'dimension': [300, 200, 100],
-                         'nbatches': [100, 200],
+                         'nbatches': [100],
                          'margin': [3.0, 2.0, 1.0],
                          'alpha': [0.001, 0.003, 0.01],
                          'bern': [0, 1],

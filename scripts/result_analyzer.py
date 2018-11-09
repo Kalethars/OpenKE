@@ -88,6 +88,7 @@ for i in range(len(s)):
     if '-' * 50 in s[i]:
         rawResults.append(s[i - 42:i])
 
+ignoredParams = {'nbatches', 'weighted'}
 results = dict()
 for rawResult in rawResults:
     seqNum = int(rawResult[0].split('_')[1])
@@ -107,7 +108,8 @@ for rawResult in rawResults:
             parameterValue = float(parameterValue)
         else:
             parameterValue = int(parameterValue)
-        results[seqNum]['parameters'][parameterName] = parameterValue
+        if not parameterName in ignoredParams:
+            results[seqNum]['parameters'][parameterName] = parameterValue
         i += 1
 
     metrics = []
@@ -205,6 +207,8 @@ def outputAsLatexForSortedResults(sortedResults, results):
 
 def outputAsLatexForAverageResults(parameterMetric):
     for parameterName in sorted(parameterMetric.keys()):
+        if len(parameterMetric[parameterName]) <= 1:
+            continue
         for parameterValue in sorted(parameterMetric[parameterName].keys()):
             print('\t', end='')
             print('$\\mathrm{' + parameterName + '}=' + str(parameterValue) + '$', end=' ')
