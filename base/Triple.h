@@ -5,6 +5,7 @@
 struct Triple {
 
 	INT h, r, t;
+	REAL w;
 
 	static INT minimal(INT a,INT b) {
 		if (a > b) return b;

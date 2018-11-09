@@ -60,12 +60,12 @@ def score(result):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=str, required=False)
+parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=False)
 parsedArgs = parser.parse_args()
 
-dataset = parsedArgs.dataset if parsedArgs.dataset else 'ACE17K'
-relation2idPath = '../benchmarks/%s/relation2id.txt' % dataset
+database = parsedArgs.database if parsedArgs.database else 'ACE17K'
+relation2idPath = '../benchmarks/%s/relation2id.txt' % database
 f = open(relation2idPath, 'r')
 s = f.readlines()
 f.close()

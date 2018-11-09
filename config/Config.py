@@ -48,7 +48,7 @@ class Config(object):
         self.optimizer = None
         self.test_link_prediction = False
         self.test_triple_classification = False
-        self.weight_considered = False
+        self.weighted = False
 
     def init(self):
         self.trainModel = None
@@ -57,7 +57,7 @@ class Config(object):
             self.lib.setBern(self.bern)
             self.lib.setWorkThreads(self.workThreads)
             self.lib.randReset()
-            self.lib.importTrainFiles()
+            self.lib.importTrainFiles(self.weighted)
             self.lib.importTypeFiles()
 
             self.relTotal = self.lib.getRelationTotal()
@@ -71,10 +71,12 @@ class Config(object):
             self.batch_t = np.zeros(self.batch_size * (1 + self.negative_ent + self.negative_rel), dtype=np.int64)
             self.batch_r = np.zeros(self.batch_size * (1 + self.negative_ent + self.negative_rel), dtype=np.int64)
             self.batch_y = np.zeros(self.batch_size * (1 + self.negative_ent + self.negative_rel), dtype=np.float32)
+            self.batch_w = np.zeros(self.batch_size * (1 + self.negative_ent + self.negative_rel), dtype=np.float32)
             self.batch_h_addr = self.batch_h.__array_interface__['data'][0]
             self.batch_t_addr = self.batch_t.__array_interface__['data'][0]
             self.batch_r_addr = self.batch_r.__array_interface__['data'][0]
             self.batch_y_addr = self.batch_y.__array_interface__['data'][0]
+            self.batch_w_addr = self.batch_w.__array_interface__['data'][0]
         if self.test_link_prediction:
             self.lib.importTestFiles()
 
@@ -119,8 +121,8 @@ class Config(object):
     def get_rel_total(self):
         return self.relTotal
 
-    def set_weight_considered(self, flag):
-        self.weight_considered = flag
+    def set_weighted(self, flag):
+        self.weighted = flag
 
     def set_test_flag(self, test_flag):
         self.test_flag = test_flag
@@ -195,8 +197,8 @@ class Config(object):
         self.export_steps = steps
 
     def sampling(self):
-        self.lib.sampling(self.batch_h_addr, self.batch_t_addr, self.batch_r_addr, self.batch_y_addr, self.batch_size,
-                          self.negative_ent, self.negative_rel)
+        self.lib.sampling(self.batch_h_addr, self.batch_t_addr, self.batch_r_addr, self.batch_y_addr, self.batch_w_addr,
+                          self.batch_size, self.negative_ent, self.negative_rel)
 
     def save_tensorflow(self):
         with self.graph.as_default():
@@ -289,12 +291,13 @@ class Config(object):
                 self.saver = tf.train.Saver()
                 self.sess.run(tf.initialize_all_variables())
 
-    def train_step(self, batch_h, batch_t, batch_r, batch_y):
+    def train_step(self, batch_h, batch_t, batch_r, batch_y, batch_w):
         feed_dict = {
             self.trainModel.batch_h: batch_h,
             self.trainModel.batch_t: batch_t,
             self.trainModel.batch_r: batch_r,
-            self.trainModel.batch_y: batch_y
+            self.trainModel.batch_y: batch_y,
+            self.trainModel.batch_w: batch_w
         }
         _, loss = self.sess.run([self.train_op, self.trainModel.loss], feed_dict)
         return loss
@@ -319,7 +322,7 @@ class Config(object):
                         print times + 1
                     for batch in range(self.nbatches):
                         self.sampling()
-                        res += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y)
+                        res += self.train_step(self.batch_h, self.batch_t, self.batch_r, self.batch_y, self.batch_w)
                     if self.log_on:
                         print res
                     if self.exportName != None and (self.export_steps != 0 and times % self.export_steps == 0):

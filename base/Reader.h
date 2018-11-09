@@ -24,7 +24,7 @@ REAL *meanRank, *meanRankReciprocal, *hitAt10, *hitAt3, *hitAt1;
 INT *relationCount;
 
 extern "C"
-void importTrainFiles() {
+void importTrainFiles(bool weighted) {
 
 	printf("The toolkit is importing datasets.\n");
 	FILE *fin;
@@ -40,7 +40,11 @@ void importTrainFiles() {
 	printf("The total of entities is %ld.\n", entityTotal);
 	fclose(fin);
 
-	fin = fopen((inPath + "train2id.txt").c_str(), "r");
+    if (weighted) {
+        fin = fopen((inPath + "train2id_weighted.txt").c_str(), "r");
+    } else {
+	    fin = fopen((inPath + "train2id.txt").c_str(), "r");
+	}
 	tmp = fscanf(fin, "%ld", &trainTotal);
 	trainList = (Triple *)calloc(trainTotal, sizeof(Triple));
 	trainHead = (Triple *)calloc(trainTotal, sizeof(Triple));
@@ -52,6 +56,11 @@ void importTrainFiles() {
 		tmp = fscanf(fin, "%ld", &trainList[i].h);
 		tmp = fscanf(fin, "%ld", &trainList[i].t);
 		tmp = fscanf(fin, "%ld", &trainList[i].r);
+		if (weighted) {
+		    tmp = fscanf(fin, "%f", &trainList[i].w);
+		} else {
+		    trainList[i].w = 1.0;
+		}
 	}
 	fclose(fin);
 	std::sort(trainList, trainList + trainTotal, Triple::cmp_head);

@@ -37,14 +37,13 @@ void testHead(REAL *con) {
     INT r = testList[lastHead].r;
 
     REAL minimal = con[h];
-    INT l_s = 0;
-    INT l_filter_s = 0;
-    INT l_s_constrain = 0;
+    INT l_s = 1;
+    INT l_filter_s = 1;
 
     for (INT i = head_lef[r]; i < head_rig[r]; i++) {
         INT j = head_type[i];
         REAL value = con[j];
-        if (j != h) {
+        if ((j != h) && (j != t)) {
             if (value < minimal) {
                 l_s += 1;
             }
@@ -57,27 +56,27 @@ void testHead(REAL *con) {
     }
 
     relationCount[r] += 1;
-    if (l_filter_s < 10) {
+    if (l_filter_s <= 10) {
         l_filter_tot += 1;
         hitAt10[r] += 1;
     }
-    if (l_s < 10) l_tot += 1;
-    if (l_filter_s < 3) {
+    if (l_s <= 10) l_tot += 1;
+    if (l_filter_s <= 3) {
         l3_filter_tot += 1;
         hitAt3[r] += 1;
     }
-    if (l_s < 3) l3_tot += 1;
-    if (l_filter_s < 1) {
+    if (l_s <= 3) l3_tot += 1;
+    if (l_filter_s <= 1) {
         l1_filter_tot += 1;
         hitAt1[r] += 1;
     }
-    if (l_s < 1) l1_tot += 1;
-    l_filter_rank += (l_filter_s+1);
-    meanRank[r] += (l_filter_s+1);
-    l_rank += (1+l_s);
-    l_filter_reci_rank += 1.0/(l_filter_s+1);
-    meanRankReciprocal[r] += 1.0/(l_filter_s+1);
-    l_reci_rank += 1.0/(l_s+1);
+    if (l_s <= 1) l1_tot += 1;
+    l_filter_rank += l_filter_s;
+    meanRank[r] += l_filter_s;
+    l_rank += l_s;
+    l_filter_reci_rank += 1.0/l_filter_s;
+    meanRankReciprocal[r] += 1.0/l_filter_s;
+    l_reci_rank += 1.0/l_s;
     lastHead++;
     printf("h: %ld r: %ld t: %ld value: %f\n", h, r, t, minimal);
     printf("l_filter_s: %ld\t", l_filter_s);
@@ -91,14 +90,13 @@ void testTail(REAL *con) {
     INT r = testList[lastTail].r;
 
     REAL minimal = con[t];
-    INT r_s = 0;
-    INT r_filter_s = 0;
-    INT r_s_constrain = 0;
+    INT r_s = 1;
+    INT r_filter_s = 1;
 
     for (INT i = tail_lef[r]; i < tail_rig[r]; i++) {
         INT j = tail_type[i];
         REAL value = con[j];
-        if (j != t) {
+        if ((j != h) && (j != t)) {
             if (value < minimal) {
                 r_s += 1;
             }
@@ -111,27 +109,27 @@ void testTail(REAL *con) {
     }
 
     relationCount[relationTotal+r] += 1;
-    if (r_filter_s < 10) {
+    if (r_filter_s <= 10) {
         r_filter_tot += 1;
         hitAt10[relationTotal+r] += 1;
     }
-    if (r_s < 10) r_tot += 1;
-    if (r_filter_s < 3) {
+    if (r_s <= 10) r_tot += 1;
+    if (r_filter_s <= 3) {
         r3_filter_tot += 1;
         hitAt3[relationTotal+r] += 1;
     }
-    if (r_s < 3) r3_tot += 1;
-    if (r_filter_s < 1) {
+    if (r_s <= 3) r3_tot += 1;
+    if (r_filter_s <= 1) {
         r1_filter_tot += 1;
         hitAt1[relationTotal+r] += 1;
     }
-    if (r_s < 1) r1_tot += 1;
-    r_filter_rank += (1+r_filter_s);
-    meanRank[relationTotal+r] += (1+r_filter_s);
-    r_rank += (1+r_s);
-    r_filter_reci_rank += 1.0/(1+r_filter_s);
-    meanRankReciprocal[relationTotal+r] += 1.0/(1+r_filter_s);
-    r_reci_rank += 1.0/(1+r_s);
+    if (r_s <= 1) r1_tot += 1;
+    r_filter_rank += r_filter_s;
+    meanRank[relationTotal+r] += r_filter_s;
+    r_rank += r_s;
+    r_filter_reci_rank += 1.0/r_filter_s;
+    meanRankReciprocal[relationTotal+r] += 1.0/r_filter_s;
+    r_reci_rank += 1.0/r_s;
     lastTail++;
     // printf("h: %ld r: %ld t:%ld value:%f\n", h, r, t, minimal);
     printf("r_filter_s: %ld\n\n", r_filter_s);
@@ -190,7 +188,7 @@ void test_link_prediction(const char* output) {
     fprintf(fp,"averaged(filter):\t %f \t %f \t %f \t %f \t %f \n",
             (l_filter_reci_rank+r_filter_reci_rank)/2, (l_filter_rank+r_filter_rank)/2, (l_filter_tot+r_filter_tot)/2, (l3_filter_tot+r3_filter_tot)/2, (l1_filter_tot+r1_filter_tot)/2);
     fprintf(fp,"\n");
-    for (INT i = 0; i < relationTotal; i++){
+    for (INT i = 0; i < relationTotal; i++) {
         fprintf(fp,"Relation %ld:\t\t\t MRR \t\t MR \t\t hit@10 \t hit@3  \t hit@1 \n", i);
         fprintf(fp,"Head Prediction:\t\t %f \t %f \t %f \t %f \t %f \n",
                 meanRankReciprocal[i],

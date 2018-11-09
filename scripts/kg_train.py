@@ -58,8 +58,6 @@ def initVariables():
 
 
 def initParams(map):
-    global weighted
-
     params = config.Config()
 
     params.set_test_flag(True)
@@ -68,7 +66,7 @@ def initParams(map):
 
     params.set_test_triple_classification(False)
     params.set_test_link_prediction(True)
-    params.set_weight_considered(weighted)
+    params.set_weighted(bool(map['weighted']))
 
     params.set_train_times(int(map['epoch']))
     params.set_nbatches(int(map['nbatches']))
@@ -81,6 +79,12 @@ def initParams(map):
 
 
 def parseParams(line, output=True):
+    def verify(map, key, cls):
+        try:
+            tmp = cls(map[key])
+        except:
+            raise ValueError('Invalid param %s!' % key)
+
     global logPath
 
     paramMap = dict()
@@ -90,14 +94,23 @@ def parseParams(line, output=True):
         if pos >= 0:
             paramMap[each[:pos]] = each[pos + 1:]
 
+    verify(paramMap, 'epoch', int)
+    verify(paramMap, 'nbatches', int)
+    verify(paramMap, 'alpha', float)
+    verify(paramMap, 'margin', float)
+    verify(paramMap, 'bern', int)
+    verify(paramMap, 'dimension', int)
+    verify(paramMap, 'weighted', bool)
+
     if output:
         f = open(logPath, 'a')
-        f.write('--epoch:\t%d\n' % int(paramMap['epoch']))
-        f.write('--nbatches:\t%d\n' % int(paramMap['nbatches']))
-        f.write('--alpha:\t%f\n' % float(paramMap['alpha']))
-        f.write('--margin:\t%f\n' % float(paramMap['margin']))
-        f.write('--bern:\t%d\n' % int(paramMap['bern']))
-        f.write('--dimension:\t%d\n' % int(paramMap['dimension']))
+        f.write('--epoch:\t%s\n' % paramMap['epoch'])
+        f.write('--nbatches:\t%s\n' % paramMap['nbatches'])
+        f.write('--alpha:\t%s\n' % paramMap['alpha'])
+        f.write('--margin:\t%s\n' % paramMap['margin'])
+        f.write('--bern:\t%s\n' % paramMap['bern'])
+        f.write('--dimension:\t%s\n' % paramMap['dimension'])
+        f.write('--weighted:\t%s\n' % paramMap['weighted'])
         f.write('\n')
         f.close()
 
@@ -261,7 +274,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, required=True)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=True)
-parser.add_argument('--weighted', type=bool, required=False)
 parsedConfig = parser.parse_args()
 
 f = open(parsedConfig.config, 'r')
@@ -273,7 +285,6 @@ map = parseParams(configLines[0], False)
 threads = int(map['threads'])
 dataset = map['dataset']
 datasetPath = parentDir + '/benchmarks/' + map['dataset'] + '/'
-weighted = parsedConfig.weighted if parsedConfig.weighted else False
 
 order = str(parsedConfig.order)
 configLine = configLines[parsedConfig.order]
@@ -290,5 +301,4 @@ elif method == 'complex':
 elif method == 'hole':
     HolE()
 else:
-    print
-    'Invalid method!'
+    raise ValueError('Invalid method!')

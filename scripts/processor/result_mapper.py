@@ -5,6 +5,7 @@
 
 import argparse
 import os
+import json
 
 
 def parseParams(line):
@@ -23,7 +24,6 @@ parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=True)
 parser.add_argument('--update', type=bool, required=False)
-parser.add_argument('--dimension', type=int, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -39,52 +39,26 @@ f = open(parentDir + '/benchmarks/' + database + '/entity2id.txt', 'r')
 s = f.read().split('\n')
 f.close()
 
-typeIndex = dict()
 entities = dict()
 for line in s:
     splited = line.split()
     if len(splited) != 2:
         continue
-    entities[int(splited[1])] = splited[0][1:]
-
-configReadPath = parentDir + '/scripts/config/' + method + '.config'
-if os.path.exists(configReadPath):
-    f = open(configReadPath, 'r')
-    s = f.read().split('\n')
-    f.close()
-    parsedParams = parseParams(s[order])
-    dimension = parsedParams['dimension']
-else:
-    dimension = parsedArgs.dimension
-    if dimension == None:
-        raise ValueError('Dimension missing!')
+    entities[splited[0][1:]] = int(splited[1])
 
 resultPath = parentDir + '/res/' + database + '/' + method + '/' + str(order) + '/'
 f = open(resultPath + 'embedding.vec.json', 'r')
 s = str(f.read())
 f.close()
 
-relationRaw = s.split('"rel_embeddings": [')[1].split(']],')[0].split('], ')
-entityRaw = s.split('"ent_embeddings": [')[1].split('}')[0].split('], ')
+data = json.loads(s)
 
 dataSavePath = resultPath + 'relationVector.data'
 if update or not os.path.exists(dataSavePath):
     f = open(dataSavePath, 'w')
-    for i in range(len(relationRaw)):
-        line = relationRaw[i][1:]
-        splited = line.split(', ')
-        if len(splited) != int(dimension):
-            continue
-        f.write('\t'.join(splited) + '\n')
+    for i in range(len(data['rel_embeddings'])):
+        f.write('\t'.join(list(map(lambda x: str(x), data['rel_embeddings'][i]))) + '\n')
     f.close()
-
-vectors = dict()
-for i in range(len(entityRaw)):
-    line = entityRaw[i][1:]
-    splited = line.split(', ')
-    if len(splited) != int(dimension):
-        continue
-    vectors[entities[i]] = splited
 
 for type in types:
     infoReadPath = parentDir + '/data/' + database + '/info/' + type + 'Info.data'
@@ -104,8 +78,13 @@ for type in types:
         splited = line.split()
         if len(splited) <= 1:
             continue
-        vector = vectors[splited[0]]
-        for i in range(len(vector)):
-            f.write(str(vector[i]).strip('[]'))
-            f.write('\t' if i < len(vector) - 1 else '\n')
+        f.write('\t'.join(list(map(lambda x: str(x), data['ent_embeddings'][entities[splited[0]]]))) + '\n')
     f.close()
+
+if 'normal_vectors' in data.keys():
+    dataSavePath = resultPath + 'normalVector.data'
+    if update or not os.path.exists(dataSavePath):
+        f = open(dataSavePath, 'w')
+        for i in range(len(data['normal_vectors'])):
+            f.write('\t'.join(list(map(lambda x: str(x), data['normal_vectors'][i]))) + '\n')
+        f.close()

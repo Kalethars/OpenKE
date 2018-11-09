@@ -27,21 +27,21 @@ def output(f, s='', end='\n'):
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=str, required=False)
+parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--order', type=int, required=True)
 parser.add_argument('--superfilter', type=bool, required=False)
-parser.add_argument('--pca', type=int, required=False)
 parser.add_argument('--norm', type=float, required=False)
-parser.add_argument('--test', type=str, required=False)
+parser.add_argument('--target', type=str, required=False)
+parser.add_argument('--dimension', type=int, required=False)
 parsedConfig = parser.parse_args()
 
-dataset = parsedConfig.dataset if parsedConfig.dataset else 'ACE17K'
+database = parsedConfig.database if parsedConfig.database else 'ACE17K'
 method = parsedConfig.method if parsedConfig.method else 'TransE'
 order = parsedConfig.order
 superFilter = parsedConfig.superfilter if parsedConfig.superfilter else False
 norm = parsedConfig.norm if parsedConfig.norm else 1
-testString = parsedConfig.test
+testString = parsedConfig.target
 
 if testString != None:
     splited = testString.split()
@@ -56,7 +56,7 @@ if testString != None:
 types = ['paper', 'author', 'institute', 'field', 'venue']
 typeMap = {'p': 'paper', 'a': 'author', 'i': 'institute', 'f': 'field', 'v': 'venue'}
 
-benchmarkDir = parentDir + '/benchmarks/' + dataset + '/'
+benchmarkDir = parentDir + '/benchmarks/' + database + '/'
 
 entity2idReadPath = benchmarkDir + 'entity2id.txt'
 f = open(entity2idReadPath, 'r')
@@ -80,15 +80,17 @@ for line in s:
     typeIndex[splited[0][1:]] = typeMap[splited[0][0]]
     entities[typeMap[splited[0][0]]].append(splited[0][1:])
 
-configReadPath = parentDir + '/scripts/config/' + method + '.config'
-f = open(configReadPath, 'r')
-s = f.read().split('\n')[order]
-f.close()
-dimension = int(s.split('dimension=')[1].split()[0])
-pcaDimension = max(min(parsedConfig.pca, dimension), 1) if parsedConfig.pca else None
+try:
+    configReadPath = parentDir + '/scripts/config/' + method + '.config'
+    f = open(configReadPath, 'r')
+    s = f.read().split('\n')[order]
+    f.close()
+    dimension = int(s.split('dimension=')[1].split()[0])
+except:
+    dimension = parsedConfig.dimension
 
-infoReadDir = parentDir + '/data/' + dataset + '/info/'
-vectorReadDir = parentDir + '/res/' + '/'.join([dataset, method, str(order)]) + '/'
+infoReadDir = parentDir + '/data/' + database + '/info/'
+vectorReadDir = parentDir + '/res/' + '/'.join([database, method, str(order)]) + '/'
 
 entityVectors = dict()
 latent = dict()
@@ -114,23 +116,6 @@ for type in types:
         if len(splited) != dimension:
             continue
         entityVectors[entityList[i]] = list(map(lambda x: float(x), splited))
-
-    if pcaDimension != None:
-        coeffReadPath = vectorReadDir + 'pca/' + type + 'Coeff.data'
-        f = open(coeffReadPath, 'r')
-        s = f.read().split('\n')
-        f.close()
-        for line in s:
-            splited = line.split()
-            if len(splited) != dimension:
-                continue
-            coeff.append(list(map(lambda x: float(x), splited)))
-
-        latentReadPath = vectorReadDir + 'pca/' + type + 'Latent.data'
-        f = open(latentReadPath, 'r')
-        s = f.read().split('\n')[0].split()
-        f.close()
-        latent[type] = list(map(lambda x: float(x), s))
 
 relationVectors = dict()
 relationReadPath = vectorReadDir + 'relationVector.data'
@@ -178,21 +163,6 @@ def calcDistance(v1, v2, norm):
     d = 0
     for i in range(dimension):
         d += abs(v1[i] - v2[i]) ** norm
-    return d
-
-
-def calcDistancePCA(v1, v2, type):
-    if len(v1) != len(v2) or len(v1) != dimension:
-        raise RuntimeError('Dimension not aligned!')
-    v1PCA = [0] * dimension
-    v2PCA = [0] * dimension
-    for i in range(pcaDimension):
-        for j in range(dimension):
-            v1PCA[i] += v1[j] * coeff[j][i]
-            v2PCA[i] += v2[j] * coeff[j][i]
-    d = 0
-    for i in range(pcaDimension):
-        d += ((v1PCA[i] - v2PCA[i]) * latent[type][i]) ** 2
     return d
 
 
@@ -251,15 +221,14 @@ for testCount in range(len(testTriplets)):
 
     distance = dict()
     for entity in entities[headType]:
-        if pcaDimension is None:
-            distance[entity] = calcDistance(headPredictVector, entityVectors[entity], norm)
-        else:
-            distance[entity] = calcDistancePCA(headPredictVector, entityVectors[entity], headType)
+        distance[entity] = calcDistance(headPredictVector, entityVectors[entity], norm)
     sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
 
     rank = 1
     for i in range(len(sortedDistance)):
         entity = sortedDistance[i]
+        if entity == tail:
+            continue
         if superFilter:
             if not triplets(entity, tail, relation) in tripletsFinder:
                 rank += 1
@@ -282,15 +251,14 @@ for testCount in range(len(testTriplets)):
 
     distance = dict()
     for entity in entities[tailType]:
-        if pcaDimension is None:
-            distance[entity] = calcDistance(tailPredictVector, entityVectors[entity], norm)
-        else:
-            distance[entity] = calcDistancePCA(tailPredictVector, entityVectors[entity], tailType)
+        distance[entity] = calcDistance(tailPredictVector, entityVectors[entity], norm)
     sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
 
     rank = 1
     for i in range(len(sortedDistance)):
         entity = sortedDistance[i]
+        if entity == head:
+            continue
         if superFilter:
             if not triplets(head, entity, relation) in tripletsFinder:
                 rank += 1
@@ -330,19 +298,23 @@ def overallOutput():
     hit1['overall'] /= len(relations) * 2
 
     output(f, 'Overall:')
-    output(f, 'MRR\thit@10\thit@3\thit@1')
+    output(f, 'MRR\thit@10\thit@3\thit@1\tscore')
+    score = MRR['overall'] * (hit10['overall'] + hit3['overall'] + hit1['overall'])
     output(f, '\t'.join(
         [formattedRound(MRR['overall'], 4), formattedRound(hit10['overall'], 4), formattedRound(hit3['overall'], 4),
-         formattedRound(hit1['overall'], 4)]))
+         formattedRound(hit1['overall'], 4), formattedRound(score, 4)]))
     output(f)
 
     for relation in relations:
         output(f, relationName[relation])
-        output(f, '\tMRR\thit@10\thit@3\thit@1')
+        output(f, '\tMRR\thit@10\thit@3\thit@1\tscore')
         for predictObject in ['head', 'tail']:
+            score = MRR[predictObject][relation] * \
+                    (hit10[predictObject][relation] + hit3[predictObject][relation] + hit1[predictObject][relation])
             output(f, predictObject + '\t'.join(
                 ['', formattedRound(MRR[predictObject][relation], 4), formattedRound(hit10[predictObject][relation], 4),
-                 formattedRound(hit3[predictObject][relation], 4), formattedRound(hit1[predictObject][relation], 4)]))
+                 formattedRound(hit3[predictObject][relation], 4), formattedRound(hit1[predictObject][relation], 4),
+                 score]))
         output(f)
 
 

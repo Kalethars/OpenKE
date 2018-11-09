@@ -1,7 +1,8 @@
-% path='../res/ACE17K/TransE/3/';
+% path='../res/ACE17K/TransE_basic/7/';
 path='../res/ACE17K (deprecated)/DistMult/0/';
 
 types=[{'paper'},{'author'},{'field'},{'venue'},{'institute'}];
+mkdir(path,'pca');
 for n=1:5
     type=char(types(n));
     embedding=load([path,type,'Vector.data']);

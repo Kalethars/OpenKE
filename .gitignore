@@ -142,3 +142,4 @@ reference/
 res/
 database.config
 playground/
+*.asv

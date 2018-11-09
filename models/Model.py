@@ -42,6 +42,13 @@ class Model(object):
         else:
             return self.batch_y
 
+    def get_all_weights(self, in_batch=False):
+        if in_batch:
+            return tf.transpose(tf.reshape(self.batch_w, [1 + self.config.negative_ent + self.config.negative_rel, -1]),
+                                [1, 0])
+        else:
+            return self.batch_w
+
     def get_predict_instance(self):
         return [self.predict_h, self.predict_t, self.predict_r]
 
@@ -51,6 +58,7 @@ class Model(object):
         self.batch_t = tf.placeholder(tf.int64, [config.batch_seq_size])
         self.batch_r = tf.placeholder(tf.int64, [config.batch_seq_size])
         self.batch_y = tf.placeholder(tf.float32, [config.batch_seq_size])
+        self.batch_w = tf.placeholder(tf.float32, [config.batch_seq_size])
         self.postive_h = tf.transpose(tf.reshape(self.batch_h[0:config.batch_size], [1, -1]), [1, 0])
         self.postive_t = tf.transpose(tf.reshape(self.batch_t[0:config.batch_size], [1, -1]), [1, 0])
         self.postive_r = tf.transpose(tf.reshape(self.batch_r[0:config.batch_size], [1, -1]), [1, 0])
