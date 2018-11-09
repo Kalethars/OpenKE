@@ -92,14 +92,14 @@ paramConfig = {'basic': {'epoch': [2000, 1000],
                         'cuda': [2],
                         'weighted': [True, False]
                         },
-               'weighted': {'epoch': [5000],
-                            'dimension': [500],
+               'weighted': {'epoch': [2000],
+                            'dimension': [300],
                             'nbatches': [100],
-                            'margin': [2.0, 2.5, 3.0, 3.5],
-                            'alpha': [0.001, 0.003, 0.005],
+                            'margin': [3.0],
+                            'alpha': [0.003],
                             'bern': [0],
                             'cuda': [1],
-                            'weighted': [True]
+                            'weighted': [True, False]
                             }
                }
 

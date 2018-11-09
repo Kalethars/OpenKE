@@ -13,7 +13,7 @@ class Config(object):
         self.parentDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
         self.lib = ctypes.cdll.LoadLibrary(self.parentDir + "/release/Base.so")
-        self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+        self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
                                       ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
         self.lib.getHeadBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         self.lib.getTailBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]

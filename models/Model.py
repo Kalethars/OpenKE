@@ -42,12 +42,8 @@ class Model(object):
         else:
             return self.batch_y
 
-    def get_all_weights(self, in_batch=False):
-        if in_batch:
-            return tf.transpose(tf.reshape(self.batch_w, [1 + self.config.negative_ent + self.config.negative_rel, -1]),
-                                [1, 0])
-        else:
-            return self.batch_w
+    def get_all_weights(self):
+        return tf.transpose(tf.reshape(self.batch_w[0:self.config.batch_size], [1, -1]), [1, 0])
 
     def get_predict_instance(self):
         return [self.predict_h, self.predict_t, self.predict_r]
