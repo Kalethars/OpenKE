@@ -94,15 +94,15 @@ def parseParams(line, output=True):
         if pos >= 0:
             paramMap[each[:pos]] = each[pos + 1:]
 
-    verify(paramMap, 'epoch', int)
-    verify(paramMap, 'nbatches', int)
-    verify(paramMap, 'alpha', float)
-    verify(paramMap, 'margin', float)
-    verify(paramMap, 'bern', int)
-    verify(paramMap, 'dimension', int)
-    verify(paramMap, 'weighted', bool)
-
     if output:
+        verify(paramMap, 'epoch', int)
+        verify(paramMap, 'nbatches', int)
+        verify(paramMap, 'alpha', float)
+        verify(paramMap, 'margin', float)
+        verify(paramMap, 'bern', int)
+        verify(paramMap, 'dimension', int)
+        verify(paramMap, 'weighted', bool)
+
         f = open(logPath, 'a')
         f.write('--epoch:\t%s\n' % paramMap['epoch'])
         f.write('--nbatches:\t%s\n' % paramMap['nbatches'])
