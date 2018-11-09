@@ -128,13 +128,13 @@ def TransE():
     paramMap = parseParams(configLine)
 
     params = initParams(paramMap)
-    params.set_in_path(datasetPath)
+    params.set_in_path(databasePath)
     params.set_work_threads(threads)
     params.set_opt_method("SGD")
 
-    mkdir(['res', dataset, configName, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
+    mkdir(['res', database, configName, order])
+    exportPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
@@ -158,13 +158,13 @@ def TransH():
     paramMap = parseParams(configLine)
 
     params = initParams(paramMap)
-    params.set_in_path(datasetPath)
+    params.set_in_path(databasePath)
     params.set_work_threads(threads)
     params.set_opt_method("SGD")
 
-    mkdir(['res', dataset, configName, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
+    mkdir(['res', database, configName, order])
+    exportPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
@@ -188,13 +188,13 @@ def DistMult():
     paramMap = parseParams(configLine)
 
     params = initParams(paramMap)
-    params.set_in_path(datasetPath)
+    params.set_in_path(databasePath)
     params.set_work_threads(threads)
     params.set_opt_method("Adagrad")
 
-    mkdir(['res', dataset, configName, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
+    mkdir(['res', database, configName, order])
+    exportPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
@@ -218,14 +218,14 @@ def ComplEx():
     paramMap = parseParams(configLine)
 
     params = initParams(paramMap)
-    params.set_in_path(datasetPath)
+    params.set_in_path(databasePath)
     params.set_work_threads(threads)
     params.set_lmbda(float(paramMap['lmbda']))
     params.set_opt_method("Adagrad")
 
-    mkdir(['res', dataset, configName, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
+    mkdir(['res', database, configName, order])
+    exportPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
@@ -249,13 +249,13 @@ def HolE():
     paramMap = parseParams(configLine)
 
     params = initParams(paramMap)
-    params.set_in_path(datasetPath)
+    params.set_in_path(databasePath)
     params.set_work_threads(threads)
     params.set_opt_method("Adagrad")
 
-    mkdir(['res', dataset, configName, order])
-    exportPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + dataset + '/' + configName + '/' + order + '/embedding.vec.json'
+    mkdir(['res', database, configName, order])
+    exportPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/embedding.vec.json'
 
     params.set_export_files(exportPath)
     params.set_out_files(outPath)
@@ -283,8 +283,8 @@ configName = parsedConfig.config.split('/')[-1].split('.')[0]
 
 map = parseParams(configLines[0], False)
 threads = int(map['threads'])
-dataset = map['dataset']
-datasetPath = parentDir + '/benchmarks/' + map['dataset'] + '/'
+database = map['database']
+databasePath = parentDir + '/benchmarks/' + map['database'] + '/'
 
 order = str(parsedConfig.order)
 configLine = configLines[parsedConfig.order]
