@@ -9,10 +9,12 @@ import models
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
+parser.add_argument('--order', type=int, required=True)
 parsedConfig = parser.parse_args()
 
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
 method = parsedConfig.method
+order = parsedConfig.order
 
 logDir = parentDir + '/log/%s/' % database
 logPath = logDir + '%s.log' % method
@@ -28,19 +30,20 @@ for i in range(len(s)):
         last = i + 1
 
 newLogPath = logDir + '%s_retested.log' % method
-f = open(newLogPath, 'w')
-f.close()
+if order == 1:
+    f = open(newLogPath, 'w')
+    f.close()
 
 dimension = dict()
 model = dict()
 startLines = dict()
 endLines = dict()
 for rawResult in rawResults:
-    seqNum = rawResult[0].split('_')[1]
+    seqNum = int(rawResult[0].split('_')[1])
     model[seqNum] = rawResult[0].split('_')[0][1:]
     for i in range(1, len(rawResult)):
-        if '--dimension=' in rawResult[i]:
-            dimension = int(rawResult[i].split('=')[1])
+        if '--dimension:' in rawResult[i]:
+            dimension[seqNum] = int(rawResult[i].split('\t')[1])
         if not '--' in rawResult[i]:
             break
     startLines[seqNum] = rawResult[:i]
@@ -49,24 +52,25 @@ for rawResult in rawResults:
 resultDir = parentDir + '/res/%s/%s/' % (database, method)
 benchmarkDir = parentDir + '/benchmarks/%s/' % database
 fileList = os.listdir(resultDir)
-for seqNum in sorted(fileList, key=lambda x: int(x)):
-    importPath = resultDir + '%s/model.vec.tf' % seqNum
 
-    f = open(newLogPath, 'a')
-    f.write('\n'.join(startLines[seqNum]) + '\n\n')
-    f.close()
+importPath = resultDir + '%s/model.vec.tf' % order
 
-    params = config.Config()
-    params.set_in_path(benchmarkDir)
-    params.set_test_flag(True)
-    params.set_work_threads(32)
-    params.set_dimension(dimension[seqNum])
-    params.set_import_files(importPath)
-    params.init()
-    exec('params.set_model(models.%s)' % model[seqNum])
-    params.test(newLogPath)
+f = open(newLogPath, 'a')
+f.write('\n'.join(startLines[order]) + '\n\n')
+f.close()
 
-    f = open(newLogPath, 'a')
-    f.write('\n' + '\n'.join(endLines[seqNum]) + '\n')
-    f.write('-' * 50 + '\n')
-    f.close()
+params = config.Config()
+params.set_in_path(benchmarkDir)
+params.set_test_flag(True)
+params.set_work_threads(32)
+params.set_dimension(dimension[order])
+params.set_import_files(importPath)
+params.set_test_link_prediction(True)
+params.init()
+exec('params.set_model(models.%s)' % model[order])
+params.test(newLogPath)
+
+f = open(newLogPath, 'a')
+f.write('\n' + '\n'.join(endLines[order]) + '\n')
+f.write('-' * 50 + '\n')
+f.close()
