@@ -19,6 +19,6 @@ f.write('#!/usr/bin/env bash\n')
 f.write('source ~/wangrj/tensorflow/bin/activate\n')
 
 for order in sorted(fileList, key=lambda x: int(x)):
-    f.write('python ../kg_test.sh --database=%s --method=%s --order=%s\n' % (database, method, order))
+    f.write('python ../kg_test.py --database=%s --method=%s --order=%s\n' % (database, method, order))
 
 f.close()
