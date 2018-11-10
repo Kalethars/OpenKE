@@ -28,7 +28,7 @@ for i in range(len(s)):
         last = i + 1
 
 newLogPath = logDir + '%s_retested.log' % method
-f=open(newLogPath,'w')
+f = open(newLogPath, 'w')
 f.close()
 
 dimension = dict()
@@ -52,8 +52,10 @@ fileList = os.listdir(resultDir)
 for seqNum in sorted(fileList, key=lambda x: int(x)):
     importPath = resultDir + '%s/model.vec.tf' % seqNum
 
-    f = open(newLogPath,'a')
-    f.write('\n'.join(startLines[i]))
+    f = open(newLogPath, 'a')
+    f.write('\n'.join(startLines[seqNum]) + '\n\n')
+    f.close()
+
     params = config.Config()
     params.set_in_path(benchmarkDir)
     params.set_test_flag(True)
@@ -63,3 +65,8 @@ for seqNum in sorted(fileList, key=lambda x: int(x)):
     params.init()
     exec('params.set_model(models.%s)' % model[seqNum])
     params.test(newLogPath)
+
+    f = open(newLogPath, 'a')
+    f.write('\n' + '\n'.join(endLines[seqNum]) + '\n')
+    f.write('-' * 50 + '\n')
+    f.close()
