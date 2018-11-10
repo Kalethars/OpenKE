@@ -71,6 +71,8 @@ def score(result):
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=False)
+parser.add_argument('--version', type=str, required=False)
+parser.add_argument('--mistake', type=bool, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -86,8 +88,12 @@ for line in s:
         relationMap[splited[1][:-1]] = splited[0]
 
 method = parsedArgs.method if parsedArgs.method else 'TransE'
-metricMistake = False
-resultPath = parentDir + '/log/%s/%s.log' % (database, method)
+version = parsedArgs.version
+metricMistake = parsedArgs.mistake if parsedArgs.mistake else False
+if version is None:
+    resultPath = parentDir + '/log/%s/%s.log' % (database, method)
+else:
+    resultPath = parentDir + '/log/%s/%s_%s.log' % (database, method, version)
 f = open(resultPath, 'r')
 s = f.readlines()
 f.close()
