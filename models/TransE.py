@@ -47,10 +47,10 @@ class TransE(Model):
         _n_score = self._calc(n_h, n_t, n_r)
         # The shape of p_score is (batch_size, 1)
         # The shape of n_score is (batch_size, 1)
-        p_score = tf.reduce_sum(tf.reduce_mean(_p_score, 1, keep_dims=False), 1, keep_dims=True) * w
-        n_score = tf.reduce_sum(tf.reduce_mean(_n_score, 1, keep_dims=False), 1, keep_dims=True) * w
+        p_score = tf.reduce_sum(tf.reduce_mean(_p_score, 1, keep_dims=False), 1, keep_dims=True)
+        n_score = tf.reduce_sum(tf.reduce_mean(_n_score, 1, keep_dims=False), 1, keep_dims=True)
         # Calculating loss to get what the framework will optimize
-        self.loss = tf.reduce_sum(tf.maximum(p_score - n_score + config.margin, 0))
+        self.loss = tf.reduce_sum(tf.maximum((p_score - n_score) * w + config.margin, 0))
 
     def predict_def(self):
         predict_h, predict_t, predict_r = self.get_predict_instance()

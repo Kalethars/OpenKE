@@ -1,7 +1,16 @@
 import argparse
+import codecs
+import os
 import win_unicode_console
 
 win_unicode_console.enable()
+
+parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def output(f, s='', end='\n'):
+    print(str(s) + end, end='')
+    f.write(str(s) + end)
 
 
 def average(list):
@@ -65,7 +74,7 @@ parser.add_argument('--method', type=str, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
-relation2idPath = '../benchmarks/%s/relation2id.txt' % database
+relation2idPath = parentDir + '/benchmarks/%s/relation2id.txt' % database
 f = open(relation2idPath, 'r')
 s = f.readlines()
 f.close()
@@ -78,15 +87,17 @@ for line in s:
 
 method = parsedArgs.method if parsedArgs.method else 'TransE'
 metricMistake = False
-resultPath = '../log/%s.log' % method
+resultPath = parentDir + '/log/%s/%s.log' % (database, method)
 f = open(resultPath, 'r')
 s = f.readlines()
 f.close()
 
+last = 0
 rawResults = []
 for i in range(len(s)):
     if '-' * 50 in s[i]:
-        rawResults.append(s[i - 42:i])
+        rawResults.append(s[last:i])
+        last = i + 1
 
 ignoredParams = {'nbatches', 'weighted'}
 results = dict()
@@ -104,13 +115,14 @@ for rawResult in rawResults:
             break
         parameterName = rawResult[i].split(':')[0].split('--')[1]
         parameterValue = rawResult[i].split(':')[1].strip(' \t\n')
+        i += 1
+        if parameterName in ignoredParams:
+            continue
         if '.' in parameterValue:
             parameterValue = float(parameterValue)
         else:
             parameterValue = int(parameterValue)
-        if not parameterName in ignoredParams:
-            results[seqNum]['parameters'][parameterName] = parameterValue
-        i += 1
+        results[seqNum]['parameters'][parameterName] = parameterValue
 
     metrics = []
     for i in range(len(rawResult)):
@@ -148,18 +160,20 @@ for rawResult in rawResults:
                     results[seqNum]['relationResults'][relationName][predictEntity][metrics[k]] = float(each)
                     k += 1
 
+fileSavePath = parentDir + '/log/%s/analyzed/%s_analyzed.log' % (database, method)
+f = codecs.open(fileSavePath, 'w', 'utf-8')
 sortedResults = sorted(results.keys(), key=lambda x: score(results[x]), reverse=True)
 for i in range(len(sortedResults)):
-    print(i + 1)
-    print('seqNum: ' + str(sortedResults[i]))
-    print('score: ' + str(round(score(results[sortedResults[i]]), 6)))
-    print('time: ' + str(results[sortedResults[i]]['time']))
-    print(results[sortedResults[i]]['parameters'])
-    print(results[sortedResults[i]]['scoreResults'])
+    output(f, i + 1)
+    output(f, 'seqNum: ' + str(sortedResults[i]))
+    output(f, 'score: ' + str(round(score(results[sortedResults[i]]), 6)))
+    output(f, 'time: ' + str(results[sortedResults[i]]['time']))
+    output(f, results[sortedResults[i]]['parameters'])
+    output(f, results[sortedResults[i]]['scoreResults'])
     for relationName in relationMap.values():
-        print(relationName + ': ', end='')
-        print(results[sortedResults[i]]['relationResults'][relationName])
-    print()
+        output(f, relationName + ': ', end='')
+        output(f, results[sortedResults[i]]['relationResults'][relationName])
+    output(f)
 
 parameterMetric = dict()
 for seqNum in results.keys():
@@ -181,28 +195,29 @@ for seqNum in results.keys():
 
 for parameterName in sorted(parameterMetric.keys()):
     for parameterValue in sorted(parameterMetric[parameterName].keys()):
-        print(buildEquation(parameterName, parameterValue))
+        output(f, buildEquation(parameterName, parameterValue))
         for metric in sorted(parameterMetric[parameterName][parameterValue].keys()):
-            print('\t' + metric + ' ' * (7 - len(metric))
-                  + buildEquation('Average', average(parameterMetric[parameterName][parameterValue][metric])) + '\t'
-                  + buildEquation('Max', max(parameterMetric[parameterName][parameterValue][metric])) + '\t'
-                  + buildEquation('Min', min(parameterMetric[parameterName][parameterValue][metric])))
-        print()
+            output(f, '\t' + metric + ' ' * (7 - len(metric))
+                   + buildEquation('Average', average(parameterMetric[parameterName][parameterValue][metric])) + '\t'
+                   + buildEquation('Max', max(parameterMetric[parameterName][parameterValue][metric])) + '\t'
+                   + buildEquation('Min', min(parameterMetric[parameterName][parameterValue][metric])))
+        output(f)
 
 
 def outputAsLatexForSortedResults(sortedResults, results):
     for i in [0, 1, 2, -3, -2, -1] if len(sortedResults) >= 10 else range(len(sortedResults)):
-        print('\t', end='')
-        print(i + 1 if i >= 0 else len(sortedResults) + i + 1, end=' ')
+        output(f, '\t', end='')
+        output(f, i + 1 if i >= 0 else len(sortedResults) + i + 1, end=' ')
         for parameterName in sorted(results[sortedResults[i]]['parameters'].keys()):
-            print('& ' + parameterValueToString(results[sortedResults[i]]['parameters'][parameterName], parameterName),
-                  end=' ')
+            output(f,
+                   '& ' + parameterValueToString(results[sortedResults[i]]['parameters'][parameterName], parameterName),
+                   end=' ')
         for metric in [('MRR', 4), ('hit@10', 4), ('hit@3', 4), ('hit@1', 4)]:
-            print('& ' + formattedRound(results[sortedResults[i]]['scoreResults'][metric[0]], metric[1]), end=' ')
-        print('& ' + formattedRound(results[sortedResults[i]]['time'], 0), end=' ')
-        print('& ' + formattedRound(score(results[sortedResults[i]]), 3), end=' ')
-        print('\\\\')
-    print()
+            output(f, '& ' + formattedRound(results[sortedResults[i]]['scoreResults'][metric[0]], metric[1]), end=' ')
+        output(f, '& ' + formattedRound(results[sortedResults[i]]['time'], 0), end=' ')
+        output(f, '& ' + formattedRound(score(results[sortedResults[i]]), 3), end=' ')
+        output(f, '\\\\')
+    output(f)
 
 
 def outputAsLatexForAverageResults(parameterMetric):
@@ -210,14 +225,14 @@ def outputAsLatexForAverageResults(parameterMetric):
         if len(parameterMetric[parameterName]) <= 1:
             continue
         for parameterValue in sorted(parameterMetric[parameterName].keys()):
-            print('\t', end='')
-            print('$\\mathrm{' + parameterName + '}=' + str(parameterValue) + '$', end=' ')
+            output(f, '\t', end='')
+            output(f, '$\\mathrm{' + parameterName + '}=' + str(parameterValue) + '$', end=' ')
             for metric in [('MRR', 4), ('hit@10', 4), ('hit@3', 4), ('hit@1', 4), ('time', 0), ('score', 3)]:
-                print('& ' + str(
+                output(f, '& ' + str(
                     formattedRound(average(parameterMetric[parameterName][parameterValue][metric[0]]), metric[1])),
-                      end=' ')
-            print('\\\\')
-    print()
+                       end=' ')
+            output(f, '\\\\')
+    output(f)
 
 
 def outputAsLatexForRelationResults(relationResults):
@@ -232,25 +247,27 @@ def outputAsLatexForRelationResults(relationResults):
     for i in range(len(relations)):
         head = relationResults[relations[i][0]]['Head']
         tail = relationResults[relations[i][0]]['Tail']
-        print('\t\multirow{2}{*}{%s} & 头实体 & %s & %s & %s & %s & %s & %s \\\\'
-              % (relations[i][1],
-                 typeCHN[relations[i][1].split('\\')[0]],
-                 formattedRound(head['MRR'], 4),
-                 formattedRound(head['hit@10'], 4),
-                 formattedRound(head['hit@3'], 4),
-                 formattedRound(head['hit@1'], 4),
-                 formattedRound(calcScore(head), 3))
-              )
-        print('\t& 尾实体 & %s & %s & %s & %s & %s & %s \\\\'
-              % (typeCHN[relations[i][1].split('_')[-1]],
-                 formattedRound(tail['MRR'], 4),
-                 formattedRound(tail['hit@10'], 4),
-                 formattedRound(tail['hit@3'], 4),
-                 formattedRound(tail['hit@1'], 4),
-                 formattedRound(calcScore(tail), 3))
-              )
+        output(f, '\t\multirow{2}{*}{%s} & 头实体 & %s & %s & %s & %s & %s & %s \\\\'
+               % (relations[i][1],
+                  typeCHN[relations[i][1].split('\\')[0]],
+                  formattedRound(head['MRR'], 4),
+                  formattedRound(head['hit@10'], 4),
+                  formattedRound(head['hit@3'], 4),
+                  formattedRound(head['hit@1'], 4),
+                  formattedRound(calcScore(head), 3))
+               )
+        output(f, '\t& 尾实体 & %s & %s & %s & %s & %s & %s \\\\'
+               % (typeCHN[relations[i][1].split('_')[-1]],
+                  formattedRound(tail['MRR'], 4),
+                  formattedRound(tail['hit@10'], 4),
+                  formattedRound(tail['hit@3'], 4),
+                  formattedRound(tail['hit@1'], 4),
+                  formattedRound(calcScore(tail), 3))
+               )
 
 
 outputAsLatexForSortedResults(sortedResults, results)
 outputAsLatexForAverageResults(parameterMetric)
 outputAsLatexForRelationResults(results[sortedResults[0]]['relationResults'])
+
+f.close()

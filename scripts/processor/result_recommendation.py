@@ -257,7 +257,7 @@ parser.add_argument('--order', type=int, required=True)
 parser.add_argument('--update', type=bool, required=False)
 parser.add_argument('--count', type=int, required=False)
 parser.add_argument('--target', type=str, required=False)
-parser.add_argument('--nonpca', type=bool, required=False)
+parser.add_argument('--pca', type=bool, required=False)
 parser.add_argument('--norm', type=float, required=False)
 parsedArgs = parser.parse_args()
 
@@ -267,8 +267,8 @@ order = parsedArgs.order
 update = parsedArgs.update if parsedArgs.update else False
 recommendCount = parsedArgs.count if parsedArgs.count and parsedArgs.count > 10 else 10
 target = parsedArgs.target
-nonPCA = parsedArgs.nonpca if parsedArgs.nonpca else False
-norm = parsedArgs.norm if parsedArgs.norm else 2
+pca = parsedArgs.pca if parsedArgs.pca else False
+norm = parsedArgs.norm if parsedArgs.norm else (2 if pca else 1)
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -282,7 +282,7 @@ for type in types:
     recommendationDir = vectorReadDir + 'recommendation/'
 
     outputPath = recommendationDir + type + 'Recommendation' + \
-                 ('' if nonPCA else 'PCA') + '_norm=' + str(round(norm, 2)).rstrip('.0') + '.txt'
+                 ('PCA' if pca else '') + '_norm=' + str(round(norm, 2)).rstrip('.0') + '.txt'
     if not update:
         if os.path.exists(outputPath):
             continue
@@ -293,10 +293,10 @@ for type in types:
     infoLines = f.read().split('\n')
     f.close()
 
-    if nonPCA:
-        f = open(vectorReadDir + type + 'Vector.data', 'r')
-    else:
+    if pca:
         f = open(vectorReadDir + 'pca/' + type + 'PCA.data', 'r')
+    else:
+        f = open(vectorReadDir + type + 'Vector.data', 'r')
     vectorLines = f.read().split('\n')
     f.close()
 

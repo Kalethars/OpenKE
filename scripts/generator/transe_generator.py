@@ -75,7 +75,7 @@ paramConfig = {'basic': {'epoch': [2000, 1000],
                             'weighted': [False]
                             },
                'detailed': {'epoch': [5000],
-                            'dimension': [500],
+                            'dimension': [300],
                             'nbatches': [100],
                             'margin': [2.0, 2.5, 3.0, 3.5],
                             'alpha': [0.001, 0.003, 0.005],

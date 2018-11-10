@@ -352,25 +352,25 @@ fieldIsPartOfField()
 normalization()
 
 
-def train2idWeighted():
-    def triplets(head, tail, relation):
-        return ' '.join([str(head), str(tail), str(relation)])
+def triplet(head, tail, relation):
+    return ' '.join([str(head), str(tail), str(relation)])
 
-    weightData = parseData(weightPath)
-    trainData = parseData(databaseDir + 'train2id.txt')
+
+weightData = parseData(weightPath)
+for filename in ['train', 'test', 'valid']:
+    trainData = parseData(databaseDir + filename + '2id.txt')
 
     weight = dict()
     for line in weightData:
         if len(line) == 4:
-            weight[triplets(line[1], line[2], line[0])] = line[3]
+            weight[triplet(line[1], line[2], line[0])] = line[3]
 
-    f = open(databaseDir + 'train2id_weighted.txt', 'w')
-    for line in trainData:
-        if len(line) != 3:
-            f.write(' '.join(line) + '\n')
-        else:
-            f.write(' '.join(line + [weight[triplets(line[0], line[1], line[2])]]) + '\n')
-    f.close()
-
-
-train2idWeighted()
+    fileSavePath = databaseDir + filename + '2id_weighted.txt'
+    if update or (not os.path.exists(fileSavePath)):
+        f = open(fileSavePath, 'w')
+        for line in trainData:
+            if len(line) != 3:
+                f.write(' '.join(line) + '\n')
+            else:
+                f.write(' '.join(line + [weight[triplet(line[0], line[1], line[2])]]) + '\n')
+        f.close()

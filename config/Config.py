@@ -78,7 +78,7 @@ class Config(object):
             self.batch_y_addr = self.batch_y.__array_interface__['data'][0]
             self.batch_w_addr = self.batch_w.__array_interface__['data'][0]
         if self.test_link_prediction:
-            self.lib.importTestFiles()
+            self.lib.importTestFiles(self.weighted)
 
             self.test_h = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
             self.test_t = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
@@ -87,7 +87,7 @@ class Config(object):
             self.test_t_addr = self.test_t.__array_interface__['data'][0]
             self.test_r_addr = self.test_r.__array_interface__['data'][0]
         if self.test_triple_classification:
-            self.lib.importTestFiles()
+            self.lib.importTestFiles(self.weighted)
 
             self.test_pos_h = np.zeros(self.lib.getTestTotal(), dtype=np.int64)
             self.test_pos_t = np.zeros(self.lib.getTestTotal(), dtype=np.int64)

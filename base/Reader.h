@@ -137,8 +137,8 @@ Triple *validList;
 Triple *tripleList;
 
 extern "C"
-void importTestFiles() {
-    FILE *fin;
+void importTestFiles(bool weighted) {
+    FILE* fin, f_kb1, f_kb2, f_kb3;
     INT tmp;
     
 	fin = fopen((inPath + "relation2id.txt").c_str(), "r");
@@ -149,9 +149,15 @@ void importTestFiles() {
     tmp = fscanf(fin, "%ld", &entityTotal);
     fclose(fin);
 
-    FILE* f_kb1 = fopen((inPath + "test2id.txt").c_str(), "r");
-    FILE* f_kb2 = fopen((inPath + "train2id.txt").c_str(), "r");
-    FILE* f_kb3 = fopen((inPath + "valid2id.txt").c_str(), "r");
+    if (weighted) {
+        f_kb1 = fopen((inPath + "test2id_weighted.txt").c_str(), "r");
+        f_kb2 = fopen((inPath + "train2id_weighted.txt").c_str(), "r");
+        f_kb3 = fopen((inPath + "valid2id_weighted.txt").c_str(), "r");
+    } else {
+        f_kb1 = fopen((inPath + "test2id.txt").c_str(), "r");
+        f_kb2 = fopen((inPath + "train2id.txt").c_str(), "r");
+        f_kb3 = fopen((inPath + "valid2id.txt").c_str(), "r");
+    }
     tmp = fscanf(f_kb1, "%ld", &testTotal);
     tmp = fscanf(f_kb2, "%ld", &trainTotal);
     tmp = fscanf(f_kb3, "%ld", &validTotal);
@@ -163,17 +169,32 @@ void importTestFiles() {
         tmp = fscanf(f_kb1, "%ld", &tripleList[i].h);
         tmp = fscanf(f_kb1, "%ld", &tripleList[i].t);
         tmp = fscanf(f_kb1, "%ld", &tripleList[i].r);
+        if (weighted) {
+            tmp = fscanf(f_kb1, "%f", &tripleList[i].w);
+        } else {
+            tripleList[i].w = 1.0;
+        }
         testList[i] = tripleList[i];
     }
     for (INT i = 0; i < trainTotal; i++) {
         tmp = fscanf(f_kb2, "%ld", &tripleList[i + testTotal].h);
         tmp = fscanf(f_kb2, "%ld", &tripleList[i + testTotal].t);
         tmp = fscanf(f_kb2, "%ld", &tripleList[i + testTotal].r);
+        if (weighted) {
+            tmp = fscanf(f_kb2, "%f", &tripleList[i + testTotal].w);
+        } else {
+            tripleList[i + testTotal].w = 1.0;
+        }
     }
     for (INT i = 0; i < validTotal; i++) {
         tmp = fscanf(f_kb3, "%ld", &tripleList[i + testTotal + trainTotal].h);
         tmp = fscanf(f_kb3, "%ld", &tripleList[i + testTotal + trainTotal].t);
         tmp = fscanf(f_kb3, "%ld", &tripleList[i + testTotal + trainTotal].r);
+        if (weighted) {
+            tmp = fscanf(f_kb3, "%f", &tripleList[i + testTotal + trainTotal].w);
+        } else {
+            tripleList[i + testTotal + trainTotal].w = 1.0;
+        }
         validList[i] = tripleList[i + testTotal + trainTotal];
     }
     fclose(f_kb1);

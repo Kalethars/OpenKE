@@ -1,10 +1,10 @@
-path='../../res/ACE17K/TransE/3/';
+path='../../res/ACE17K/TransE_advanced/1/';
 
 fid=fopen('../../data/ACE17K/info/venueInfo.data','r');
 index=textscan(fid,'%s\t%s\t%s\t%s\t%s');
 fclose(fid);
-embedding=load([path,'venueData.data']);
-data=tsne(embedding,[],2,68,30);
+embedding=load([path,'venueVector.data']);
+data=tsne(embedding,[],10,68,30);
 scatter(data(:,1),data(:,2),'Marker','.');
 
 colorArray=[22.8,46.55,74.96,102.52,159.79,184.8,210.93,282.47,315.13,338];

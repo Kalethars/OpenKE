@@ -1,5 +1,3 @@
-import tensorflow as tf
-import numpy as np
 import argparse
 import time
 import os, sys
@@ -45,11 +43,11 @@ def mkdir(folders):
 
 
 def initVariables():
-    global logPath, module, startTime, order, configName
+    global logPath, module, startTime, order
 
     module = ''
     startTime = time.time()
-    logPath = parentDir + '/log/' + configName + '.log'
+    logPath = parentDir + '/log/%s/%s.log' % (database, configName)
     if order == '1':
         log = open(logPath, 'w')
     else:
@@ -118,7 +116,7 @@ def parseParams(line, output=True):
 
 
 def TransE():
-    global logPath, order, configLine, configName
+    global logPath, order, configLine
 
     name = 'TransE'
     initVariables()
@@ -148,7 +146,7 @@ def TransE():
 
 
 def TransH():
-    global logPath, order, configLine, configName
+    global logPath, order, configLine
 
     name = 'TransH'
     initVariables()
@@ -178,7 +176,7 @@ def TransH():
 
 
 def DistMult():
-    global logPath, order, configLine, configName
+    global logPath, order, configLine
 
     name = 'DistMult'
     initVariables()
@@ -208,7 +206,7 @@ def DistMult():
 
 
 def ComplEx():
-    global logPath, order, configLine, configName
+    global logPath, order, configLine
 
     name = 'ComplEx'
     initVariables()
@@ -239,7 +237,7 @@ def ComplEx():
 
 
 def HolE():
-    global logPath, order, configLine, configName
+    global logPath, order, configLine
 
     name = 'HolE'
     initVariables()
