@@ -31,10 +31,16 @@ void getTailBatch(INT *ph, INT *pt, INT *pr) {
 }
 
 extern "C"
-void testHead(REAL *con) {
+void testHead(REAL *con, bool weighted = false) {
     INT h = testList[lastHead].h;
     INT t = testList[lastHead].t;
     INT r = testList[lastHead].r;
+    REAL w;
+    if (weighted) {
+        w = testList[lastHead].w;
+    } else {
+        w = 1.0;
+    }
 
     REAL minimal = con[h];
     INT l_s = 1;
@@ -56,27 +62,28 @@ void testHead(REAL *con) {
     }
 
     relationCount[r] += 1;
+
     if (l_filter_s <= 10) {
-        l_filter_tot += 1;
-        hitAt10[r] += 1;
+        l_filter_tot += w;
+        hitAt10[r] += w;
     }
-    if (l_s <= 10) l_tot += 1;
+    if (l_s <= 10) l_tot += w;
     if (l_filter_s <= 3) {
-        l3_filter_tot += 1;
-        hitAt3[r] += 1;
+        l3_filter_tot += w;
+        hitAt3[r] += w;
     }
-    if (l_s <= 3) l3_tot += 1;
-    if (l_filter_s <= 1) {
-        l1_filter_tot += 1;
-        hitAt1[r] += 1;
+    if (l_s <= 3) l3_tot += w;
+    if (l_filter_s <= w) {
+        l1_filter_tot += w;
+        hitAt1[r] += w;
     }
-    if (l_s <= 1) l1_tot += 1;
-    l_filter_rank += l_filter_s;
-    meanRank[r] += l_filter_s;
-    l_rank += l_s;
-    l_filter_reci_rank += 1.0/l_filter_s;
-    meanRankReciprocal[r] += 1.0/l_filter_s;
-    l_reci_rank += 1.0/l_s;
+    if (l_s <= 1) l1_tot += w;
+    l_filter_rank += l_filter_s / w;
+    meanRank[r] += l_filter_s / w;
+    l_rank += l_s / w;
+    l_filter_reci_rank += w / l_filter_s;
+    meanRankReciprocal[r] += w / l_filter_s;
+    l_reci_rank += w / l_s;
     lastHead++;
     printf("h: %ld r: %ld t: %ld value: %f\n", h, r, t, minimal);
     printf("l_filter_s: %ld\t", l_filter_s);
@@ -84,10 +91,16 @@ void testHead(REAL *con) {
 }
 
 extern "C"
-void testTail(REAL *con) {
+void testTail(REAL *con, bool weighted = false) {
     INT h = testList[lastTail].h;
     INT t = testList[lastTail].t;
     INT r = testList[lastTail].r;
+    REAL w;
+    if (weighted) {
+        w = testList[lastTail].w;
+    } else {
+        w = 1.0;
+    }
 
     REAL minimal = con[t];
     INT r_s = 1;
@@ -109,27 +122,28 @@ void testTail(REAL *con) {
     }
 
     relationCount[relationTotal+r] += 1;
+
     if (r_filter_s <= 10) {
-        r_filter_tot += 1;
-        hitAt10[relationTotal+r] += 1;
+        r_filter_tot += w;
+        hitAt10[relationTotal+r] += w;
     }
-    if (r_s <= 10) r_tot += 1;
+    if (r_s <= 10) r_tot += w;
     if (r_filter_s <= 3) {
-        r3_filter_tot += 1;
-        hitAt3[relationTotal+r] += 1;
+        r3_filter_tot += w;
+        hitAt3[relationTotal+r] += w;
     }
-    if (r_s <= 3) r3_tot += 1;
+    if (r_s <= 3) r3_tot += w;
     if (r_filter_s <= 1) {
-        r1_filter_tot += 1;
-        hitAt1[relationTotal+r] += 1;
+        r1_filter_tot += w;
+        hitAt1[relationTotal+r] += w;
     }
-    if (r_s <= 1) r1_tot += 1;
-    r_filter_rank += r_filter_s;
-    meanRank[relationTotal+r] += r_filter_s;
-    r_rank += r_s;
-    r_filter_reci_rank += 1.0/r_filter_s;
-    meanRankReciprocal[relationTotal+r] += 1.0/r_filter_s;
-    r_reci_rank += 1.0/r_s;
+    if (r_s <= 1) r1_tot += w;
+    r_filter_rank += r_filter_s / w;
+    meanRank[relationTotal+r] += r_filter_s / w;
+    r_rank += r_s / w;
+    r_filter_reci_rank += w / r_filter_s;
+    meanRankReciprocal[relationTotal+r] += w / r_filter_s;
+    r_reci_rank += w / r_s;
     lastTail++;
     // printf("h: %ld r: %ld t:%ld value:%f\n", h, r, t, minimal);
     printf("r_filter_s: %ld\n\n", r_filter_s);

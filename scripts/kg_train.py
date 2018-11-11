@@ -64,7 +64,7 @@ def initParams(map):
 
     params.set_test_triple_classification(False)
     params.set_test_link_prediction(True)
-    params.set_weighted(bool(map['weighted']))
+    params.set_train_weighted(bool(map['weighted']))
 
     params.set_train_times(int(map['epoch']))
     params.set_nbatches(int(map['nbatches']))

@@ -17,14 +17,15 @@ class Config(object):
                                       ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
         self.lib.getHeadBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         self.lib.getTailBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
-        self.lib.testHead.argtypes = [ctypes.c_void_p]
-        self.lib.testTail.argtypes = [ctypes.c_void_p]
+        self.lib.testHead.argtypes = [ctypes.c_void_p, ctypes.c_bool]
+        self.lib.testTail.argtypes = [ctypes.c_void_p, ctypes.c_bool]
         self.lib.getTestBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
                                           ctypes.c_void_p, ctypes.c_void_p]
         self.lib.getValidBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
                                            ctypes.c_void_p, ctypes.c_void_p]
         self.lib.getBestThreshold.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
         self.lib.test_triple_classification.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
         self.test_flag = False
         self.in_path = None
         self.out_path = None
@@ -48,7 +49,8 @@ class Config(object):
         self.optimizer = None
         self.test_link_prediction = False
         self.test_triple_classification = False
-        self.weighted = False
+        self.train_weighted = False
+        self.test_weighted = False
 
     def init(self):
         self.trainModel = None
@@ -57,7 +59,7 @@ class Config(object):
             self.lib.setBern(self.bern)
             self.lib.setWorkThreads(self.workThreads)
             self.lib.randReset()
-            self.lib.importTrainFiles(self.weighted)
+            self.lib.importTrainFiles(self.train_weighted)
             self.lib.importTypeFiles()
 
             self.relTotal = self.lib.getRelationTotal()
@@ -78,7 +80,7 @@ class Config(object):
             self.batch_y_addr = self.batch_y.__array_interface__['data'][0]
             self.batch_w_addr = self.batch_w.__array_interface__['data'][0]
         if self.test_link_prediction:
-            self.lib.importTestFiles(self.weighted)
+            self.lib.importTestFiles(self.train_weighted)
 
             self.test_h = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
             self.test_t = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
@@ -87,7 +89,7 @@ class Config(object):
             self.test_t_addr = self.test_t.__array_interface__['data'][0]
             self.test_r_addr = self.test_r.__array_interface__['data'][0]
         if self.test_triple_classification:
-            self.lib.importTestFiles(self.weighted)
+            self.lib.importTestFiles(self.train_weighted)
 
             self.test_pos_h = np.zeros(self.lib.getTestTotal(), dtype=np.int64)
             self.test_pos_t = np.zeros(self.lib.getTestTotal(), dtype=np.int64)
@@ -121,8 +123,11 @@ class Config(object):
     def get_rel_total(self):
         return self.relTotal
 
-    def set_weighted(self, flag):
-        self.weighted = flag
+    def set_train_weighted(self, flag):
+        self.train_weighted = flag
+
+    def set_test_weighted(self, flag):
+        self.test_weighted = flag
 
     def set_test_flag(self, test_flag):
         self.test_flag = test_flag
@@ -344,11 +349,11 @@ class Config(object):
                             print times + 1
                         self.lib.getHeadBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr)
                         res = self.test_step(self.test_h, self.test_t, self.test_r)
-                        self.lib.testHead(res.__array_interface__['data'][0])
+                        self.lib.testHead(res.__array_interface__['data'][0], self.test_weighted)
 
                         self.lib.getTailBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr)
                         res = self.test_step(self.test_h, self.test_t, self.test_r)
-                        self.lib.testTail(res.__array_interface__['data'][0])
+                        self.lib.testTail(res.__array_interface__['data'][0], self.test_weighted)
                     self.lib.test_link_prediction(output)
                 if self.test_triple_classification:
                     self.lib.getValidBatch(self.valid_pos_h_addr, self.valid_pos_t_addr, self.valid_pos_r_addr,

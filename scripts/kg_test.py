@@ -10,11 +10,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=True)
+parser.add_argument('--weighted', type=bool, required=False)
+parser.add_argument('--version', type=str, required=False)
 parsedConfig = parser.parse_args()
 
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
 method = parsedConfig.method
 order = parsedConfig.order
+weighted = parsedConfig.weighted if parsedConfig.weighted else False
+version = parsedConfig.version if parsedConfig.version else 'retested'
 
 logDir = parentDir + '/log/%s/' % database
 logPath = logDir + '%s.log' % method
@@ -29,7 +33,7 @@ for i in range(len(s)):
         rawResults.append(s[last:i])
         last = i + 1
 
-newLogPath = logDir + '%s_retested.log' % method
+newLogPath = logDir + '%s%s.log' % (method, '' if version == 'overwrite' else '_' + version)
 if order == 1:
     f = open(newLogPath, 'w')
     f.close()
@@ -66,6 +70,7 @@ params.set_work_threads(32)
 params.set_dimension(dimension[order])
 params.set_import_files(importPath)
 params.set_test_link_prediction(True)
+params.set_test_weighted(weighted)
 params.init()
 exec('params.set_model(models.%s)' % model[order])
 params.test(newLogPath)
