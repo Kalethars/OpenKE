@@ -4,14 +4,13 @@ import tensorflow as tf
 from .Model import Model
 
 
-class TransE(Model):
+class WTransE(Model):
     r'''
-    TransE is the first model to introduce translation-based embedding,
-    which interprets relations as the translations operating on entities.
+    WTransE introduces weight of triplets to improve TransE.
     '''
 
-    def _calc(self, h, t, r):
-        return abs(h + r - t)
+    def _calc(self, h, t, r, w):
+        return abs(h + r * w - t)
 
     def embedding_def(self):
         # Obtaining the initial configuration of the model
@@ -43,8 +42,8 @@ class TransE(Model):
         # Calculating score functions for all positive triples and negative triples
         # The shape of _p_score is (batch_size, 1, hidden_size)
         # The shape of _n_score is (batch_size, negative_ent + negative_rel, hidden_size)
-        _p_score = self._calc(p_h, p_t, p_r) * w
-        _n_score = self._calc(n_h, n_t, n_r) * w
+        _p_score = self._calc(p_h, p_t, p_r, w)
+        _n_score = self._calc(n_h, n_t, n_r, w)
         # The shape of p_score is (batch_size, 1)
         # The shape of n_score is (batch_size, 1)
         p_score = tf.reduce_sum(tf.reduce_mean(_p_score, 1, keep_dims=False), 1, keep_dims=True)
@@ -54,7 +53,8 @@ class TransE(Model):
 
     def predict_def(self):
         predict_h, predict_t, predict_r = self.get_predict_instance()
+        predict_w = self.get_predict_weights()
         predict_h_e = tf.nn.embedding_lookup(self.ent_embeddings, predict_h)
         predict_t_e = tf.nn.embedding_lookup(self.ent_embeddings, predict_t)
         predict_r_e = tf.nn.embedding_lookup(self.rel_embeddings, predict_r)
-        self.predict = tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e), 1, keep_dims=False)
+        self.predict = tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e, predict_w), 1, keep_dims=False)

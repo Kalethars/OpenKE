@@ -19,11 +19,11 @@ class Analogy(Model):
                                               initializer=tf.contrib.layers.xavier_initializer(uniform=True))
         self.rel_embeddings = tf.get_variable(name="rel_embeddings", shape=[config.relTotal, config.hidden_size],
                                               initializer=tf.contrib.layers.xavier_initializer(uniform=True))
-        self.parameter_lists = {"ent_re_embeddings": self.ent1_embeddings, \
-                                "ent_im_embeddings": self.ent2_embeddings, \
-                                "rel_re_embeddings": self.rel1_embeddings, \
-                                "rel_im_embeddings": self.rel2_embeddings, \
-                                "ent_embeddings": self.ent_embeddings, \
+        self.parameter_lists = {"ent_re_embeddings": self.ent1_embeddings,
+                                "ent_im_embeddings": self.ent2_embeddings,
+                                "rel_re_embeddings": self.rel1_embeddings,
+                                "rel_im_embeddings": self.rel2_embeddings,
+                                "ent_embeddings": self.ent_embeddings,
                                 "rel_embeddings": self.rel_embeddings
                                 }
 

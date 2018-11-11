@@ -13,20 +13,22 @@ REAL l1_filter_tot = 0, l1_tot = 0, r1_tot = 0, r1_filter_tot = 0, l_tot = 0, r_
 REAL l3_filter_tot = 0, l3_tot = 0, r3_tot = 0, r3_filter_tot = 0, l_filter_tot = 0, r_filter_tot = 0, r_filter_rank = 0, r_rank = 0, r_filter_reci_rank = 0, r_reci_rank = 0;
 
 extern "C"
-void getHeadBatch(INT *ph, INT *pt, INT *pr) {
+void getHeadBatch(INT *ph, INT *pt, INT *pr, REAL *pw) {
     for (INT i = 0; i < entityTotal; i++) {
         ph[i] = i;
         pt[i] = testList[lastHead].t;
         pr[i] = testList[lastHead].r;
+        pw[i] = testList[lastHead].w;
     }
 }
 
 extern "C"
-void getTailBatch(INT *ph, INT *pt, INT *pr) {
+void getTailBatch(INT *ph, INT *pt, INT *pr, REAL *pw) {
     for (INT i = 0; i < entityTotal; i++) {
         ph[i] = testList[lastTail].h;
         pt[i] = i;
         pr[i] = testList[lastTail].r;
+        pw[i] = testList[lastTail].w;
     }
 }
 

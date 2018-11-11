@@ -15,8 +15,8 @@ class Config(object):
         self.lib = ctypes.cdll.LoadLibrary(self.parentDir + "/release/Base.so")
         self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
                                       ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
-        self.lib.getHeadBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
-        self.lib.getTailBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+        self.lib.getHeadBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+        self.lib.getTailBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         self.lib.testHead.argtypes = [ctypes.c_void_p, ctypes.c_bool]
         self.lib.testTail.argtypes = [ctypes.c_void_p, ctypes.c_bool]
         self.lib.getTestBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
@@ -85,9 +85,11 @@ class Config(object):
             self.test_h = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
             self.test_t = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
             self.test_r = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
+            self.test_w = np.zeros(self.lib.getEntityTotal(), dtype=np.float32)
             self.test_h_addr = self.test_h.__array_interface__['data'][0]
             self.test_t_addr = self.test_t.__array_interface__['data'][0]
             self.test_r_addr = self.test_r.__array_interface__['data'][0]
+            self.test_w_addr = self.test_w.__array_interface__['data'][0]
         if self.test_triple_classification:
             self.lib.importTestFiles(self.test_weighted)
 
@@ -307,11 +309,21 @@ class Config(object):
         _, loss = self.sess.run([self.train_op, self.trainModel.loss], feed_dict)
         return loss
 
-    def test_step(self, test_h, test_t, test_r):
+    def test_step_with_weight(self, test_h, test_t, test_r, test_w):
         feed_dict = {
             self.trainModel.predict_h: test_h,
             self.trainModel.predict_t: test_t,
             self.trainModel.predict_r: test_r,
+            self.trainModel.predict_w: test_w
+        }
+        predict = self.sess.run(self.trainModel.predict, feed_dict)
+        return predict
+
+    def test_step(self, test_h, test_t, test_r):
+        feed_dict = {
+            self.trainModel.predict_h: test_h,
+            self.trainModel.predict_t: test_t,
+            self.trainModel.predict_r: test_r
         }
         predict = self.sess.run(self.trainModel.predict, feed_dict)
         return predict
@@ -347,12 +359,12 @@ class Config(object):
                     for times in range(total):
                         if self.log_on:
                             print times + 1
-                        self.lib.getHeadBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr)
-                        res = self.test_step(self.test_h, self.test_t, self.test_r)
+                        self.lib.getHeadBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr, self.test_w_addr)
+                        res = self.test_step_with_weight(self.test_h, self.test_t, self.test_r, self.test_w)
                         self.lib.testHead(res.__array_interface__['data'][0], self.test_weighted)
 
-                        self.lib.getTailBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr)
-                        res = self.test_step(self.test_h, self.test_t, self.test_r)
+                        self.lib.getTailBatch(self.test_h_addr, self.test_t_addr, self.test_r_addr, self.test_w_addr)
+                        res = self.test_step_with_weight(self.test_h, self.test_t, self.test_r, self.test_w)
                         self.lib.testTail(res.__array_interface__['data'][0], self.test_weighted)
                     self.lib.test_link_prediction(output)
                 if self.test_triple_classification:

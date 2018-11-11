@@ -27,8 +27,8 @@ class TransR(Model):
         self.transfer_matrix = tf.get_variable(name="transfer_matrix",
                                                shape=[config.relTotal, config.ent_size * config.rel_size],
                                                initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-        self.parameter_lists = {"ent_embeddings": self.ent_embeddings, \
-                                "rel_embeddings": self.rel_embeddings, \
+        self.parameter_lists = {"ent_embeddings": self.ent_embeddings,
+                                "rel_embeddings": self.rel_embeddings,
                                 "transfer_matrix": self.transfer_matrix}
 
     def loss_def(self):

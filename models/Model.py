@@ -11,25 +11,25 @@ class Model(object):
         if in_batch:
             return [self.postive_h, self.postive_t, self.postive_r]
         else:
-            return [self.batch_h[0:self.config.batch_size], \
-                    self.batch_t[0:self.config.batch_size], \
+            return [self.batch_h[0:self.config.batch_size],
+                    self.batch_t[0:self.config.batch_size],
                     self.batch_r[0:self.config.batch_size]]
 
     def get_negative_instance(self, in_batch=True):
         if in_batch:
             return [self.negative_h, self.negative_t, self.negative_r]
         else:
-            return [self.batch_h[self.config.batch_size:self.config.batch_seq_size], \
-                    self.batch_t[self.config.batch_size:self.config.batch_seq_size], \
+            return [self.batch_h[self.config.batch_size:self.config.batch_seq_size],
+                    self.batch_t[self.config.batch_size:self.config.batch_seq_size],
                     self.batch_r[self.config.batch_size:self.config.batch_seq_size]]
 
     def get_all_instance(self, in_batch=False):
         if in_batch:
             return [
                 tf.transpose(tf.reshape(self.batch_h, [1 + self.config.negative_ent + self.config.negative_rel, -1]),
-                             [1, 0]), \
+                             [1, 0]),
                 tf.transpose(tf.reshape(self.batch_t, [1 + self.config.negative_ent + self.config.negative_rel, -1]),
-                             [1, 0]), \
+                             [1, 0]),
                 tf.transpose(tf.reshape(self.batch_r, [1 + self.config.negative_ent + self.config.negative_rel, -1]),
                              [1, 0])]
         else:
@@ -43,10 +43,13 @@ class Model(object):
             return self.batch_y
 
     def get_all_weights(self):
-        return tf.transpose(tf.reshape(self.batch_w[0:self.config.batch_size], [1, -1]), [1, 0])
+        return tf.expand_dims(tf.transpose(tf.reshape(self.batch_w[0:self.config.batch_size], [1, -1]), [1, 0]), -1)
 
     def get_predict_instance(self):
         return [self.predict_h, self.predict_t, self.predict_r]
+
+    def get_predict_weights(self):
+        return tf.expand_dims(tf.transpose(tf.reshape(self.predict_w, [1, -1]), [1, 0]), -1)
 
     def input_def(self):
         config = self.config
@@ -67,6 +70,7 @@ class Model(object):
         self.predict_h = tf.placeholder(tf.int64, [None])
         self.predict_t = tf.placeholder(tf.int64, [None])
         self.predict_r = tf.placeholder(tf.int64, [None])
+        self.predict_w = tf.placeholder(tf.float32, [None])
         self.parameter_lists = []
 
     def embedding_def(self):

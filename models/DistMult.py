@@ -19,7 +19,7 @@ class DistMult(Model):
                                               initializer=tf.contrib.layers.xavier_initializer(uniform=True))
         self.rel_embeddings = tf.get_variable(name="rel_embeddings", shape=[config.relTotal, config.hidden_size],
                                               initializer=tf.contrib.layers.xavier_initializer(uniform=True))
-        self.parameter_lists = {"ent_embeddings": self.ent_embeddings, \
+        self.parameter_lists = {"ent_embeddings": self.ent_embeddings,
                                 "rel_embeddings": self.rel_embeddings}
 
     def loss_def(self):
