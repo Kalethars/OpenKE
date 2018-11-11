@@ -18,7 +18,7 @@ database = parsedConfig.database if parsedConfig.database else 'ACE17K'
 method = parsedConfig.method
 order = parsedConfig.order
 weighted = parsedConfig.weighted if parsedConfig.weighted else False
-version = parsedConfig.version if parsedConfig.version else 'retested'
+version = parsedConfig.version if parsedConfig.version else ('weighted' if weighted else 'retested')
 
 logDir = parentDir + '/log/%s/' % database
 logPath = logDir + '%s.log' % method

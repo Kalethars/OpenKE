@@ -138,7 +138,7 @@ Triple *tripleList;
 
 extern "C"
 void importTestFiles(bool weighted) {
-    FILE* fin, f_kb1, f_kb2, f_kb3;
+    FILE *fin, *f_kb1, *f_kb2, *f_kb3;
     INT tmp;
     
 	fin = fopen((inPath + "relation2id.txt").c_str(), "r");
