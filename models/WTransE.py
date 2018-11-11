@@ -31,7 +31,7 @@ class WTransE(Model):
         # The shapes of neg_h, neg_t, neg_r are (batch_size, negative_ent + negative_rel)
         pos_h, pos_t, pos_r = self.get_positive_instance(in_batch=True)
         neg_h, neg_t, neg_r = self.get_negative_instance(in_batch=True)
-        w = self.get_all_weights()
+        w = tf.reciprocal(self.get_all_weights())
         # Embedding entities and relations of triples, e.g. p_h, p_t and p_r are embeddings for positive triples
         p_h = tf.nn.embedding_lookup(self.ent_embeddings, pos_h)
         p_t = tf.nn.embedding_lookup(self.ent_embeddings, pos_t)
@@ -53,7 +53,7 @@ class WTransE(Model):
 
     def predict_def(self):
         predict_h, predict_t, predict_r = self.get_predict_instance()
-        predict_w = self.get_predict_weights()
+        predict_w = tf.reciprocal(self.get_predict_weights())
         predict_h_e = tf.nn.embedding_lookup(self.ent_embeddings, predict_h)
         predict_t_e = tf.nn.embedding_lookup(self.ent_embeddings, predict_t)
         predict_r_e = tf.nn.embedding_lookup(self.rel_embeddings, predict_r)
