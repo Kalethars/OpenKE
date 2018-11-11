@@ -49,7 +49,7 @@ class Model(object):
         return [self.predict_h, self.predict_t, self.predict_r]
 
     def get_predict_weights(self):
-        return tf.expand_dims(tf.transpose(tf.reshape(self.predict_w, [1, -1]), [1, 0]), -1)
+        return tf.transpose(tf.reshape(self.predict_w, [1, -1]), [1, 0])
 
     def input_def(self):
         config = self.config

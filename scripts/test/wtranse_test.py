@@ -32,26 +32,14 @@ parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--order', type=int, required=True)
 parser.add_argument('--superfilter', type=bool, required=False)
 parser.add_argument('--norm', type=float, required=False)
-parser.add_argument('--target', type=str, required=False)
 parser.add_argument('--dimension', type=int, required=False)
 parsedConfig = parser.parse_args()
 
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
-method = parsedConfig.method if parsedConfig.method else 'TransE'
+method = parsedConfig.method if parsedConfig.method else 'WTransE'
 order = parsedConfig.order
 superFilter = parsedConfig.superfilter if parsedConfig.superfilter else False
 norm = parsedConfig.norm if parsedConfig.norm else 1
-testString = parsedConfig.target
-
-if testString != None:
-    splited = testString.split()
-    if len(splited) != 3:
-        raise ValueError('Test format error! Must be like "head tail relation".')
-    for i in range(len(splited)):
-        try:
-            int(splited[i])
-        except:
-            raise ValueError('Test format error! Please input number id!')
 
 types = ['paper', 'author', 'institute', 'field', 'venue']
 typeMap = {'p': 'paper', 'a': 'author', 'i': 'institute', 'f': 'field', 'v': 'venue'}
@@ -174,13 +162,10 @@ def updateStatistics(rank, relation, predictObject):
     hit1[predictObject][relation] = hit1[predictObject].get(relation, 0) + (1 if rank <= 1 else 0)
 
 
-testReadPath = benchmarkDir + 'test2id.txt'
-if testString is None:
-    f = open(testReadPath, 'r')
-    s = f.read().split('\n')
-    f.close()
-else:
-    s = ['1', testString]
+testReadPath = benchmarkDir + 'test2id_weighted.txt'
+f = open(testReadPath, 'r')
+s = f.read().split('\n')
+f.close()
 
 f = open(vectorReadDir + 'test_norm=' + str(round(norm, 2)).rstrip('.0') + '.log', 'w')
 MRR = dict()
@@ -197,9 +182,9 @@ output(f, 'Total test triplets:\t' + s[0])
 testTriplets = []
 for line in s:
     splited = line.split()
-    if len(splited) != 3:
+    if len(splited) != 4:
         continue
-    testTriplets.append([splited[0], splited[1], splited[2]])
+    testTriplets.append([splited[0], splited[1], splited[2], splited[3]])
 
 testTriplets.sort(key=lambda x: (int(x[2]), int(x[0]), int(x[1])))
 for testCount in range(len(testTriplets)):
@@ -207,6 +192,7 @@ for testCount in range(len(testTriplets)):
     head = idIndex[testTriplets[testCount][0]]
     tail = idIndex[testTriplets[testCount][1]]
     relation = testTriplets[testCount][2]
+    weight = float(testTriplets[testCount][3])
     headVector = entityVectors[head]
     tailVector = entityVectors[tail]
     relationVector = relationVectors[relation]
@@ -217,7 +203,7 @@ for testCount in range(len(testTriplets)):
     output(f, entityInfo(tail), end='\t')
 
     # Predict head
-    headPredictVector = [tailVector[i] - relationVector[i] for i in range(dimension)]
+    headPredictVector = [tailVector[i] - weight * relationVector[i] for i in range(dimension)]
 
     distance = dict()
     for entity in entities[headType]:
@@ -247,7 +233,7 @@ for testCount in range(len(testTriplets)):
     del sortedDistance
 
     # Predict tail
-    tailPredictVector = [headVector[i] + relationVector[i] for i in range(dimension)]
+    tailPredictVector = [headVector[i] + weight * relationVector[i] for i in range(dimension)]
 
     distance = dict()
     for entity in entities[tailType]:
@@ -318,7 +304,6 @@ def overallOutput():
         output(f)
 
 
-if testString is None:
-    overallOutput()
+overallOutput()
 
 f.close()
