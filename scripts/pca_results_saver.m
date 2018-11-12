@@ -1,5 +1,5 @@
-path='../res/ACE17K/TransE_advanced/1/';
-% path='../res/ACE17K (deprecated)/DistMult/0/';
+% path='../res/ACE17K/TransE_advanced/1/';
+path='../res/ACE17K/WTransE_test/1/';
 
 types=[{'paper'},{'author'},{'field'},{'venue'},{'institute'}];
 mkdir(path,'pca');

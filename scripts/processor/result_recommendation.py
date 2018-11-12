@@ -130,7 +130,7 @@ def authorRecommendation():
 
         distance = dict()
         for entityId2 in vectors.keys():
-            if entityId == entityId2 or authorPaperCount.get(entityId2, 0) < 3:
+            if entityId == entityId2 or (limited and authorPaperCount.get(entityId2, 0) < 3):
                 continue
             distance[entityId2] = \
                 sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
@@ -181,7 +181,7 @@ def fieldRecommendation():
 
         distance = dict()
         for entityId2 in vectors.keys():
-            if entityId == entityId2 or fieldPaperCount.get(entityId2, 0) < 5:
+            if entityId == entityId2 or (limited and fieldPaperCount.get(entityId2, 0) < 5):
                 continue
             distance[entityId2] = \
                 sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
@@ -237,7 +237,7 @@ def instituteRecommendation():
 
         distance = dict()
         for entityId2 in vectors.keys():
-            if entityId == entityId2 or institutePaperCount.get(entityId2, 0) < 5:
+            if entityId == entityId2 or (limited and institutePaperCount.get(entityId2, 0) < 5):
                 continue
             distance[entityId2] = \
                 sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
@@ -259,6 +259,7 @@ parser.add_argument('--count', type=int, required=False)
 parser.add_argument('--target', type=str, required=False)
 parser.add_argument('--pca', type=bool, required=False)
 parser.add_argument('--norm', type=float, required=False)
+parser.add_argument('--unlimited', type=bool, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -269,6 +270,7 @@ recommendCount = parsedArgs.count if parsedArgs.count and parsedArgs.count > 10 
 target = parsedArgs.target
 pca = parsedArgs.pca if parsedArgs.pca else False
 norm = parsedArgs.norm if parsedArgs.norm else (2 if pca else 1)
+limited = not (parsedArgs.unlimited if parsedArgs.unlimited else False)
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -282,7 +284,9 @@ for type in types:
     recommendationDir = vectorReadDir + 'recommendation/'
 
     outputPath = recommendationDir + type + 'Recommendation' + \
-                 ('PCA' if pca else '') + '_norm=' + str(round(norm, 2)).rstrip('.0') + '.txt'
+                 '_norm=' + str(round(norm, 2)).rstrip('.0') + \
+                 ('_PCA' if pca else '') + \
+                 ('' if limited else '_unlimited') + '.txt'
     if not update:
         if os.path.exists(outputPath):
             continue
