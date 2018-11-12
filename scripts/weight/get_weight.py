@@ -1,6 +1,7 @@
 import os
 import argparse
 import pymysql
+import math
 import win_unicode_console
 
 win_unicode_console.enable()
@@ -90,7 +91,7 @@ def buildWeightString(relation, head, tail, weight):
     return '\t'.join([str(relation), head, tail, str(weight)]) + '\n'
 
 
-def guarantee(weight, low, high):
+def guarantee(weight, low=0.1, high=1):
     return weight * (high - low) + low
 
 
@@ -183,16 +184,45 @@ def downloadData():
 
         f.close()
 
+    def paperCitations():
+        filename = 'PaperCitations.data'
+        if not update:
+            if os.path.exists(getDataPath(filename)):
+                return
+
+        f = open(getDataPath(filename), 'w')
+
+        conn = connectSQL()
+        cursor = conn.cursor()
+        print('Downloading PaperCitations...')
+        print(len(entities[3]))
+        count = 0
+        for paper in entities[3].keys():
+            count += 1
+            if int(count * 100 / len(entities[3])) > int((count - 1) * 100 / len(entities[3])):
+                print(str(int(count * 100 / len(entities[3]))) + '%')
+
+            query = 'select PaperId, CitationCount from PaperCitationCount where PaperId="%(paper)s"' % {
+                'paper': paper[1:]}
+            cursor.execute(query)
+            results = cursor.fetchall()
+            for result in results:
+                f.write('\t'.join(map(lambda x: str(x), result)) + '\n')
+        disconnectSQL(conn)
+
+        f.close()
+
     paperAuthorAffiliations()
     paperYears()
     fieldOfStudyHierarchy()
+    paperCitations()
 
 
 def workIn():
     # relation = 0, head = author, tail = institute
     def calcWeight(triplet):
         return guarantee(detailedCount.get(triplet[0][1:], dict()).get(triplet[1][1:], 0) /
-                         float(totalCount.get(triplet[0][1:], 1)), 0.1, 1)
+                         float(totalCount.get(triplet[0][1:], 1)))
 
     filename = 'PaperAuthorAffiliations.data'
     data = loadData(filename)
@@ -214,7 +244,7 @@ def authorIsInField():
     # relation = 1, head = author, tail = field
     def calcWeight(triplet):
         return guarantee(detailedCount.get(triplet[0], dict()).get(triplet[1], 0) /
-                         float(totalCount.get(triplet[0], 1)), 0.1, 1)
+                         float(totalCount.get(triplet[0], 1)))
 
     totalCount = dict()  # Total number of papers published by an author
     detailedCount = dict()  # Number of papers published by an author in a field
@@ -239,7 +269,7 @@ def authorIsInField():
 def paperIsWrittenBy():
     # relaation = 2, head = paper, tail = author
     def calcWeight(seqNum):
-        return guarantee(1 / float(seqNum), 0.1, 1)
+        return guarantee(1 / float(seqNum))
 
     filename = 'PaperAuthorAffiliations.data'
     data = loadData(filename)
@@ -251,16 +281,24 @@ def paperIsWrittenBy():
 
 def paperIsInField():
     # relation = 3, head = paper, tail = field
+    def calcWeight(paper):
+        return guarantee(math.log(paperCitations.get(paper, 0) + 1))
+
+    filename = 'PaperCitations.data'
+    data = loadData(filename)
+    paperCitations = dict()
+    for line in data:
+        paperCitations['p' + line[0]] = int(line[1])
     f = open(weightPath, 'a')
     for triplet in triplets[3]:
-        f.write(buildWeightString(3, triplet[0], triplet[1], 1))
+        f.write(buildWeightString(3, triplet[0], triplet[1], calcWeight(triplet[0])))
     f.close()
 
 
 def paperPublishOn():
     # relation = 4, head = paper, tail = venue
     def calcWeight(paper):
-        return guarantee(max(1 - 0.05 * (lastYear - paperYears.get(paper, 0)), 0), 0.1, 1)
+        return guarantee(max(1 - 0.05 * (lastYear - paperYears.get(paper, 0)), 0))
 
     filename = 'PaperYears.data'
     data = loadData(filename)
@@ -279,8 +317,7 @@ def paperPublishOn():
 def paperCitPaper():
     # relation =5, head = paper, tail = paper
     def calcWeight(triplet):
-        return guarantee(max(1 - 0.05 * abs(paperYears.get(triplet[0], 1000) - paperYears.get(triplet[1], 0)), 0.1),
-                         0.1, 1)
+        return guarantee(max(1 - 0.05 * abs(paperYears.get(triplet[0], 1000) - paperYears.get(triplet[1], 0)), 0.1))
 
     filename = 'PaperYears.data'
     data = loadData(filename)

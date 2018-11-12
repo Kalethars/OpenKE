@@ -522,7 +522,7 @@ venueFieldsCount = dict()
 
 infoLoader()
 
-print('%s_%i%s' % (method, order, '_PCA' if pca else ''))
+print('%s_%i%s%s' % (method, order, '_PCA' if pca else '', '_unlimited' if unlimited else ''))
 print('-' * 50)
 
 types = ['paper', 'author', 'field', 'institute', 'venue']
