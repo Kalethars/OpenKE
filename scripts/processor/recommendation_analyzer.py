@@ -75,8 +75,25 @@ def infoLoader():
             year = int(splited[1])
             paperYears[paperId] = year
 
+    def loadPaperCitations():
+        global paperCitations
+
+        filePath = parentDir + '/data/%s/PaperCitations.data' % database
+        f = open(filePath, 'r')
+        s = f.read().split('\n')
+        f.close()
+
+        paperCitations = dict()
+        for line in s:
+            splited = line.split()
+            if len(splited) != 2:
+                continue
+            paperId = splited[0]
+            citationCount = int(splited[1])
+            paperCitations[paperId] = citationCount
+
     def loadTriplets():
-        global paperCites, paperFields, paperAuthors, paperVenues
+        global paperCitedPapers, paperFields, paperAuthors, paperVenues
         global authorPapers, authorFields, authorInstitutes, authorYears
         global fieldPapers, fieldAuthors
         global instituteAuthors
@@ -87,7 +104,7 @@ def infoLoader():
         s = f.read().split('\n')
         f.close()
 
-        paperCites = dict()
+        paperCitedPapers = dict()
         paperFields = dict()
         paperAuthors = dict()
         paperVenues = dict()
@@ -115,8 +132,8 @@ def infoLoader():
             tailType = splited[2][0]
             if headType == 'p':
                 if tailType == 'p':
-                    addToSet(paperCites, headId, tailId)
-                    addToSet(paperCites, tailId, headId)
+                    addToSet(paperCitedPapers, headId, tailId)
+                    addToSet(paperCitedPapers, tailId, headId)
                 if tailType == 'f':
                     addToSet(paperFields, headId, tailId)
                     addToSet(fieldPapers, tailId, headId)
@@ -180,6 +197,7 @@ def infoLoader():
                     updateMetric(venueFieldsCount[venueId], fieldId, 1)
 
     loadPaperYears()
+    loadPaperCitations()
     loadTriplets()
     loadPaperInstitutes()
     calcSecondaryCounts()
@@ -207,6 +225,7 @@ def paperRecommendationAnalyzer():
 
     avgYearDiff = dict()
     avgYearDiffAbs = dict()
+    avgCiteCount = dict()
     avgCoCite = dict()
     avgCoField = dict()
     avgCoAuthor = dict()
@@ -215,6 +234,7 @@ def paperRecommendationAnalyzer():
     for num in hitAt:
         avgYearDiff[num] = dict()
         avgYearDiffAbs[num] = dict()
+        avgCiteCount[num] = dict()
         avgCoCite[num] = dict()
         avgCoField[num] = dict()
         avgCoAuthor[num] = dict()
@@ -228,8 +248,9 @@ def paperRecommendationAnalyzer():
                 if i < num:
                     updateMetric(avgYearDiff[num], paperId, paperYears[recommendationId] - paperYears[paperId])
                     updateMetric(avgYearDiffAbs[num], paperId, abs(paperYears[recommendationId] - paperYears[paperId]))
-                    updateMetric(avgCoCite[num], paperId, coCount(paperCites, paperId, recommendationId))
-                    if recommendationId in paperCites.get(paperId, set()):
+                    updateMetric(avgCiteCount[num], paperId, paperCitations[recommendationId])
+                    updateMetric(avgCoCite[num], paperId, coCount(paperCitedPapers, paperId, recommendationId))
+                    if recommendationId in paperCitedPapers.get(paperId, set()):
                         updateMetric(avgCoCite[num], paperId, 1)
                     updateMetric(avgCoField[num], paperId, coCount(paperFields, paperId, recommendationId))
                     updateMetric(avgCoAuthor[num], paperId, coCount(paperAuthors, paperId, recommendationId))
@@ -239,6 +260,7 @@ def paperRecommendationAnalyzer():
         for num in hitAt:
             avgYearDiff[num][paperId] /= num
             avgYearDiffAbs[num][paperId] /= num
+            avgCiteCount[num][paperId] /= num
             avgCoCite[num][paperId] /= num
             avgCoField[num][paperId] /= num
             avgCoAuthor[num][paperId] /= num
@@ -252,6 +274,7 @@ def paperRecommendationAnalyzer():
     print()
     outputMetric('Average Year Diff', avgYearDiff)
     outputMetric('Average Year Diff Abs', avgYearDiffAbs)
+    outputMetric('Average Citations', avgCiteCount)
     outputMetric('Average Co-cites', avgCoCite)
     outputMetric('Average Co-fields', avgCoField)
     outputMetric('Average Co-authors', avgCoAuthor)
@@ -498,7 +521,8 @@ recommendationDir = parentDir + '/res/%s/%s/%i/recommendation/' % (database, met
 filenameSuffix = 'Recommendation_norm=%i%s%s.txt' % (norm, '_PCA' if pca else '', '_unlimited' if unlimited else '')
 
 paperYears = dict()
-paperCites = dict()
+paperCitations = dict()
+paperCitedPapers = dict()
 paperFields = dict()
 paperAuthors = dict()
 paperVenues = dict()
