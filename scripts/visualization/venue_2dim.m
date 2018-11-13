@@ -1,12 +1,9 @@
-% path='../../res/ACE17K/TransE_advanced/1/';
-path='../../res/ACE17K/WTransE_test/3/';
-% path='../../res/ACE17K/TransH_test/1/';
+path='../../res/ACE17K/WTransE2_test/1/';
 
 fid=fopen('../../data/ACE17K/info/venueInfo.data','r');
 index=textscan(fid,'%s\t%s\t%s\t%s\t%s');
 fclose(fid);
-embedding=load([path,'venueVector.data']);
-data=tsne(embedding,[],3,68,30);
+data=load([path,'venueVector.data']);
 scatter(data(:,1),data(:,2),'Marker','.');
 
 colorArray=[22.8,46.55,74.96,102.52,159.79,184.8,210.93,282.47,315.13,338];

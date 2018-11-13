@@ -81,8 +81,6 @@ infoReadDir = parentDir + '/data/' + database + '/info/'
 vectorReadDir = parentDir + '/res/' + '/'.join([database, method, str(order)]) + '/'
 
 entityVectors = dict()
-latent = dict()
-coeff = []
 for type in types:
     infoReadPath = infoReadDir + type + 'Info.data'
     f = open(infoReadPath, 'r')
