@@ -1,5 +1,6 @@
 import argparse
 import os
+import math
 import win_unicode_console
 
 win_unicode_console.enable()
@@ -225,7 +226,7 @@ def paperRecommendationAnalyzer():
 
     avgYearDiff = dict()
     avgYearDiffAbs = dict()
-    avgCiteCount = dict()
+    avgCiteDiff = dict()
     avgCoCite = dict()
     avgCoField = dict()
     avgCoAuthor = dict()
@@ -234,7 +235,7 @@ def paperRecommendationAnalyzer():
     for num in hitAt:
         avgYearDiff[num] = dict()
         avgYearDiffAbs[num] = dict()
-        avgCiteCount[num] = dict()
+        avgCiteDiff[num] = dict()
         avgCoCite[num] = dict()
         avgCoField[num] = dict()
         avgCoAuthor[num] = dict()
@@ -248,7 +249,7 @@ def paperRecommendationAnalyzer():
                 if i < num:
                     updateMetric(avgYearDiff[num], paperId, paperYears[recommendationId] - paperYears[paperId])
                     updateMetric(avgYearDiffAbs[num], paperId, abs(paperYears[recommendationId] - paperYears[paperId]))
-                    updateMetric(avgCiteCount[num], paperId, paperCitations[recommendationId])
+                    updateMetric(avgCiteDiff[num], paperId, paperCitations[recommendationId] - paperCitations[paperId])
                     updateMetric(avgCoCite[num], paperId, coCount(paperCitedPapers, paperId, recommendationId))
                     if recommendationId in paperCitedPapers.get(paperId, set()):
                         updateMetric(avgCoCite[num], paperId, 1)
@@ -260,7 +261,7 @@ def paperRecommendationAnalyzer():
         for num in hitAt:
             avgYearDiff[num][paperId] /= num
             avgYearDiffAbs[num][paperId] /= num
-            avgCiteCount[num][paperId] /= num
+            avgCiteDiff[num][paperId] /= num
             avgCoCite[num][paperId] /= num
             avgCoField[num][paperId] /= num
             avgCoAuthor[num][paperId] /= num
@@ -274,7 +275,7 @@ def paperRecommendationAnalyzer():
     print()
     outputMetric('Average Year Diff', avgYearDiff)
     outputMetric('Average Year Diff Abs', avgYearDiffAbs)
-    outputMetric('Average Citations', avgCiteCount)
+    outputMetric('Average Citation Diff', avgCiteDiff)
     outputMetric('Average Co-cites', avgCoCite)
     outputMetric('Average Co-fields', avgCoField)
     outputMetric('Average Co-authors', avgCoAuthor)

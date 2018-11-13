@@ -139,7 +139,9 @@ venv.bak/
 # Customized
 reference/
 .idea/
+log/
 res/
 database.config
 playground/
 *.asv
+*.bat

@@ -44,8 +44,10 @@ class Model(object):
 
     def get_all_weights(self, in_batch=True):
         if in_batch:
+            # shape = (batch_size, 1, 1)
             return tf.expand_dims(tf.transpose(tf.reshape(self.batch_w[0:self.config.batch_size], [1, -1]), [1, 0]), -1)
         else:
+            # shape = (batch_size, 1)
             return tf.transpose(tf.reshape(self.batch_w[0:self.config.batch_size], [1, -1]), [1, 0])
 
     def get_predict_instance(self):
