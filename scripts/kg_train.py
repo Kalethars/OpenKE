@@ -266,10 +266,10 @@ def HolE():
     end()
 
 
-def WTransE():
+def WTransE(norm2=False):
     global logPath, order, configLine
 
-    name = 'WTransE'
+    name = 'WTransE' + '2' if norm2 else ''
     initVariables()
 
     begin(name + '_' + str(order))
@@ -289,7 +289,10 @@ def WTransE():
     params.set_out_files(outPath)
 
     params.init()
-    params.set_model(models.WTransE)
+    if not norm2:
+        params.set_model(models.WTransE)
+    else:
+        params.set_model(models.WTransE2)
     params.run()
     params.test(logPath)
 
@@ -360,6 +363,8 @@ elif method == 'hole':
     HolE()
 elif method == 'wtranse':
     WTransE()
+elif method == 'wtranse2':
+    WTransE(True)
 elif method == 'wtransh':
     WTransH()
 else:
