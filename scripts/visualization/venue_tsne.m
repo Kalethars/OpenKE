@@ -1,5 +1,5 @@
 % path='../../res/ACE17K/TransE_advanced/1/';
-path='../../res/ACE17K/WTransE_test/2/';
+path='../../res/ACE17K/WTransE_test/3/';
 
 fid=fopen('../../data/ACE17K/info/venueInfo.data','r');
 index=textscan(fid,'%s\t%s\t%s\t%s\t%s');

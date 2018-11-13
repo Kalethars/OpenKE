@@ -265,6 +265,7 @@ def HolE():
 
     end()
 
+
 def WTransE():
     global logPath, order, configLine
 
@@ -289,6 +290,36 @@ def WTransE():
 
     params.init()
     params.set_model(models.WTransE)
+    params.run()
+    params.test(logPath)
+
+    end()
+
+
+def WTransH():
+    global logPath, order, configLine
+
+    name = 'WTransH'
+    initVariables()
+
+    begin(name + '_' + order)
+
+    paramMap = parseParams(configLine)
+
+    params = initParams(paramMap)
+    params.set_in_path(databasePath)
+    params.set_work_threads(threads)
+    params.set_opt_method("SGD")
+
+    mkdir(['res', database, configName, order])
+    exportPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/embedding.vec.json'
+
+    params.set_export_files(exportPath)
+    params.set_out_files(outPath)
+
+    params.init()
+    params.set_model(models.WTransH)
     params.run()
     params.test(logPath)
 
@@ -329,5 +360,7 @@ elif method == 'hole':
     HolE()
 elif method == 'wtranse':
     WTransE()
+elif method == 'wtransh':
+    WTransH()
 else:
     raise ValueError('Invalid method!')
