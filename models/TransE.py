@@ -32,7 +32,7 @@ class TransE(Model):
         # The shapes of neg_h, neg_t, neg_r are (batch_size, negative_ent + negative_rel)
         pos_h, pos_t, pos_r = self.get_positive_instance(in_batch=True)
         neg_h, neg_t, neg_r = self.get_negative_instance(in_batch=True)
-        w = self.get_all_weights()
+        w = self.get_all_weights(in_batch=True)
         # Embedding entities and relations of triples, e.g. p_h, p_t and p_r are embeddings for positive triples
         p_h = tf.nn.embedding_lookup(self.ent_embeddings, pos_h)
         p_t = tf.nn.embedding_lookup(self.ent_embeddings, pos_t)

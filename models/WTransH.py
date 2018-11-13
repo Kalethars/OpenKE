@@ -37,7 +37,7 @@ class WTransH(Model):
         # The shapes of neg_h, neg_t, neg_r are ((negative_ent + negative_rel) × batch_size)
         pos_h, pos_t, pos_r = self.get_positive_instance(in_batch=False)
         neg_h, neg_t, neg_r = self.get_negative_instance(in_batch=False)
-        w = tf.reciprocal(self.get_all_weights())
+        w = tf.reciprocal(self.get_all_weights(in_batch=False))
         # Embedding entities and relations of triples, e.g. pos_h_e, pos_t_e and pos_r_e are embeddings for positive triples
         pos_h_e = tf.nn.embedding_lookup(self.ent_embeddings, pos_h)
         pos_t_e = tf.nn.embedding_lookup(self.ent_embeddings, pos_t)

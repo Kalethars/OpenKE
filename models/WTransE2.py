@@ -10,7 +10,7 @@ class WTransE2(Model):
     '''
 
     def _calc(self, h, t, r, w):
-        return tf.norm(h + r * w - t, 2, axis=1)
+        return abs(h + r * w - t)
 
     def embedding_def(self):
         # Obtaining the initial configuration of the model
@@ -31,7 +31,7 @@ class WTransE2(Model):
         # The shapes of neg_h, neg_t, neg_r are (batch_size, negative_ent + negative_rel)
         pos_h, pos_t, pos_r = self.get_positive_instance(in_batch=True)
         neg_h, neg_t, neg_r = self.get_negative_instance(in_batch=True)
-        w = tf.reciprocal(self.get_all_weights())
+        w = tf.reciprocal(self.get_all_weights(in_batch=True))
         # Embedding entities and relations of triples, e.g. p_h, p_t and p_r are embeddings for positive triples
         p_h = tf.nn.embedding_lookup(self.ent_embeddings, pos_h)
         p_t = tf.nn.embedding_lookup(self.ent_embeddings, pos_t)
@@ -46,8 +46,8 @@ class WTransE2(Model):
         _n_score = self._calc(n_h, n_t, n_r, w)
         # The shape of p_score is (batch_size, 1)
         # The shape of n_score is (batch_size, 1)
-        p_score = tf.reduce_sum(tf.reduce_mean(_p_score, 1, keep_dims=False), 1, keep_dims=True)
-        n_score = tf.reduce_sum(tf.reduce_mean(_n_score, 1, keep_dims=False), 1, keep_dims=True)
+        p_score = tf.norm(tf.reduce_mean(_p_score, 1, keep_dims=False), 2, axis=1, keep_dims=True)
+        n_score = tf.norm(tf.reduce_mean(_n_score, 1, keep_dims=False), 2, axis=1, keep_dims=True)
         # Calculating loss to get what the framework will optimize
         self.loss = tf.reduce_sum(tf.maximum((p_score - n_score) + config.margin, 0))
 
@@ -57,4 +57,4 @@ class WTransE2(Model):
         predict_h_e = tf.nn.embedding_lookup(self.ent_embeddings, predict_h)
         predict_t_e = tf.nn.embedding_lookup(self.ent_embeddings, predict_t)
         predict_r_e = tf.nn.embedding_lookup(self.rel_embeddings, predict_r)
-        self.predict = tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e, predict_w), 1, keep_dims=False)
+        self.predict = tf.norm(self._calc(predict_h_e, predict_t_e, predict_r_e, predict_w), 2, axis=1)
