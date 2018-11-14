@@ -201,7 +201,7 @@ for testCount in range(len(testTriplets)):
     output(f, entityInfo(tail), end='\t')
 
     # Predict head
-    headPredictVector = [tailVector[i] - weight * relationVector[i] for i in range(dimension)]
+    headPredictVector = [tailVector[i] - 1 / weight * relationVector[i] for i in range(dimension)]
 
     distance = dict()
     for entity in entities[headType]:
@@ -231,7 +231,7 @@ for testCount in range(len(testTriplets)):
     del sortedDistance
 
     # Predict tail
-    tailPredictVector = [headVector[i] + weight * relationVector[i] for i in range(dimension)]
+    tailPredictVector = [headVector[i] + 1 / weight * relationVector[i] for i in range(dimension)]
 
     distance = dict()
     for entity in entities[tailType]:
@@ -254,7 +254,9 @@ for testCount in range(len(testTriplets)):
             if not triplets(head, entity, relation) in tripletsFinder:
                 rank += 1
     updateStatistics(rank, relation, 'tail')
-    output(f, 'Tail rank: ' + str(rank), end='\n')
+    output(f, 'Tail rank: ' + str(rank), end='\t')
+
+    output(f, 'Distance: ' + str(distance[tail]), end='\n')
 
     del tailPredictVector
     del distance
