@@ -69,9 +69,14 @@ class TransH(Model):
         # Calculating score functions for all positive triples and negative triples
         # The shape of _p_score is (1, batch_size, hidden_size)
         # The shape of _n_score is (negative_ent + negative_rel, batch_size, hidden_size)
-        _p_score = self._calc(p_h, p_t, p_r)
+        if config.train_weighted:
+            w = self.get_all_weights(in_batch=False)
+            _p_score = self._calc(p_h, p_t, p_r) * w
+            _n_score = self._calc(n_h, n_t, n_r) * w
+        else:
+            _p_score = self._calc(p_h, p_t, p_r)
+            _n_score = self._calc(n_h, n_t, n_r)
         _p_score = tf.reshape(_p_score, [1, -1, config.rel_size])
-        _n_score = self._calc(n_h, n_t, n_r)
         _n_score = tf.reshape(_n_score, [config.negative_ent + config.negative_rel, -1, config.rel_size])
         # The shape of p_score is (batch_size, 1)
         # The shape of n_score is (batch_size, 1)

@@ -45,7 +45,7 @@ def coCount(data, a, b):
 
 
 def coCount2(dataA, dataB, a, b):
-    return len(dataA.get(a, set()) & dataB.get(b, set()))
+    return len((dataA.get(a, set()) & dataB.get(b, set())) | (dataB.get(a, set()) & dataA.get(b, set())))
 
 
 def getLength(data, a):
@@ -282,7 +282,7 @@ def paperRecommendationAnalyzer():
                              1 if recommendationId in paperCitedPapers.get(paperId, set()) else 0),
                 ('Co-fields', coCount(paperFields, paperId, recommendationId)),
                 ('Co-authors', coCount(paperAuthors, paperId, recommendationId)),
-                ('Co-venue', coCount(paperVenues, paperId, recommendationId)),
+                ('Co-venues', coCount(paperVenues, paperId, recommendationId)),
                 ('Co-institutes', coCount(paperInstitutes, paperId, recommendationId))
             ]
         return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
@@ -398,7 +398,7 @@ def authorRecommendationAnalyzer():
                 ('Co-papers', coCount(authorPapers, authorId, recommendationId)),
                 ('Co-fields', coCount(authorFields, authorId, recommendationId)),
                 ('Co-institutes', coCount(authorInstitutes, authorId, recommendationId)),
-                ('Co-venue', coCount(authorVenues, authorId, recommendationId)),
+                ('Co-venues', coCount(authorVenues, authorId, recommendationId)),
                 ('Co-cites', coCount2(authorCitedPapers, authorPapers, authorId, recommendationId))
             ]
         return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
