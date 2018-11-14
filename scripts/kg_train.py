@@ -269,7 +269,7 @@ def HolE():
 def WTransE(norm2=False):
     global logPath, order, configLine
 
-    name = 'WTransE' + '2' if norm2 else ''
+    name = 'WTransE' + ('2' if norm2 else '')
     initVariables()
 
     begin(name + '_' + str(order))
