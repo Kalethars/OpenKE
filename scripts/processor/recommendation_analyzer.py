@@ -218,7 +218,7 @@ def paperRecommendationAnalyzer():
             paperRecommendation[paperId] = []
             for j in range(count):
                 splited = s[i + j + 1].split()
-                if len(splited) <= 2:
+                if len(splited) < 2:
                     continue
                 recommendationId = splited[0]
                 paperRecommendation[paperId].append(recommendationId)
@@ -298,7 +298,7 @@ def authorRecommendationAnalyzer():
             authorRecommendation[authorId] = []
             for j in range(count):
                 splited = s[i + j + 1].split()
-                if len(splited) <= 2:
+                if len(splited) < 2:
                     continue
                 recommendationId = splited[0]
                 authorRecommendation[authorId].append(recommendationId)
@@ -367,7 +367,7 @@ def fieldRecommendationAnalyzer():
             fieldRecommendation[fieldId] = []
             for j in range(count):
                 splited = s[i + j + 1].split()
-                if len(splited) <= 2:
+                if len(splited) < 2:
                     continue
                 recommendationId = splited[0]
                 fieldRecommendation[fieldId].append(recommendationId)
@@ -415,7 +415,7 @@ def instituteRecommendationAnalyzer():
             instituteRecommendation[instituteId] = []
             for j in range(count):
                 splited = s[i + j + 1].split()
-                if len(splited) <= 2:
+                if len(splited) < 2:
                     continue
                 recommendationId = splited[0]
                 instituteRecommendation[instituteId].append(recommendationId)
@@ -464,7 +464,7 @@ def venueRecommendationAnalyzer():
             venueRecommendation[venueId] = []
             for j in range(count):
                 splited = s[i + j + 1].split()
-                if len(splited) <= 2:
+                if len(splited) < 4:
                     continue
                 recommendationId = splited[0]
                 venueRecommendation[venueId].append(recommendationId)

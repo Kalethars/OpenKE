@@ -78,7 +78,11 @@ for type in types:
         splited = line.split()
         if len(splited) <= 1:
             continue
-        f.write('\t'.join(list(map(lambda x: str(x), data['ent_embeddings'][entities[splited[0]]]))) + '\n')
+        vector = data['ent_embeddings'][entities[splited[0]]]
+        if 'TransH' in method:
+            l2norm = sum([vector[i] ** 2 for i in range(len(vector))]) ** 0.5
+            vector = [vector[i] / l2norm for i in range(len(vector))]
+        f.write('\t'.join(list(map(lambda x: str(x), vector))) + '\n')
     f.close()
 
 if 'normal_vectors' in data.keys():

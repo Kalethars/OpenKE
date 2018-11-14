@@ -24,7 +24,7 @@ REAL *meanRank, *meanRankReciprocal, *hitAt10, *hitAt3, *hitAt1;
 INT *relationCount;
 
 extern "C"
-void importTrainFiles(bool weighted) {
+void importTrainFiles() {
 	printf("The toolkit is importing datasets.\n");
 	FILE *fin;
 	int tmp;
@@ -39,11 +39,7 @@ void importTrainFiles(bool weighted) {
 	printf("The total of entities is %ld.\n", entityTotal);
 	fclose(fin);
 
-    if (weighted) {
-        fin = fopen((inPath + "train2id_weighted.txt").c_str(), "r");
-    } else {
-	    fin = fopen((inPath + "train2id.txt").c_str(), "r");
-	}
+    fin = fopen((inPath + "train2id_weighted.txt").c_str(), "r");
 	tmp = fscanf(fin, "%ld", &trainTotal);
 	trainList = (Triple *)calloc(trainTotal, sizeof(Triple));
 	trainHead = (Triple *)calloc(trainTotal, sizeof(Triple));
@@ -55,11 +51,7 @@ void importTrainFiles(bool weighted) {
 		tmp = fscanf(fin, "%ld", &trainList[i].h);
 		tmp = fscanf(fin, "%ld", &trainList[i].t);
 		tmp = fscanf(fin, "%ld", &trainList[i].r);
-		if (weighted) {
-		    tmp = fscanf(fin, "%f", &trainList[i].w);
-		} else {
-		    trainList[i].w = 1.0;
-		}
+		tmp = fscanf(fin, "%f", &trainList[i].w);
 	}
 	fclose(fin);
 	std::sort(trainList, trainList + trainTotal, Triple::cmp_head);
@@ -137,7 +129,7 @@ Triple *validList;
 Triple *tripleList;
 
 extern "C"
-void importTestFiles(bool weighted) {
+void importTestFiles() {
     FILE *fin, *f_kb1, *f_kb2, *f_kb3;
     INT tmp;
     
@@ -149,15 +141,9 @@ void importTestFiles(bool weighted) {
     tmp = fscanf(fin, "%ld", &entityTotal);
     fclose(fin);
 
-    if (weighted) {
-        f_kb1 = fopen((inPath + "test2id_weighted.txt").c_str(), "r");
-        f_kb2 = fopen((inPath + "train2id_weighted.txt").c_str(), "r");
-        f_kb3 = fopen((inPath + "valid2id_weighted.txt").c_str(), "r");
-    } else {
-        f_kb1 = fopen((inPath + "test2id.txt").c_str(), "r");
-        f_kb2 = fopen((inPath + "train2id.txt").c_str(), "r");
-        f_kb3 = fopen((inPath + "valid2id.txt").c_str(), "r");
-    }
+    f_kb1 = fopen((inPath + "test2id_weighted.txt").c_str(), "r");
+    f_kb2 = fopen((inPath + "train2id_weighted.txt").c_str(), "r");
+    f_kb3 = fopen((inPath + "valid2id_weighted.txt").c_str(), "r");
     tmp = fscanf(f_kb1, "%ld", &testTotal);
     tmp = fscanf(f_kb2, "%ld", &trainTotal);
     tmp = fscanf(f_kb3, "%ld", &validTotal);
@@ -169,32 +155,20 @@ void importTestFiles(bool weighted) {
         tmp = fscanf(f_kb1, "%ld", &tripleList[i].h);
         tmp = fscanf(f_kb1, "%ld", &tripleList[i].t);
         tmp = fscanf(f_kb1, "%ld", &tripleList[i].r);
-        if (weighted) {
-            tmp = fscanf(f_kb1, "%f", &tripleList[i].w);
-        } else {
-            tripleList[i].w = 1.0;
-        }
+        tmp = fscanf(f_kb1, "%f", &tripleList[i].w);
         testList[i] = tripleList[i];
     }
     for (INT i = 0; i < trainTotal; i++) {
         tmp = fscanf(f_kb2, "%ld", &tripleList[i + testTotal].h);
         tmp = fscanf(f_kb2, "%ld", &tripleList[i + testTotal].t);
         tmp = fscanf(f_kb2, "%ld", &tripleList[i + testTotal].r);
-        if (weighted) {
-            tmp = fscanf(f_kb2, "%f", &tripleList[i + testTotal].w);
-        } else {
-            tripleList[i + testTotal].w = 1.0;
-        }
+        tmp = fscanf(f_kb2, "%f", &tripleList[i + testTotal].w);
     }
     for (INT i = 0; i < validTotal; i++) {
         tmp = fscanf(f_kb3, "%ld", &tripleList[i + testTotal + trainTotal].h);
         tmp = fscanf(f_kb3, "%ld", &tripleList[i + testTotal + trainTotal].t);
         tmp = fscanf(f_kb3, "%ld", &tripleList[i + testTotal + trainTotal].r);
-        if (weighted) {
-            tmp = fscanf(f_kb3, "%f", &tripleList[i + testTotal + trainTotal].w);
-        } else {
-            tripleList[i + testTotal + trainTotal].w = 1.0;
-        }
+        tmp = fscanf(f_kb3, "%f", &tripleList[i + testTotal + trainTotal].w);
         validList[i] = tripleList[i + testTotal + trainTotal];
     }
     fclose(f_kb1);

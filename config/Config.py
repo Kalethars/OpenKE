@@ -59,7 +59,7 @@ class Config(object):
             self.lib.setBern(self.bern)
             self.lib.setWorkThreads(self.workThreads)
             self.lib.randReset()
-            self.lib.importTrainFiles(self.train_weighted)
+            self.lib.importTrainFiles()
             self.lib.importTypeFiles()
 
             self.relTotal = self.lib.getRelationTotal()
@@ -80,7 +80,7 @@ class Config(object):
             self.batch_y_addr = self.batch_y.__array_interface__['data'][0]
             self.batch_w_addr = self.batch_w.__array_interface__['data'][0]
         if self.test_link_prediction:
-            self.lib.importTestFiles(self.test_weighted)
+            self.lib.importTestFiles()
 
             self.test_h = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
             self.test_t = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
@@ -91,7 +91,7 @@ class Config(object):
             self.test_r_addr = self.test_r.__array_interface__['data'][0]
             self.test_w_addr = self.test_w.__array_interface__['data'][0]
         if self.test_triple_classification:
-            self.lib.importTestFiles(self.test_weighted)
+            self.lib.importTestFiles()
 
             self.test_pos_h = np.zeros(self.lib.getTestTotal(), dtype=np.int64)
             self.test_pos_t = np.zeros(self.lib.getTestTotal(), dtype=np.int64)
