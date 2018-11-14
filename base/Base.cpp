@@ -43,7 +43,7 @@ extern "C"
 void randReset();
 
 extern "C"
-void importTrainFiles(bool weighted);
+void importTrainFiles();
 
 struct Parameter {
 	INT id;
