@@ -42,13 +42,23 @@ class Model(object):
         else:
             return self.batch_y
 
-    def get_all_weights(self, in_batch=True):
+    def get_weights(self, in_batch=True):
         if in_batch:
             # shape = (batch_size, 1, 1)
             return tf.expand_dims(tf.transpose(tf.reshape(self.batch_w[0:self.config.batch_size], [1, -1]), [1, 0]), -1)
         else:
             # shape = (batch_size, 1)
             return tf.transpose(tf.reshape(self.batch_w[0:self.config.batch_size], [1, -1]), [1, 0])
+
+    def get_all_weights(self, in_batch=True):
+        if in_batch:
+            # shape = (batch_size, 1 + self.config.negative_ent + self.config.negative_rel, 1)
+            return tf.expand_dims(tf.transpose(tf.reshape(
+                self.batch_w, [1 + self.config.negative_ent + self.config.negative_rel, -1]), [1, 0]), -1)
+        else:
+            # shape = (batch_size, 1 + self.config.negative_ent + self.config.negative_rel)
+            return tf.transpose(tf.reshape(
+                self.batch_w, [1 + self.config.negative_ent + self.config.negative_rel, -1]), [1, 0])
 
     def get_predict_instance(self):
         return [self.predict_h, self.predict_t, self.predict_r]

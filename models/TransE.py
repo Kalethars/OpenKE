@@ -43,8 +43,8 @@ class TransE(Model):
         # The shape of _p_score is (batch_size, 1, hidden_size)
         # The shape of _n_score is (batch_size, negative_ent + negative_rel, hidden_size)
         if config.train_weighted:
-            w = self.get_all_weights(in_batch=True)
-            _p_score = self._calc(p_h, p_t, p_r) * tf.reciprocal(w)
+            w = self.get_weights(in_batch=True)
+            _p_score = self._calc(p_h, p_t, p_r) * w
             _n_score = self._calc(n_h, n_t, n_r) * w
         else:
             _p_score = self._calc(p_h, p_t, p_r)
