@@ -115,8 +115,8 @@ def infoLoader():
 
     def loadTriplets():
         global paperCitedPapers, paperFields, paperAuthors, paperVenues
-        global authorPapers, authorFields, authorInstitutes, authorYears
-        global fieldPapers, fieldAuthors
+        global authorPapers, authorInstitutes, authorYears
+        global fieldPapers, fieldAuthors, fieldHierarchical
         global instituteAuthors
         global venuePapers
 
@@ -131,13 +131,13 @@ def infoLoader():
         paperVenues = dict()
 
         authorPapers = dict()
-        authorFields = dict()
         authorInstitutes = dict()
         authorYears = dict()
         authorYears['count'] = dict()
 
         fieldPapers = dict()
         fieldAuthors = dict()
+        fieldHierarchical = dict()
 
         instituteAuthors = dict()
 
@@ -168,11 +168,14 @@ def infoLoader():
                     addToSet(venuePapers, tailId, headId)
             elif headType == 'a':
                 if tailType == 'f':
-                    addToSet(authorFields, headId, tailId)
                     addToSet(fieldAuthors, tailId, headId)
                 if tailType == 'i':
                     addToSet(authorInstitutes, headId, tailId)
                     addToSet(instituteAuthors, tailId, headId)
+            elif headType == 'f':
+                if tailType == 'f':
+                    addToSet(fieldHierarchical, headId, tailId)
+                    addToSet(fieldHierarchical, tailId, headId)
 
         for authorId in authorYears.keys():
             if authorId != 'count':
@@ -200,22 +203,25 @@ def infoLoader():
             addToSet(institutePapers, instituteId, paperId)
 
     def calcSecondaryCounts():
-        global authorVenues, venueAuthors
-        global instituteFieldsCount, venueFieldsCount
+        global authorVenues, venueAuthors, fieldAuthors
+        global authorFieldsCount, instituteFieldsCount, venueFieldsCount
         global authorCitedPapers, fieldCitedPapers, instituteCitedPapers, venueCitedPapers
 
         authorVenues = dict()
         venueAuthors = dict()
+        # fieldAuthors = dict()
+        authorFieldsCount = dict()
+        authorCitedPapers = dict()
         for authorId in authorPapers.keys():
+            authorFieldsCount[authorId] = dict()
             for paperId in authorPapers[authorId]:
+                addToSet(authorCitedPapers, authorId, paperCitedPapers.get(paperId, set()))
                 for venueId in paperVenues.get(paperId, set()):
                     addToSet(authorVenues, authorId, venueId)
                     addToSet(venueAuthors, venueId, authorId)
-
-        authorCitedPapers = dict()
-        for authorId in authorPapers.keys():
-            for paperId in authorPapers[authorId]:
-                addToSet(authorCitedPapers, authorId, paperCitedPapers.get(paperId, set()))
+                for fieldId in paperFields.get(paperId, set()):
+                    addToSet(fieldAuthors, fieldId, authorId)
+                    updateMetric(authorFieldsCount[authorId], fieldId, 1)
 
         fieldCitedPapers = dict()
         for fieldId in fieldPapers.keys():
@@ -387,18 +393,18 @@ def authorRecommendationAnalyzer():
             properties = [
                 ('Year', formattedRound(authorYears[authorId], 2)),
                 ('Papers', getLength(authorPapers, authorId)),
-                ('Fields', getLength(authorFields, authorId)),
                 ('Institutes', getLength(authorInstitutes, authorId)),
                 ('Venues', getLength(authorVenues, authorId)),
+                ('Fields', getLength(authorFieldsCount, authorId)),
                 ('Cite & Cited by', getLength(authorCitedPapers, authorId))
             ]
         else:
             properties = [
                 ('Year', formattedRound(authorYears[recommendationId], 2)),
                 ('Co-papers', coCount(authorPapers, authorId, recommendationId)),
-                ('Co-fields', coCount(authorFields, authorId, recommendationId)),
                 ('Co-institutes', coCount(authorInstitutes, authorId, recommendationId)),
                 ('Co-venues', coCount(authorVenues, authorId, recommendationId)),
+                ('Co-fields-count', minSum(authorFieldsCount, authorId, recommendationId)),
                 ('Co-cites', coCount2(authorCitedPapers, authorPapers, authorId, recommendationId))
             ]
         return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
@@ -440,17 +446,17 @@ def authorRecommendationAnalyzer():
     avgYearDiff = dict()
     avgYearDiffAbs = dict()
     avgCoPaper = dict()
-    avgCoField = dict()
     avgCoInstitute = dict()
     avgCoVenue = dict()
+    avgCoFieldCount = dict()
     avgCoCite = dict()
     for num in hitAt:
         avgYearDiff[num] = dict()
         avgYearDiffAbs[num] = dict()
         avgCoPaper[num] = dict()
-        avgCoField[num] = dict()
         avgCoInstitute[num] = dict()
         avgCoVenue[num] = dict()
+        avgCoFieldCount[num] = dict()
         avgCoCite[num] = dict()
     for authorId in authorIdSorted:
         recommendationList = authorRecommendation[authorId]
@@ -462,8 +468,8 @@ def authorRecommendationAnalyzer():
                     updateMetric(avgYearDiffAbs[num], authorId,
                                  abs(authorYears[recommendationId] - authorYears[authorId]))
                     updateMetric(avgCoPaper[num], authorId, coCount(authorPapers, authorId, recommendationId))
-                    updateMetric(avgCoField[num], authorId, coCount(authorFields, authorId, recommendationId))
                     updateMetric(avgCoInstitute[num], authorId, coCount(authorInstitutes, authorId, recommendationId))
+                    updateMetric(avgCoFieldCount[num], authorId, minSum(authorFieldsCount, authorId, recommendationId))
                     updateMetric(avgCoVenue[num], authorId, coCount(authorVenues, authorId, recommendationId))
                     updateMetric(avgCoCite[num], authorId,
                                  coCount2(authorCitedPapers, authorPapers, authorId, recommendationId))
@@ -472,9 +478,9 @@ def authorRecommendationAnalyzer():
             avgYearDiff[num][authorId] /= num
             avgYearDiffAbs[num][authorId] /= num
             avgCoPaper[num][authorId] /= num
-            avgCoField[num][authorId] /= num
             avgCoInstitute[num][authorId] /= num
             avgCoVenue[num][authorId] /= num
+            avgCoFieldCount[num][authorId] /= num
             avgCoCite[num][authorId] /= num
 
     output(logFile, ' ' * 25, end='')
@@ -485,9 +491,9 @@ def authorRecommendationAnalyzer():
     outputMetric('Average Year Diff', avgYearDiff)
     outputMetric('Average Year Diff Abs', avgYearDiffAbs)
     outputMetric('Average Co-papers', avgCoPaper)
-    outputMetric('Average Co-fields', avgCoField)
     outputMetric('Average Co-institutes', avgCoInstitute)
     outputMetric('Average Co-venues', avgCoVenue)
+    outputMetric('Average Co-fields-count', avgCoFieldCount)
     outputMetric('Average Co-cites', avgCoCite)
     output(logFile)
 
@@ -498,12 +504,15 @@ def fieldRecommendationAnalyzer():
             properties = [
                 ('Papers', getLength(fieldPapers, fieldId)),
                 ('Authors', getLength(fieldAuthors, fieldId)),
+                ('Hierarchical Fields', getLength(fieldHierarchical, fieldId)),
                 ('Cite & Cited by', getLength(fieldCitedPapers, fieldId))
             ]
         else:
             properties = [
                 ('Co-papers', coCount(fieldPapers, fieldId, recommendationId)),
-                ('Co-fields', coCount(fieldAuthors, fieldId, recommendationId)),
+                ('Co-authors', coCount(fieldAuthors, fieldId, recommendationId)),
+                ('Related Fields', coCount(fieldHierarchical, fieldId, recommendationId) +
+                                   1 if recommendationId in fieldHierarchical.get(fieldId, set()) else 0),
                 ('Co-cites', coCount2(fieldCitedPapers, fieldPapers, fieldId, recommendationId))
             ]
         return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
@@ -544,10 +553,12 @@ def fieldRecommendationAnalyzer():
 
     avgCoPaper = dict()
     avgCoAuthor = dict()
+    avgCoField = dict()
     avgCoCite = dict()
     for num in hitAt:
         avgCoPaper[num] = dict()
         avgCoAuthor[num] = dict()
+        avgCoField[num] = dict()
         avgCoCite[num] = dict()
     for fieldId in fieldIdSorted:
         recommendationList = fieldRecommendation[fieldId]
@@ -557,12 +568,16 @@ def fieldRecommendationAnalyzer():
                 if i < num:
                     updateMetric(avgCoPaper[num], fieldId, coCount(fieldPapers, fieldId, recommendationId))
                     updateMetric(avgCoAuthor[num], fieldId, coCount(fieldAuthors, fieldId, recommendationId))
+                    updateMetric(avgCoField[num], fieldId, coCount(fieldHierarchical, fieldId, recommendationId))
+                    if recommendationId in fieldHierarchical.get(fieldId, set()):
+                        updateMetric(avgCoField[num], fieldId, 1)
                     updateMetric(avgCoCite[num], fieldId,
                                  coCount2(fieldCitedPapers, fieldPapers, fieldId, recommendationId))
 
         for num in hitAt:
             avgCoPaper[num][fieldId] /= num
             avgCoAuthor[num][fieldId] /= num
+            avgCoField[num][fieldId] /= num
             avgCoCite[num][fieldId] /= num
 
     output(logFile, ' ' * 25, end='')
@@ -572,6 +587,7 @@ def fieldRecommendationAnalyzer():
     output(logFile)
     outputMetric('Average Co-papers', avgCoPaper)
     outputMetric('Average Co-authors', avgCoAuthor)
+    outputMetric('Average Co-fields', avgCoField)
     outputMetric('Average Co-cites', avgCoCite)
     output(logFile)
 
@@ -589,7 +605,7 @@ def instituteRecommendationAnalyzer():
             properties = [
                 ('Co-authors', coCount(instituteAuthors, instituteId, recommendationId)),
                 ('Co-papers', coCount(institutePapers, instituteId, recommendationId)),
-                ('Co-field-counts', minSum(instituteFieldsCount, instituteId, recommendationId)),
+                ('Co-fields-count', minSum(instituteFieldsCount, instituteId, recommendationId)),
                 ('Co-cites', coCount2(instituteCitedPapers, institutePapers, instituteId, recommendationId))
             ]
         return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
@@ -664,7 +680,7 @@ def instituteRecommendationAnalyzer():
     output(logFile)
     outputMetric('Average Co-authors', avgCoAuthor)
     outputMetric('Average Co-papers', avgCoPaper)
-    outputMetric('Average Co-field-counts', avgCoFieldCount)
+    outputMetric('Average Co-fields-count', avgCoFieldCount)
     outputMetric('Average Co-cites', avgCoCite)
     output(logFile)
 
@@ -680,7 +696,7 @@ def venueRecommendationAnalyzer():
         else:
             properties = [
                 ('Co-authors', coCount(venueAuthors, venueId, recommendationId)),
-                ('Co-field-counts', minSum(venueFieldsCount, venueId, recommendationId)),
+                ('Co-fields-count', minSum(venueFieldsCount, venueId, recommendationId)),
                 ('Co-cites', coCount2(venueCitedPapers, venuePapers, venueId, recommendationId))
             ]
         return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
@@ -748,7 +764,7 @@ def venueRecommendationAnalyzer():
         output(logFile, valueString, end=' ' * (12 - len(valueString)))
     output(logFile)
     outputMetric('Average Co-authors', avgCoAuthor)
-    outputMetric('Average Co-field-counts', avgCoFieldCount)
+    outputMetric('Average Co-fields-count', avgCoFieldCount)
     outputMetric('Average Co-cites', avgCoCite)
     output(logFile)
 
@@ -787,15 +803,16 @@ paperVenues = dict()
 paperInstitutes = dict()
 
 authorPapers = dict()
-authorFields = dict()
 authorInstitutes = dict()
 authorYears = dict()
 authorVenues = dict()
+authorFieldsCount = dict()
 authorCitedPapers = dict()
 
 fieldPapers = dict()
 fieldAuthors = dict()
 fieldCitedPapers = dict()
+fieldHierarchical = dict()
 
 instituteAuthors = dict()
 institutePapers = dict()
