@@ -60,7 +60,7 @@ paramConfig = {'advanced': {'epoch': [1000],
                             'dimension': [150, 250],
                             'nbatches': [200],
                             'margin': [1.0, 2.0, 3.0, 4.0],
-                            'alpha': [0.001, 0.01, 0.05, 0.1],
+                            'alpha': [0.1, 0.05, 0.01, 0.001],
                             'bern': [0, 1],
                             'cuda': [1],
                             'weighted': [False]
