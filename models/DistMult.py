@@ -36,7 +36,7 @@ class DistMult(Model):
         e_r = tf.nn.embedding_lookup(self.rel_embeddings, r)
         # Calculating score functions for all positive triples and negative triples
         if config.train_weighted:
-            w = self.get_all_weights(in_batch=True)
+            w = self.get_all_weights(in_batch=False)
             res = tf.reduce_sum(self._calc(e_h, e_t, e_r) * w, 1, keep_dims=False)
         else:
             res = tf.reduce_sum(self._calc(e_h, e_t, e_r), 1, keep_dims=False)
