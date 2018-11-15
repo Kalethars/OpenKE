@@ -203,7 +203,7 @@ def infoLoader():
             addToSet(institutePapers, instituteId, paperId)
 
     def calcSecondaryCounts():
-        global authorVenues, venueAuthors, fieldAuthors
+        global authorVenues, venueAuthors, fieldAuthors, fieldVenues
         global authorFieldsCount, instituteFieldsCount, venueFieldsCount
         global authorCitedPapers, fieldCitedPapers, instituteCitedPapers, venueCitedPapers
 
@@ -237,6 +237,7 @@ def infoLoader():
                 for fieldId in paperFields.get(paperId, set()):
                     updateMetric(instituteFieldsCount[instituteId], fieldId, 1)
 
+        fieldVenues=dict()
         venueFieldsCount = dict()
         venueCitedPapers = dict()
         for venueId in venuePapers.keys():
@@ -244,6 +245,7 @@ def infoLoader():
             for paperId in venuePapers[venueId]:
                 addToSet(venueCitedPapers, venueId, paperCitedPapers.get(paperId, set()))
                 for fieldId in paperFields.get(paperId, set()):
+                    addToSet(fieldVenues,fieldId,venueId)
                     updateMetric(venueFieldsCount[venueId], fieldId, 1)
 
     def loadVenueName():
@@ -504,6 +506,7 @@ def fieldRecommendationAnalyzer():
             properties = [
                 ('Papers', getLength(fieldPapers, fieldId)),
                 ('Authors', getLength(fieldAuthors, fieldId)),
+                ('Venues', getLength(fieldVenues, fieldId)),
                 ('Hierarchical Fields', getLength(fieldHierarchical, fieldId)),
                 ('Cite & Cited by', getLength(fieldCitedPapers, fieldId))
             ]
@@ -511,6 +514,7 @@ def fieldRecommendationAnalyzer():
             properties = [
                 ('Co-papers', coCount(fieldPapers, fieldId, recommendationId)),
                 ('Co-authors', coCount(fieldAuthors, fieldId, recommendationId)),
+                ('Co-venues', coCount(fieldVenues, fieldId, recommendationId)),
                 ('Related Fields', coCount(fieldHierarchical, fieldId, recommendationId) +
                                    1 if recommendationId in fieldHierarchical.get(fieldId, set()) else 0),
                 ('Co-cites', coCount2(fieldCitedPapers, fieldPapers, fieldId, recommendationId))
@@ -553,11 +557,13 @@ def fieldRecommendationAnalyzer():
 
     avgCoPaper = dict()
     avgCoAuthor = dict()
+    avgCoVenue = dict()
     avgCoField = dict()
     avgCoCite = dict()
     for num in hitAt:
         avgCoPaper[num] = dict()
         avgCoAuthor[num] = dict()
+        avgCoVenue[num] = dict()
         avgCoField[num] = dict()
         avgCoCite[num] = dict()
     for fieldId in fieldIdSorted:
@@ -568,6 +574,7 @@ def fieldRecommendationAnalyzer():
                 if i < num:
                     updateMetric(avgCoPaper[num], fieldId, coCount(fieldPapers, fieldId, recommendationId))
                     updateMetric(avgCoAuthor[num], fieldId, coCount(fieldAuthors, fieldId, recommendationId))
+                    updateMetric(avgCoVenue[num], fieldId, coCount(fieldVenues, fieldId, recommendationId))
                     updateMetric(avgCoField[num], fieldId, coCount(fieldHierarchical, fieldId, recommendationId))
                     if recommendationId in fieldHierarchical.get(fieldId, set()):
                         updateMetric(avgCoField[num], fieldId, 1)
@@ -577,6 +584,7 @@ def fieldRecommendationAnalyzer():
         for num in hitAt:
             avgCoPaper[num][fieldId] /= num
             avgCoAuthor[num][fieldId] /= num
+            avgCoVenue[num][fieldId] /= num
             avgCoField[num][fieldId] /= num
             avgCoCite[num][fieldId] /= num
 
@@ -587,6 +595,7 @@ def fieldRecommendationAnalyzer():
     output(logFile)
     outputMetric('Average Co-papers', avgCoPaper)
     outputMetric('Average Co-authors', avgCoAuthor)
+    outputMetric('Average Co-venues', avgCoVenue)
     outputMetric('Average Co-fields', avgCoField)
     outputMetric('Average Co-cites', avgCoCite)
     output(logFile)
@@ -811,6 +820,7 @@ authorCitedPapers = dict()
 
 fieldPapers = dict()
 fieldAuthors = dict()
+fieldVenues=dict()
 fieldCitedPapers = dict()
 fieldHierarchical = dict()
 
