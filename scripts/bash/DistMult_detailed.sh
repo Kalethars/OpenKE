@@ -10,4 +10,5 @@ python3 result_analyzer.py --method=DistMult_detailed
 python3 result_mapper.py --method=DistMult_detailed
 python3 result_recommendation.py --method=DistMult_detailed --unlimited=True
 python3 recommendation_analyzer --method=DistMult_detailed --unlimited=True
-cd ..CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --weighted=True
+cd ..
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --weighted=True
