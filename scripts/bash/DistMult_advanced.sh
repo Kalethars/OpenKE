@@ -11,8 +11,8 @@ CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=DistMult --config=./config/
 CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=DistMult --config=./config/DistMult_advanced.config --order=8
 cd processor
 python3 result_analyzer.py --method=DistMult_advanced
-python3 result_mapper.py --method=DistMult_advanced
-python3 result_recommendation.py --method=DistMult_advanced --unlimited=True
+python3 result_mapper.py --method=DistMult_advanced --update=True
+python3 result_recommendation.py --method=DistMult_advanced --unlimited=True --update=True
 python3 recommendation_analyzer --method=DistMult_advanced --unlimited=True
 cd ..
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_advanced --weighted=True

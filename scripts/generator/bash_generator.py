@@ -54,8 +54,8 @@ def generate(method, target, config):
             (buildCuda(config['cuda']), method, configName, i + 1))
     f.write('cd processor\n')
     f.write('python3 result_analyzer.py --method=%s\n' % configName)
-    f.write('python3 result_mapper.py --method=%s\n' % configName)
-    f.write('python3 result_recommendation.py --method=%s --unlimited=True\n' % configName)
+    f.write('python3 result_mapper.py --method=%s --update=True\n' % configName)
+    f.write('python3 result_recommendation.py --method=%s --unlimited=True --update=True\n' % configName)
     f.write('python3 recommendation_analyzer --method=%s --unlimited=True\n' % configName)
     f.write('cd ..\n')
     f.write('CUDA_VISIBLE_DEVICES="%s" python kg_test.py --method=%s --weighted=True' %
