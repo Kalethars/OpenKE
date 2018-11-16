@@ -56,11 +56,29 @@ database = parsedConfig.database if parsedConfig.database else 'ACE17K'
 method = (parsedConfig.method if parsedConfig.method else 'all').lower()
 threads = parsedConfig.threads if parsedConfig.threads else 32
 
-paramConfig = {'advanced': {'epoch': [5000],
+paramConfig = {'basic': {'epoch': [1000],
+                         'dimension': [100],
+                         'nbatches': [100],
+                         'margin': [1.0, 1.75, 2.5, 3.25, 4.0],
+                         'alpha': [0.025, 0.02, 0.015, 0.01, 0.005],
+                         'bern': [0, 1],
+                         'cuda': [1],
+                         'weighted': [False]
+                         },
+               'advanced': {'epoch': [5000],
                             'dimension': [300],
                             'nbatches': [100],
                             'margin': [2.5],
                             'alpha': [0.1, 0.075, 0.05, 0.025],
+                            'bern': [0, 1],
+                            'cuda': [1],
+                            'weighted': [False]
+                            },
+               'detailed': {'epoch': [5000],
+                            'dimension': [300],
+                            'nbatches': [100],
+                            'margin': [1.0, 2.5, 4.0],
+                            'alpha': [0.02, 0.01, 0.005],
                             'bern': [0, 1],
                             'cuda': [1],
                             'weighted': [False]
