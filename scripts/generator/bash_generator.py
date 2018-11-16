@@ -172,7 +172,7 @@ paramConfig['TransH'] = {'detailed': {'epoch': [5000],
 paramConfig['DistMult'] = {'basic': {'epoch': [1000],
                                      'dimension': [100],
                                      'nbatches': [100],
-                                     'margin': [1.75, 2, 2.25, 2.25],
+                                     'margin': [1.75, 2.0, 2.25, 2.25],
                                      'alpha': [0.025, 0.03, 0.035, 0.04],
                                      'bern': [0, 1],
                                      'cuda': [1],
@@ -206,6 +206,25 @@ paramConfig['DistMult'] = {'basic': {'epoch': [1000],
                                     'weighted': [True, False]
                                     }
                            }
+paramConfig['ComplEx'] = {'detailed': {'epoch': [5000],
+                                       'dimension': [300],
+                                       'nbatches': [100],
+                                       'margin': [2.0],
+                                       'alpha': [0.03],
+                                       'bern': [0, 1],
+                                       'cuda': [1],
+                                       'weighted': [False, True]
+                                       },
+                          'test': {'epoch': [1000],
+                                   'dimension': [100],
+                                   'nbatches': [100],
+                                   'margin': [1.5, 2.0, 2.5, 3.0],
+                                   'alpha': [0.001, 0.01, 0.03, 0.05],
+                                   'bern': [0],
+                                   'cuda': [1],
+                                   'weighted': [False]
+                                   }
+                          }
 
 if target == 'all':
     for target in paramConfig[method].keys():

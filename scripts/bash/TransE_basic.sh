@@ -111,7 +111,8 @@ CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=TransE --config=./config/Tr
 CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=TransE --config=./config/TransE_basic.config --order=108
 cd processor
 python3 result_analyzer.py --method=TransE_basic
-python3 result_mapper.py --method=TransE_basic
-python3 result_recommendation.py --method=TransE_basic --unlimited=True
+python3 result_mapper.py --method=TransE_basic --update=True
+python3 result_recommendation.py --method=TransE_basic --unlimited=True --update=True
 python3 recommendation_analyzer --method=TransE_basic --unlimited=True
-cd ..CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_basic --weighted=True
+cd ..
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_basic --weighted=True
