@@ -1,5 +1,7 @@
 import argparse
 
+importance = {'bern': 0, 'nbatches': 1, 'epoch': 2, 'dimension': 3, 'margin': 4, 'alpha': 5, 'lmbda': 6, 'weighted': 7}
+
 
 def buildString(params):
     s = ''
@@ -12,6 +14,22 @@ def buildCuda(cuda):
     return ','.join(list(map(lambda x: str(x), cuda)))
 
 
+def getParams(config, ignore={'cuda'}):
+    if len(config) == len(ignore):
+        yield dict()
+    else:
+        keys = sorted(config.keys(), key=lambda x: importance.get(x, 100))
+        for key in keys:
+            if not key in ignore:
+                configClone = config.copy()
+                del configClone[key]
+                for value in config[key]:
+                    for params in getParams(configClone):
+                        params[key] = value
+                        yield params
+                break
+
+
 def generate(method, target, config):
     configName = '%s_%s' % (method, target)
     f = open('../config/%s.config' % configName, 'w')
@@ -20,23 +38,9 @@ def generate(method, target, config):
     f.write(buildString(globalParams))
 
     count = 0
-    for nbatches in config['nbatches']:
-        for bern in config['bern']:
-            for alpha in config['alpha']:
-                for margin in config['margin']:
-                    for epoch in config['epoch']:
-                        for dimension in config['dimension']:
-                            for weighted in config['weighted']:
-                                f.write(buildString({
-                                    'epoch': epoch,
-                                    'nbatches': nbatches,
-                                    'alpha': alpha,
-                                    'margin': margin,
-                                    'bern': bern,
-                                    'dimension': dimension,
-                                    'weighted': weighted
-                                }))
-                                count += 1
+    for params in getParams(config):
+        f.write(buildString(params))
+        count += 1
 
     f.close()
 
