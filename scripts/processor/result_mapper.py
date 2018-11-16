@@ -4,8 +4,9 @@
 # result_mapper -> pca_results_saver -> result_recommendation
 
 import argparse
-import os
+import codecs
 import json
+import os
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -78,7 +79,7 @@ for type in types:
     if not os.path.exists(infoReadPath):
         continue
 
-    f = open(infoReadPath, 'r')
+    f = codecs.open(infoReadPath, 'r', 'gbk')
     s = f.read().split('\n')
     f.close()
 

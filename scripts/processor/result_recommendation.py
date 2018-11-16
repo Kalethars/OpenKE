@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import codecs
 
 try:
     import win_unicode_console
@@ -310,7 +311,7 @@ for type in types:
     if not os.path.exists(recommendationDir):
         os.mkdir(recommendationDir)
 
-    f = open(infoReadDir + type + 'Info.data', 'r')
+    f = codecs.open(infoReadDir + type + 'Info.data', 'r', 'gbk')
     infoLines = f.read().split('\n')
     f.close()
 

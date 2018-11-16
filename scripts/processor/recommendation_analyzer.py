@@ -1,6 +1,7 @@
 import argparse
 import os
 import math
+import codecs
 
 try:
     import win_unicode_console
@@ -272,7 +273,7 @@ def infoLoader():
         global venueName
 
         filePath = parentDir + '/data/%s/info/venueInfo.data' % database
-        f = open(filePath, 'r')
+        f = codecs.open(filePath, 'r', 'gbk')
         s = f.read().split('\n')
         f.close()
 

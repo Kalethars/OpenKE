@@ -43,14 +43,18 @@ def generate(method, target, config):
     f = open('../bash/%s.sh' % configName, 'w')
     f.write('#!/usr/bin/env bash\n')
     f.write('source ~/wangrj/tensorflow/bin/activate\n')
+    f.write('cd ..\n')
     for i in range(count):
         f.write(
-            'CUDA_VISIBLE_DEVICES="%s" python ../kg_train.py --method=%s --config=../config/%s.config --order=%i\n' %
+            'CUDA_VISIBLE_DEVICES="%s" python kg_train.py --method=%s --config=./config/%s.config --order=%i\n' %
             (buildCuda(config['cuda']), method, configName, i + 1))
-    f.write('python ../processor/result_analyzer.py --method=%s\n' % configName)
-    f.write('python ../processor/result_recommendation.py --method=%s --unlimited=True\n' % configName)
-    f.write('python ../processor/recommendation_analyzer --method=%s --unlimited=True\n' % configName)
-    f.write('CUDA_VISIBLE_DEVICES="%s" python ../kg_test.py --method=%s --weighted=True' %
+    f.write('cd processor\n')
+    f.write('python3 result_analyzer.py --method=%s\n' % configName)
+    f.write('python3 result_mapper.py --method=%s\n' % configName)
+    f.write('python3 result_recommendation.py --method=%s --unlimited=True\n' % configName)
+    f.write('python3 recommendation_analyzer --method=%s --unlimited=True\n' % configName)
+    f.write('cd ..')
+    f.write('CUDA_VISIBLE_DEVICES="%s" python kg_test.py --method=%s --weighted=True' %
             (buildCuda(config['cuda']), configName))
     f.close()
 
