@@ -16,4 +16,12 @@ python3 result_mapper.py --method=TransE_advanced --update=True
 python3 result_recommendation.py --method=TransE_advanced --unlimited=True --update=True
 python3 recommendation_analyzer --method=TransE_advanced --unlimited=True
 cd ..
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=1 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=2 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=3 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=4 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=5 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=6 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=7 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=8 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=9 --weighted=True

@@ -11,4 +11,7 @@ python3 result_mapper.py --method=DistMult_detailed --update=True
 python3 result_recommendation.py --method=DistMult_detailed --unlimited=True --update=True
 python3 recommendation_analyzer --method=DistMult_detailed --unlimited=True
 cd ..
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --order=1 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --order=2 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --order=3 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --order=4 --weighted=True

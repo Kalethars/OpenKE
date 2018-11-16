@@ -58,20 +58,21 @@ def generate(method, target, config):
     f.write('python3 result_recommendation.py --method=%s --unlimited=True --update=True\n' % configName)
     f.write('python3 recommendation_analyzer --method=%s --unlimited=True\n' % configName)
     f.write('cd ..\n')
-    f.write('CUDA_VISIBLE_DEVICES="%s" python kg_test.py --method=%s --weighted=True' %
-            (buildCuda(config['cuda']), configName))
+    for i in range(count):
+        f.write('CUDA_VISIBLE_DEVICES="%s" python kg_test.py --method=%s --order=%i --weighted=True\n' %
+                (buildCuda(config['cuda']), configName, i + 1))
     f.close()
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
-parser.add_argument('--method', type=str, required=True)
+parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--target', type=str, required=False)
 parser.add_argument('--threads', type=int, required=False)
 parsedConfig = parser.parse_args()
 
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
-method = parsedConfig.method
+method = parsedConfig.method if parsedConfig.method else 'all'
 target = (parsedConfig.target if parsedConfig.target else 'all').lower()
 threads = parsedConfig.threads if parsedConfig.threads else 32
 
@@ -228,8 +229,13 @@ paramConfig['ComplEx'] = {'detailed': {'epoch': [5000],
                                    }
                           }
 
-if target == 'all':
-    for target in paramConfig[method].keys():
+if method != 'all':
+    if target == 'all':
+        for target in paramConfig[method].keys():
+            generate(method, target, paramConfig[method][target])
+    else:
         generate(method, target, paramConfig[method][target])
 else:
-    generate(method, target, paramConfig[method][target])
+    for method in paramConfig.keys():
+        for target in paramConfig[method].keys():
+            generate(method, target, paramConfig[method][target])

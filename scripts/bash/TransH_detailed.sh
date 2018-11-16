@@ -23,4 +23,19 @@ python3 result_mapper.py --method=TransH_detailed --update=True
 python3 result_recommendation.py --method=TransH_detailed --unlimited=True --update=True
 python3 recommendation_analyzer --method=TransH_detailed --unlimited=True
 cd ..
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=1 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=2 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=3 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=4 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=5 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=6 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=7 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=8 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=9 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=10 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=11 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=12 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=13 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=14 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=15 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=16 --weighted=True

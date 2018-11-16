@@ -10,4 +10,6 @@ python3 result_mapper.py --method=TransE_weighted --update=True
 python3 result_recommendation.py --method=TransE_weighted --unlimited=True --update=True
 python3 recommendation_analyzer --method=TransE_weighted --unlimited=True
 cd ..
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_weighted --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_weighted --order=1 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_weighted --order=2 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_weighted --order=3 --weighted=True

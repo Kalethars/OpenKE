@@ -55,4 +55,51 @@ python3 result_mapper.py --method=ComplEx_test --update=True
 python3 result_recommendation.py --method=ComplEx_test --unlimited=True --update=True
 python3 recommendation_analyzer --method=ComplEx_test --unlimited=True
 cd ..
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=1 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=2 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=3 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=4 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=5 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=6 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=7 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=8 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=9 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=10 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=11 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=12 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=13 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=14 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=15 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=16 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=17 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=18 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=19 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=20 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=21 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=22 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=23 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=24 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=25 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=26 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=27 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=28 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=29 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=30 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=31 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=32 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=33 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=34 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=35 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=36 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=37 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=38 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=39 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=40 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=41 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=42 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=43 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=44 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=45 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=46 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=47 --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=48 --weighted=True

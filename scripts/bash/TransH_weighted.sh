@@ -8,4 +8,4 @@ python3 result_mapper.py --method=TransH_weighted --update=True
 python3 result_recommendation.py --method=TransH_weighted --unlimited=True --update=True
 python3 recommendation_analyzer --method=TransH_weighted --unlimited=True
 cd ..
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_weighted --weighted=True
+CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_weighted --order=1 --weighted=True

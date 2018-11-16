@@ -9,4 +9,5 @@ python3 result_mapper.py --method=TransE_test --update=True
 python3 result_recommendation.py --method=TransE_test --unlimited=True --update=True
 python3 recommendation_analyzer --method=TransE_test --unlimited=True
 cd ..
-CUDA_VISIBLE_DEVICES="2" python kg_test.py --method=TransE_test --weighted=True
+CUDA_VISIBLE_DEVICES="2" python kg_test.py --method=TransE_test --order=1 --weighted=True
+CUDA_VISIBLE_DEVICES="2" python kg_test.py --method=TransE_test --order=2 --weighted=True
