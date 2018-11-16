@@ -25,3 +25,5 @@ CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=6 --
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=7 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=8 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_advanced --order=9 --weighted=True
+cd processor
+python3 result_analyzer.py --method=TransE_advanced --version=weighted

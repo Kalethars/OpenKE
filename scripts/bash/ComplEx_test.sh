@@ -103,3 +103,5 @@ CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=45 --we
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=46 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=47 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=48 --weighted=True
+cd processor
+python3 result_analyzer.py --method=ComplEx_test --version=weighted

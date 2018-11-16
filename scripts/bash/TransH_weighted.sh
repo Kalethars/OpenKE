@@ -9,3 +9,5 @@ python3 result_recommendation.py --method=TransH_weighted --unlimited=True --upd
 python3 recommendation_analyzer --method=TransH_weighted --unlimited=True
 cd ..
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_weighted --order=1 --weighted=True
+cd processor
+python3 result_analyzer.py --method=TransH_weighted --version=weighted

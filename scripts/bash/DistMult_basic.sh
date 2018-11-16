@@ -71,3 +71,5 @@ CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_basic --order=29 --
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_basic --order=30 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_basic --order=31 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_basic --order=32 --weighted=True
+cd processor
+python3 result_analyzer.py --method=DistMult_basic --version=weighted

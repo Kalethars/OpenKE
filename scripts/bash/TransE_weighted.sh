@@ -13,3 +13,5 @@ cd ..
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_weighted --order=1 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_weighted --order=2 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransE_weighted --order=3 --weighted=True
+cd processor
+python3 result_analyzer.py --method=TransE_weighted --version=weighted

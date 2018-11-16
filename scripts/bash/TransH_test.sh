@@ -11,3 +11,5 @@ python3 recommendation_analyzer --method=TransH_test --unlimited=True
 cd ..
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_test --order=1 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_test --order=2 --weighted=True
+cd processor
+python3 result_analyzer.py --method=TransH_test --version=weighted

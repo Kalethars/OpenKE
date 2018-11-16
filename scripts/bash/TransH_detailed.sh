@@ -39,3 +39,5 @@ CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=13 -
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=14 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=15 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=TransH_detailed --order=16 --weighted=True
+cd processor
+python3 result_analyzer.py --method=TransH_detailed --version=weighted

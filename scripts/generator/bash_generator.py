@@ -61,6 +61,8 @@ def generate(method, target, config):
     for i in range(count):
         f.write('CUDA_VISIBLE_DEVICES="%s" python kg_test.py --method=%s --order=%i --weighted=True\n' %
                 (buildCuda(config['cuda']), configName, i + 1))
+    f.write('cd processor\n')
+    f.write('python3 result_analyzer.py --method=%s --version=weighted\n' % configName)
     f.close()
 
 

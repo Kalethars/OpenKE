@@ -15,3 +15,5 @@ CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --order=1 
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --order=2 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --order=3 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=DistMult_detailed --order=4 --weighted=True
+cd processor
+python3 result_analyzer.py --method=DistMult_detailed --version=weighted
