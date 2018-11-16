@@ -7,6 +7,21 @@ import argparse
 import os
 import json
 
+parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def getBestOrder(database, method):
+    try:
+        analyzedLogPath = parentDir + '/log/%s/analyzed/%s_analyzed.log' % (database, method)
+        f = open(analyzedLogPath, 'r')
+        s = f.read().split('\n')
+        f.close()
+
+        bestOrder = int(s[1].split()[1])
+        return bestOrder
+    except:
+        return 1
+
 
 def parseParams(line):
     paramMap = dict()
@@ -22,16 +37,14 @@ def parseParams(line):
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
-parser.add_argument('--order', type=int, required=True)
+parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--update', type=bool, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method
-order = parsedArgs.order
+order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
 update = parsedArgs.update if parsedArgs.update else False
-
-parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 types = ['paper', 'author', 'institute', 'field', 'venue']
 

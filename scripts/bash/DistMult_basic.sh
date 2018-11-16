@@ -32,3 +32,7 @@ CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=DistMult --config=../con
 CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=DistMult --config=../config/DistMult_basic.config --order=30
 CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=DistMult --config=../config/DistMult_basic.config --order=31
 CUDA_VISIBLE_DEVICES="1" python ../kg_train.py --method=DistMult --config=../config/DistMult_basic.config --order=32
+python ../processor/result_analyzer.py --method=DistMult_basic
+python ../processor/result_recommendation.py --method=DistMult_basic --unlimited=True
+python ../processor/recommendation_analyzer --method=DistMult_basic --unlimited=True
+CUDA_VISIBLE_DEVICES="1" python ../kg_test.py --method=DistMult_basic --weighted=True

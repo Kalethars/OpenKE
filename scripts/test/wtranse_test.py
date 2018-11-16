@@ -1,9 +1,13 @@
 import argparse
 import os
 import gc
-import win_unicode_console
 
-win_unicode_console.enable()
+try:
+    import win_unicode_console
+
+    win_unicode_console.enable()
+except:
+    pass
 
 
 def formattedRound(number, digit):

@@ -1,9 +1,13 @@
 import argparse
 import codecs
 import os
-import win_unicode_console
 
-win_unicode_console.enable()
+try:
+    import win_unicode_console
+
+    win_unicode_console.enable()
+except:
+    pass
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

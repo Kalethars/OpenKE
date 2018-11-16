@@ -6,17 +6,31 @@ sys.path.insert(0, parentDir)
 import config
 import models
 
+
+def getBestOrder(database, method):
+    try:
+        analyzedLogPath = parentDir + '/log/%s/analyzed/%s_analyzed.log' % (database, method)
+        f = open(analyzedLogPath, 'r')
+        s = f.read().split('\n')
+        f.close()
+
+        bestOrder = int(s[1].split()[1])
+        return bestOrder
+    except:
+        return 1
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
-parser.add_argument('--order', type=int, required=True)
+parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--weighted', type=bool, required=False)
 parser.add_argument('--version', type=str, required=False)
 parsedConfig = parser.parse_args()
 
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
 method = parsedConfig.method
-order = parsedConfig.order
+order = parsedConfig.order if parsedConfig.order else getBestOrder(database, method)
 weighted = parsedConfig.weighted if parsedConfig.weighted else False
 version = parsedConfig.version if parsedConfig.version else ('weighted' if weighted else 'retested')
 

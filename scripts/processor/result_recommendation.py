@@ -3,9 +3,28 @@
 
 import argparse
 import os
-import win_unicode_console
 
-win_unicode_console.enable()
+try:
+    import win_unicode_console
+
+    win_unicode_console.enable()
+except:
+    pass
+
+parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def getBestOrder(database, method):
+    try:
+        analyzedLogPath = parentDir + '/log/%s/analyzed/%s_analyzed.log' % (database, method)
+        f = open(analyzedLogPath, 'r')
+        s = f.read().split('\n')
+        f.close()
+
+        bestOrder = int(s[1].split()[1])
+        return bestOrder
+    except:
+        return 1
 
 
 def paperRecommendation():
@@ -253,7 +272,7 @@ def instituteRecommendation():
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
-parser.add_argument('--order', type=int, required=True)
+parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--update', type=bool, required=False)
 parser.add_argument('--count', type=int, required=False)
 parser.add_argument('--target', type=str, required=False)
@@ -264,15 +283,13 @@ parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method
-order = parsedArgs.order
+order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
 update = parsedArgs.update if parsedArgs.update else False
 recommendCount = parsedArgs.count if parsedArgs.count and parsedArgs.count > 10 else 10
 target = parsedArgs.target
 pca = parsedArgs.pca if parsedArgs.pca else False
 norm = parsedArgs.norm if parsedArgs.norm else (2 if pca else 1)
 limited = not (parsedArgs.unlimited if parsedArgs.unlimited else False)
-
-parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 types = ['paper', 'author', 'institute', 'field', 'venue']
 

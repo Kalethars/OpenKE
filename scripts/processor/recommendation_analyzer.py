@@ -1,11 +1,29 @@
 import argparse
 import os
 import math
-import win_unicode_console
 
-win_unicode_console.enable()
+try:
+    import win_unicode_console
+
+    win_unicode_console.enable()
+except:
+    pass
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def getBestOrder(database, method):
+    try:
+        analyzedLogPath = parentDir + '/log/%s/analyzed/%s_analyzed.log' % (database, method)
+        f = open(analyzedLogPath, 'r')
+        s = f.read().split('\n')
+        f.close()
+
+        bestOrder = int(s[1].split()[1])
+        return bestOrder
+    except:
+        return 1
+
 
 hitAt = [10, 3, 1]
 
@@ -783,7 +801,7 @@ def venueRecommendationAnalyzer():
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
-parser.add_argument('--order', type=int, required=True)
+parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--pca', type=bool, required=False)
 parser.add_argument('--norm', type=int, required=False)
 parser.add_argument('--count', type=int, required=False)
@@ -794,7 +812,7 @@ parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method
-order = parsedArgs.order
+order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
 pca = parsedArgs.pca if parsedArgs.pca else False
 norm = parsedArgs.norm if parsedArgs.norm else (2 if pca else 1)
 count = parsedArgs.count if parsedArgs.count else 10

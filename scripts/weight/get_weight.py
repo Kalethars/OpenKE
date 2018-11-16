@@ -2,9 +2,13 @@ import os
 import argparse
 import pymysql
 import math
-import win_unicode_console
 
-win_unicode_console.enable()
+try:
+    import win_unicode_console
+
+    win_unicode_console.enable()
+except:
+    pass
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 entityMap = {'a': 0, 'f': 1, 'i': 2, 'p': 3, 'v': 4}

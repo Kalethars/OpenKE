@@ -2,12 +2,19 @@ from tkinter import *
 import argparse
 import math
 
+try:
+    import win_unicode_console
+
+    win_unicode_console.enable()
+except:
+    pass
+
 
 def calcDistance(node1, node2):
     return ((node1[0][0] - node2[0][0]) ** 2 + (node1[0][1] - node2[0][1]) ** 2) ** 0.5
 
 
-def getDirection(node1, node2, threshold=30):
+def getDirection(node1, node2, threshold=20):
     dx = node2[0][0] - node1[0][0]
     dy = node2[0][1] - node1[0][1]
     distance = calcDistance(node1, node2)
@@ -80,10 +87,18 @@ def normalize(nodes, lowX=150, highX=1050, lowY=50, highY=950):
 parser = argparse.ArgumentParser()
 parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--target', type=str, required=False)
+parser.add_argument('--manual', type=str, required=False)
 parsedArgs = parser.parse_args()
 
 method = parsedArgs.method if parsedArgs.method else 'WTransE2_test'
 target = parsedArgs.target if parsedArgs.target else 'venue'
+manual = parsedArgs.manual
+
+manualNode = dict()
+if not manual is None:
+    splited = manual.split(',')
+    for each in splited:
+        manualNode[each.split(':')[0].lower()] = each.split(':')[1]
 
 f = open('./data/%s_%s.data' % (method, target), 'r')
 s = f.read().split('\n')
@@ -129,6 +144,12 @@ for i in range(nodeNum):
         if anchor in bestAnchor:
             nodes[i].append(anchor)
             break
+    # print(i, nodes[i], nearest[i][:5], [getDirection(nodes[i], nodes[j]) for j in nearest[i][:5]], bestAnchor)
+
+if len(manualNode) > 0:
+    for node in nodes:
+        if manualNode.get(node[1].lower(), 0) != 0:
+            node[3] = manualNode[node[1].lower()]
 
 window = Tk()
 window.title('%s graph of %s' % (target.capitalize(), method))
