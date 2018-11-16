@@ -283,6 +283,8 @@ def formattedRound(number, digit):
         return str(round(number))
     else:
         rounded = str(round(number, digit))
+        if not '.' in rounded:
+            rounded = rounded + '.'
         return rounded + (digit - len(rounded.split('.')[1])) * '0'
 
 

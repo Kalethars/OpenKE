@@ -37,6 +37,8 @@ def formattedRound(number, digit):
         return str(round(number))
     else:
         rounded = str(round(number, digit))
+        if not '.' in rounded:
+            rounded = rounded + '.'
         return rounded + (digit - len(rounded.split('.')[1])) * '0'
 
 
@@ -237,7 +239,7 @@ def infoLoader():
                 for fieldId in paperFields.get(paperId, set()):
                     updateMetric(instituteFieldsCount[instituteId], fieldId, 1)
 
-        fieldVenues=dict()
+        fieldVenues = dict()
         venueFieldsCount = dict()
         venueCitedPapers = dict()
         for venueId in venuePapers.keys():
@@ -245,7 +247,7 @@ def infoLoader():
             for paperId in venuePapers[venueId]:
                 addToSet(venueCitedPapers, venueId, paperCitedPapers.get(paperId, set()))
                 for fieldId in paperFields.get(paperId, set()):
-                    addToSet(fieldVenues,fieldId,venueId)
+                    addToSet(fieldVenues, fieldId, venueId)
                     updateMetric(venueFieldsCount[venueId], fieldId, 1)
 
     def loadVenueName():
@@ -820,7 +822,7 @@ authorCitedPapers = dict()
 
 fieldPapers = dict()
 fieldAuthors = dict()
-fieldVenues=dict()
+fieldVenues = dict()
 fieldCitedPapers = dict()
 fieldHierarchical = dict()
 
