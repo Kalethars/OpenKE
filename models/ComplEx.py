@@ -45,7 +45,11 @@ class ComplEx(Model):
         r2 = tf.nn.embedding_lookup(self.rel2_embeddings, r)
         # Calculating score functions for all positive triples and negative triples
         res = tf.reduce_sum(self._calc(e1_h, e2_h, e1_t, e2_t, r1, r2), 1, keep_dims=False)
-        loss_func = tf.reduce_mean(tf.nn.softplus(- y * res), 0, keep_dims=False)
+        if config.train_weighted:
+            w = self.get_all_weights(in_batch=False)
+            loss_func = tf.reduce_mean(tf.nn.softplus(- w * y * res), 0, keep_dims=False)
+        else:
+            loss_func = tf.reduce_mean(tf.nn.softplus(- y * res), 0, keep_dims=False)
         regul_func = tf.reduce_mean(e1_h ** 2) + tf.reduce_mean(e1_t ** 2) + tf.reduce_mean(e2_h ** 2) + tf.reduce_mean(
             e2_t ** 2) + tf.reduce_mean(r1 ** 2) + tf.reduce_mean(r2 ** 2)
         # Calculating loss to get what the framework will optimize
