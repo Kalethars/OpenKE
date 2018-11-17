@@ -28,6 +28,10 @@ def getBestOrder(database, method):
         return 1
 
 
+def calcDistance(v1, v2, norm):
+    return sum([abs(v1[i] - v2[i]) ** norm for i in range(len(v1))])
+
+
 def paperRecommendation():
     global outputPath, infoLines, vectorLines, recommendCount
 
@@ -37,7 +41,7 @@ def paperRecommendation():
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
-        name[splited[0]] = splited[1]
+        name[splited[0]] = splited[1].strip()
         vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
 
     f = open(outputPath, 'w')
@@ -56,8 +60,8 @@ def paperRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2:
                 continue
-            distance[entityId2] = \
-                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
+            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
         f.write('-' * 50 + '\n')
@@ -79,7 +83,7 @@ def venueRecommendation():
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
         venueType[splited[0]] = splited[1]
-        name[splited[0]] = splited[2]
+        name[splited[0]] = splited[2].strip()
         category[splited[0]] = splited[3].replace('.', ' ')
         vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
 
@@ -99,8 +103,8 @@ def venueRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2:
                 continue
-            distance[entityId2] = \
-                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
+            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] +
                 '\t' + venueType[entityId] + '\t' + category[entityId] + '\n')
@@ -133,7 +137,7 @@ def authorRecommendation():
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
-        name[splited[0]] = splited[1]
+        name[splited[0]] = splited[1].strip()
         vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
 
     f = open(outputPath, 'w')
@@ -152,8 +156,8 @@ def authorRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and authorPaperCount.get(entityId2, 0) < 3):
                 continue
-            distance[entityId2] = \
-                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
+            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
         f.write('-' * 50 + '\n')
@@ -184,7 +188,7 @@ def fieldRecommendation():
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
-        name[splited[0]] = splited[1]
+        name[splited[0]] = splited[1].strip()
         vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
 
     f = open(outputPath, 'w')
@@ -203,8 +207,8 @@ def fieldRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and fieldPaperCount.get(entityId2, 0) < 5):
                 continue
-            distance[entityId2] = \
-                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
+            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
         f.write('-' * 50 + '\n')
@@ -240,7 +244,7 @@ def instituteRecommendation():
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
-        name[splited[0]] = splited[1]
+        name[splited[0]] = splited[1].strip()
         vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
 
     f = open(outputPath, 'w')
@@ -259,8 +263,8 @@ def instituteRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and institutePaperCount.get(entityId2, 0) < 5):
                 continue
-            distance[entityId2] = \
-                sum([abs(vectors[entityId][i] - vectors[entityId2][i]) ** norm for i in range(dimension)])
+            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
         f.write('-' * 50 + '\n')

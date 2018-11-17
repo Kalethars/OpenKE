@@ -93,7 +93,7 @@ for type in types:
         if len(splited) <= 1:
             continue
         vector = data['ent_embeddings'][entities[splited[0]]]
-        if 'TransH' in method:
+        if 'TransH' in method or 'DistMult' in method:
             l2norm = sum([vector[i] ** 2 for i in range(len(vector))]) ** 0.5
             vector = [vector[i] / l2norm for i in range(len(vector))]
         f.write('\t'.join(list(map(lambda x: str(x), vector))) + '\n')

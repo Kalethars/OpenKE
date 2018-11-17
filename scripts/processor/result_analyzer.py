@@ -47,12 +47,14 @@ def formattedRound(number, digit):
 
 
 def parameterValueToString(parameterValue, parameterName):
-    if parameterName == 'alpha':
+    if parameterName in {'alpha', 'lmbda'}:
         return str(str(parameterValue).rstrip('0'))
-    elif parameterName in ['bern', 'dimension', 'epoch', 'nbatches']:
+    elif parameterName in {'bern', 'dimension', 'epoch', 'nbatches'}:
         return str(round(parameterValue))
     elif parameterName == 'margin':
-        return str(formattedRound(parameterValue, 1))
+        return formattedRound(parameterValue, 1)
+    elif parameterName == 'weighted':
+        return str(parameterValue)
 
 
 def calcScore(scoreResults):
