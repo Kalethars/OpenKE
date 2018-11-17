@@ -37,18 +37,6 @@ CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/C
 CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=34
 CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=35
 CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=36
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=37
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=38
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=39
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=40
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=41
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=42
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=43
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=44
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=45
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=46
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=47
-CUDA_VISIBLE_DEVICES="1" python kg_train.py --method=ComplEx --config=./config/ComplEx_test.config --order=48
 cd processor
 python3 result_analyzer.py --method=ComplEx_test
 python3 result_mapper.py --method=ComplEx_test --update=True
@@ -91,17 +79,5 @@ CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=33 --we
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=34 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=35 --weighted=True
 CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=36 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=37 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=38 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=39 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=40 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=41 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=42 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=43 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=44 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=45 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=46 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=47 --weighted=True
-CUDA_VISIBLE_DEVICES="1" python kg_test.py --method=ComplEx_test --order=48 --weighted=True
 cd processor
 python3 result_analyzer.py --method=ComplEx_test --version=weighted

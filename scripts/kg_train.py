@@ -109,6 +109,11 @@ def parseParams(line, output=True):
         f.write('--bern:\t%s\n' % paramMap['bern'])
         f.write('--dimension:\t%s\n' % paramMap['dimension'])
         f.write('--weighted:\t%s\n' % paramMap['weighted'])
+
+        if 'lmbda' in paramMap:
+            verify(paramMap, 'lmbda', float)
+            f.write('--lmbda:\t%s\n' % paramMap['lmbda'])
+
         f.write('\n')
         f.close()
 

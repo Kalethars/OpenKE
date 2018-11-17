@@ -209,21 +209,21 @@ paramConfig['DistMult'] = {'basic': {'epoch': [1000],
                                     'weighted': [True, False]
                                     }
                            }
-paramConfig['ComplEx'] = {'detailed': {'epoch': [5000],
-                                       'dimension': [300],
+paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
+                                       'dimension': [150],
                                        'nbatches': [100],
-                                       'margin': [2.0],
-                                       'alpha': [0.03],
-                                       'lmbda': [0.001],
+                                       'margin': [1.5, 2.0, 2.5, 3.0],
+                                       'alpha': [0.03, 0.05],
+                                       'lmbda': [0.001, 0.01],
                                        'bern': [0, 1],
                                        'cuda': [1],
-                                       'weighted': [False, True]
+                                       'weighted': [False]
                                        },
                           'test': {'epoch': [1000],
                                    'dimension': [100],
                                    'nbatches': [100],
                                    'margin': [1.5, 2.0, 2.5, 3.0],
-                                   'alpha': [0.001, 0.01, 0.03, 0.05],
+                                   'alpha': [0.01, 0.03, 0.05],
                                    'lmbda': [0, 0.001, 0.01],
                                    'bern': [0],
                                    'cuda': [1],
