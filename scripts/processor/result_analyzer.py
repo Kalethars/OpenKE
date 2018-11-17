@@ -25,17 +25,6 @@ def buildEquation(name, value):
     return str(name) + ' = ' + str(round(value, 6))
 
 
-def solveMetricMistake(metric):
-    if not metricMistake:
-        return metric
-    if metric == 'MR':
-        return 'MRR'
-    elif metric == 'MRR':
-        return 'MR'
-    else:
-        return metric
-
-
 def formattedRound(number, digit):
     if digit == 0:
         return str(round(number))
@@ -72,7 +61,7 @@ def score(result):
                                           result['relationResults'][relationName][predictEntity][metric]
         relationNumber = len(result['relationResults'].keys())
         for metric in sumByMetric.keys():
-            result['scoreResults'][solveMetricMistake(metric)] = round(sumByMetric[metric] / (relationNumber * 2), 6)
+            result['scoreResults'][metric] = round(sumByMetric[metric] / (relationNumber * 2), 6)
     return calcScore(result['scoreResults'])
 
 
@@ -80,7 +69,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--version', type=str, required=False)
-parser.add_argument('--mistake', type=bool, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -97,7 +85,6 @@ for line in s:
 
 method = parsedArgs.method if parsedArgs.method else 'TransE'
 version = parsedArgs.version
-metricMistake = parsedArgs.mistake if parsedArgs.mistake else False
 if version is None:
     resultPath = parentDir + '/log/%s/%s.log' % (database, method)
 else:
