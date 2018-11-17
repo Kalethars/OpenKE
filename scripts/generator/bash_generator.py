@@ -227,7 +227,7 @@ paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
                                        'lmbda': [0.01, 0.001],
                                        'bern': [0],
                                        'cuda': [2],
-                                       'weighted': [False, True]
+                                       'weighted': [True, False]
                                        },
                           'test': {'epoch': [1000],
                                    'dimension': [100],
