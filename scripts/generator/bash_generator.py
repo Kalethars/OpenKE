@@ -202,11 +202,12 @@ paramConfig['DistMult'] = {'basic': {'epoch': [1000],
                            'test': {'epoch': [5000],
                                     'dimension': [300],
                                     'nbatches': [100],
-                                    'margin': [2.5],
-                                    'alpha': [0.002],
+                                    'margin': [1.75],
+                                    'alpha': [0.04],
+                                    'lmbda': [0.01, 0.001],
                                     'bern': [0, 1],
-                                    'cuda': [2],
-                                    'weighted': [True, False]
+                                    'cuda': [1],
+                                    'weighted': [False, True]
                                     }
                            }
 paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],

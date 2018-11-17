@@ -110,7 +110,7 @@ def parseParams(line, output=True):
         f.write('--dimension:\t%s\n' % paramMap['dimension'])
         f.write('--weighted:\t%s\n' % paramMap['weighted'])
 
-        if 'lmbda' in paramMap:
+        if 'lmbda' in paramMap.keys():
             verify(paramMap, 'lmbda', float)
             f.write('--lmbda:\t%s\n' % paramMap['lmbda'])
 
@@ -193,6 +193,8 @@ def DistMult():
     params = initParams(paramMap)
     params.set_in_path(databasePath)
     params.set_work_threads(threads)
+    if 'lmbda' in paramMap.keys():
+        params.set_lmbda(float(paramMap['lmbda']))
     params.set_opt_method("Adagrad")
 
     mkdir(['res', database, configName, order])
@@ -223,7 +225,8 @@ def ComplEx():
     params = initParams(paramMap)
     params.set_in_path(databasePath)
     params.set_work_threads(threads)
-    params.set_lmbda(float(paramMap['lmbda']))
+    if 'lmbda' in paramMap.keys():
+        params.set_lmbda(float(paramMap['lmbda']))
     params.set_opt_method("Adagrad")
 
     mkdir(['res', database, configName, order])
