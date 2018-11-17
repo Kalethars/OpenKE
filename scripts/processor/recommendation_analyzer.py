@@ -872,8 +872,10 @@ else:
 
 for type in types:
     if target is None or type in target:
-        output(logFile, type.capitalize())
-        exec('%sRecommendationAnalyzer()' % type)
+        filePath = recommendationDir + type + filenameSuffix
+        if os.path.exists(filePath):
+            output(logFile, type.capitalize())
+            exec('%sRecommendationAnalyzer()' % type)
 
 if not logFile is None:
     logFile.close()

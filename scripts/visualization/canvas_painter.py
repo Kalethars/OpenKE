@@ -54,19 +54,19 @@ def toHexColor(color):
     return '#%s%s%s' % (toHex(color[0]), toHex(color[1]), toHex(color[2]))
 
 
-def createPoint(canvas, node, radius=3):
+def createPoint(canvas, node, radius=3, offset=2):
     x = node[0][0]
     y = node[0][1]
     color = toHexColor(node[2])
     Canvas.create_oval(canvas, x - radius, y - radius, x + radius, y + radius, fill=color, outline=color)
     if node[3] == 'e':
-        Canvas.create_text(canvas, x + radius + 3, y, text=node[1], fill=color, anchor='w')
+        Canvas.create_text(canvas, x + radius + offset, y, text=node[1], fill=color, anchor='w')
     elif node[3] == 'w':
-        Canvas.create_text(canvas, x - radius - 3, y, text=node[1], fill=color, anchor='e')
+        Canvas.create_text(canvas, x - radius - offset, y, text=node[1], fill=color, anchor='e')
     elif node[3] == 'n':
-        Canvas.create_text(canvas, x, y - radius - 15, text=node[1], fill=color, anchor='n')
+        Canvas.create_text(canvas, x, y - radius - offset, text=node[1], fill=color, anchor='s')
     else:
-        Canvas.create_text(canvas, x, y + radius + 15, text=node[1], fill=color, anchor='s')
+        Canvas.create_text(canvas, x, y + radius + offset, text=node[1], fill=color, anchor='n')
 
 
 def normalize(nodes, lowX=150, highX=1050, lowY=50, highY=950):
@@ -84,15 +84,45 @@ def normalize(nodes, lowX=150, highX=1050, lowY=50, highY=950):
         node[0][1] = (node[0][1] - minY) / (maxY - minY) * (highY - lowY) + lowY
 
 
+def venueLegend(canvas, nodes, radius=3, offset=2):
+    f = open('../../data/ACE17K/info/venueInfo.data', 'r')
+    s = f.read().split('\n')
+    f.close()
+
+    venueCategoryId = dict()
+    venueCategoryName = dict()
+    for line in s:
+        splited = line.split()
+        if len(splited) == 5:
+            venueCategoryId[splited[2]] = int(splited[4].strip())
+            venueCategoryName[splited[2]] = splited[3].replace('.', ' ')
+
+    categories = sorted(set(venueCategoryId.values()))
+    for i in range(len(categories)):
+        for node in nodes:
+            if venueCategoryId[node[1]] == categories[i]:
+                categoryName = venueCategoryName[node[1]]
+                color = toHexColor(node[2])
+                x = 20
+                y = 20 + i * 20
+                Canvas.create_oval(canvas, x - radius, y - radius, x + radius, y + radius, fill=color, outline=color)
+                Canvas.create_text(canvas, x + radius + offset, y, text=categoryName, fill=color, anchor='w')
+                break
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--target', type=str, required=False)
 parser.add_argument('--manual', type=str, required=False)
+parser.add_argument('--x', type=int, required=False)
+parser.add_argument('--y', type=int, required=False)
 parsedArgs = parser.parse_args()
 
 method = parsedArgs.method if parsedArgs.method else 'WTransE2_test'
 target = parsedArgs.target if parsedArgs.target else 'venue'
 manual = parsedArgs.manual
+sizeX = parsedArgs.x if parsedArgs.x else 900
+sizeY = parsedArgs.y if parsedArgs.y else 900
 
 manualNode = dict()
 if not manual is None:
@@ -112,7 +142,7 @@ for line in s:
         nodes.append([[float(splited[0]), float(splited[1])],
                       splited[2],
                       (float(splited[3]), float(splited[4]), float(splited[5]))])
-normalize(nodes)
+normalize(nodes, 1050 - sizeX, 1050, 950 - sizeY, 950)
 nodeNum = len(nodes)
 
 distance = [[0] * nodeNum for i in range(nodeNum)]
@@ -156,5 +186,9 @@ window.title('%s graph of %s' % (target.capitalize(), method))
 canvas = Canvas(window, height=1000, width=1200, bg='white')
 for node in nodes:
     createPoint(canvas, node)
+
+if target == 'venue':
+    venueLegend(canvas, nodes)
+
 canvas.pack()
 window.mainloop()

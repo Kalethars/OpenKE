@@ -28,21 +28,27 @@ def getBestOrder(database, method):
         return 1
 
 
+def parseVector(vectorLine):
+    try:
+        return list(map(lambda x: float(x), vectorLine.split('\t')))
+    except:
+        return list(map(lambda x: complex(x), vectorLine.split('\t')))
+
+
 def calcDistance(v1, v2, norm):
     return sum([abs(v1[i] - v2[i]) ** norm for i in range(len(v1))])
 
 
 def paperRecommendation():
-    global outputPath, infoLines, vectorLines, recommendCount
+    global outputPath
 
     name = dict()
     vectors = dict()
-    dimension = len(vectorLines[0].split('\t'))
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
         name[splited[0]] = splited[1].strip()
-        vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
+        vectors[splited[0]] = parseVector(vectorLines[i])
 
     f = open(outputPath, 'w')
     print('Recommending papers...')
@@ -72,20 +78,19 @@ def paperRecommendation():
 
 
 def venueRecommendation():
-    global outputPath, infoLines, vectorLines, recommendCount
+    global outputPath
 
     name = dict()
     venueType = dict()
     category = dict()
     vectors = dict()
-    dimension = len(vectorLines[0].split('\t'))
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
         venueType[splited[0]] = splited[1]
         name[splited[0]] = splited[2].strip()
         category[splited[0]] = splited[3].replace('.', ' ')
-        vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
+        vectors[splited[0]] = parseVector(vectorLines[i])
 
     f = open(outputPath, 'w')
     print('Recommending venues...')
@@ -117,7 +122,7 @@ def venueRecommendation():
 
 
 def authorRecommendation():
-    global outputPath, infoLines, vectorLines, recommendCount
+    global outputPath
 
     f = open(parentDir + '/benchmarks/' + database + '/triplets.txt', 'r')
     s = f.read().split('\n')
@@ -133,12 +138,11 @@ def authorRecommendation():
 
     name = dict()
     vectors = dict()
-    dimension = len(vectorLines[0].split('\t'))
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
         name[splited[0]] = splited[1].strip()
-        vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
+        vectors[splited[0]] = parseVector(vectorLines[i])
 
     f = open(outputPath, 'w')
     print('Recommending authors...')
@@ -168,7 +172,7 @@ def authorRecommendation():
 
 
 def fieldRecommendation():
-    global outputPath, infoLines, vectorLines, recommendCount
+    global outputPath
 
     f = open(parentDir + '/benchmarks/' + database + '/triplets.txt', 'r')
     s = f.read().split('\n')
@@ -184,12 +188,11 @@ def fieldRecommendation():
 
     name = dict()
     vectors = dict()
-    dimension = len(vectorLines[0].split('\t'))
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
         name[splited[0]] = splited[1].strip()
-        vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
+        vectors[splited[0]] = parseVector(vectorLines[i])
 
     f = open(outputPath, 'w')
     print('Recommending fields...')
@@ -219,7 +222,7 @@ def fieldRecommendation():
 
 
 def instituteRecommendation():
-    global outputPath, infoLines, vectorLines, recommendCount
+    global outputPath
 
     f = open(parentDir + '/data/' + database + '/PaperAuthorAffiliations.data', 'r')
     s = f.read().split('\n')
@@ -240,12 +243,11 @@ def instituteRecommendation():
 
     name = dict()
     vectors = dict()
-    dimension = len(vectorLines[0].split('\t'))
 
     for i in range(len(infoLines) - 1):
         splited = infoLines[i].split('\t')
         name[splited[0]] = splited[1].strip()
-        vectors[splited[0]] = list(map(lambda x: float(x), vectorLines[i].split('\t')))
+        vectors[splited[0]] = parseVector(vectorLines[i])
 
     f = open(outputPath, 'w')
     print('Recommending institutes...')

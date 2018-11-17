@@ -70,8 +70,14 @@ data = json.loads(s)
 dataSavePath = resultPath + 'relationVector.data'
 if update or not os.path.exists(dataSavePath):
     f = open(dataSavePath, 'w')
-    for i in range(len(data['rel_embeddings'])):
-        f.write('\t'.join(list(map(lambda x: str(x), data['rel_embeddings'][i]))) + '\n')
+    if not 'ComplEx' in method:
+        for i in range(len(data['rel_embeddings'])):
+            f.write('\t'.join(list(map(lambda x: str(x), data['rel_embeddings'][i]))) + '\n')
+    else:
+        for i in range(len(data['rel_re_embeddings'])):
+            vector = [complex(data['rel_re_embeddings'][i][j], data['ent_im_embeddings'][i][j])
+                      for j in range(len(data['rel_re_embeddings'][i]))]
+            f.write('\t'.join(list(map(lambda x: str(x), vector))) + '\n')
     f.close()
 
 for type in types:
@@ -92,11 +98,19 @@ for type in types:
         splited = line.split()
         if len(splited) <= 1:
             continue
-        vector = data['ent_embeddings'][entities[splited[0]]]
-        if 'TransH' in method or 'DistMult' in method:
-            l2norm = sum([vector[i] ** 2 for i in range(len(vector))]) ** 0.5
+        entityId = entities[splited[0]]
+        if not 'ComplEx' in method:
+            vector = data['ent_embeddings'][entityId]
+            if 'TransH' in method or 'DistMult' in method:
+                l2norm = sum([abs(vector[i]) ** 2 for i in range(len(vector))]) ** 0.5
+                vector = [vector[i] / l2norm for i in range(len(vector))]
+            f.write('\t'.join(list(map(lambda x: str(x), vector))) + '\n')
+        else:
+            vector = [complex(data['ent_re_embeddings'][entityId][i], data['ent_im_embeddings'][entityId][i])
+                      for i in range(len(data['ent_re_embeddings'][entityId]))]
+            l2norm = sum([abs(vector[i]) ** 2 for i in range(len(vector))]) ** 0.5
             vector = [vector[i] / l2norm for i in range(len(vector))]
-        f.write('\t'.join(list(map(lambda x: str(x), vector))) + '\n')
+            f.write('\t'.join(list(map(lambda x: str(x), vector))) + '\n')
     f.close()
 
 if 'normal_vectors' in data.keys():
