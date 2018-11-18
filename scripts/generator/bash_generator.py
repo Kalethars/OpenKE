@@ -242,6 +242,16 @@ paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
                                    'weighted': [False]
                                    }
                           }
+paramConfig['HolE'] = {'test': {'epoch': [2000],
+                                'dimension': [150, 300],
+                                'nbatches': [100],
+                                'margin': [1.5, 2.0],
+                                'alpha': [0.05, 0.03],
+                                'bern': [0, 1],
+                                'cuda': [1],
+                                'weighted': [False]
+                                }
+                       }
 
 if method != 'all':
     if target == 'all':
