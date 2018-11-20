@@ -35,7 +35,7 @@ def getDimension(method, order):
     f.close()
 
     configLine = s[order]
-    return configLine.split('dimension=')[1].split()[0]
+    return int(configLine.split('dimension=')[1].split()[0])
 
 
 def generateRecommendFile(relation, recommendObject):
