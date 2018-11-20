@@ -165,9 +165,9 @@ paramConfig['TransH'] = {'detailed': {'epoch': [5000],
                          'weighted': {'epoch': [5000],
                                       'dimension': [300],
                                       'nbatches': [100],
-                                      'margin': [2.5],
-                                      'alpha': [0.002],
-                                      'bern': [0],
+                                      'margin': [2.5, 2.0],
+                                      'alpha': [0.002, 0.003],
+                                      'bern': [0, 1],
                                       'cuda': [1],
                                       'weighted': [True]
                                       }

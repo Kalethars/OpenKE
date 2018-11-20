@@ -1,5 +1,12 @@
 import os
 
+try:
+    import win_unicode_console
+
+    win_unicode_console.enable()
+except:
+    pass
+
 
 def prepareAuthorPaper():
     if len(authorPapers) == 0:
@@ -12,8 +19,8 @@ def prepareAuthorPaper():
             if len(splited) != 4:
                 continue
             if authorPapers.get(splited[1], 0) == 0:
-                authorPapers[splited[1]] = []
-            authorPapers[splited[1]].append(splited[0])
+                authorPapers[splited[1]] = set()
+            authorPapers[splited[1]].add(splited[0])
 
     if len(paperTitle) == 0:
         f = open(parentDir + '/data/ACE17K/info/paperInfo.data', 'r')

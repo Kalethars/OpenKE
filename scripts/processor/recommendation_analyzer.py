@@ -244,6 +244,15 @@ def infoLoader():
                     addToSet(fieldAuthors, fieldId, authorId)
                     updateMetric(authorFieldsCount[authorId], fieldId, 1)
 
+        for fieldId in fieldAuthors.keys():
+            for authorId in fieldAuthors[fieldId]:
+                if authorId in authorFieldsCount:
+                    if authorFieldsCount[authorId].get(fieldId, 0) == 0:
+                        authorFieldsCount[authorId][fieldId] = 1
+                else:
+                    authorFieldsCount[authorId] = dict()
+                    authorFieldsCount[authorId][fieldId] = 1
+
         fieldCitedPapers = dict()
         for fieldId in fieldPapers.keys():
             for paperId in fieldPapers[fieldId]:
@@ -269,18 +278,20 @@ def infoLoader():
                     addToSet(fieldVenues, fieldId, venueId)
                     updateMetric(venueFieldsCount[venueId], fieldId, 1)
 
-    def loadVenueName():
-        global venueName
+    def loadVenueInfo():
+        global venueCategory, venueName
 
         filePath = parentDir + '/data/%s/info/venueInfo.data' % database
         f = codecs.open(filePath, 'r', 'gbk')
         s = f.read().split('\n')
         f.close()
 
+        venueCategory = dict()
         venueName = dict()
         for line in s:
             splited = line.split()
             if len(splited) == 5:
+                venueCategory[splited[0]] = splited[3].replace('.', ' ')
                 venueName[splited[0]] = splited[2]
 
     loadPaperYears()
@@ -288,7 +299,7 @@ def infoLoader():
     loadTriplets()
     loadPaperInstitutes()
     calcSecondaryCounts()
-    loadVenueName()
+    loadVenueInfo()
 
 
 def paperRecommendationAnalyzer():
@@ -768,10 +779,12 @@ def venueRecommendationAnalyzer():
     avgCoAuthor = dict()
     avgCoFieldCount = dict()
     avgCoCite = dict()
+    avgCoCategory = dict()
     for num in hitAt:
         avgCoAuthor[num] = dict()
         avgCoFieldCount[num] = dict()
         avgCoCite[num] = dict()
+        avgCoCategory[num] = dict()
     for venueId in venueIdSorted:
         recommendationList = venueRecommendation[venueId]
         for i in range(len(recommendationList)):
@@ -782,11 +795,14 @@ def venueRecommendationAnalyzer():
                     updateMetric(avgCoFieldCount[num], venueId, minSum(venueFieldsCount, venueId, recommendationId))
                     updateMetric(avgCoCite[num], venueId,
                                  coCount2(venueCitedPapers, venuePapers, venueId, recommendationId))
+                    updateMetric(avgCoCategory[num], venueId,
+                                 int(venueCategory[venueId] == venueCategory[recommendationId]))
 
         for num in hitAt:
             avgCoAuthor[num][venueId] /= num
             avgCoFieldCount[num][venueId] /= num
             avgCoCite[num][venueId] /= num
+            avgCoCategory[num][venueId] /= num
 
     output(logFile, ' ' * 25, end='')
     for num in hitAt:
@@ -796,6 +812,7 @@ def venueRecommendationAnalyzer():
     outputMetric('Average Co-authors', avgCoAuthor)
     outputMetric('Average Co-fields-count', avgCoFieldCount)
     outputMetric('Average Co-cites', avgCoCite)
+    outputMetric('Average Co-category', avgCoCategory)
     output(logFile)
 
 
@@ -854,6 +871,7 @@ venuePapers = dict()
 venueAuthors = dict()
 venueFieldsCount = dict()
 venueCitedPapers = dict()
+venueCategory = dict()
 venueName = dict()
 
 infoLoader()
