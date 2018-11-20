@@ -69,7 +69,8 @@ recommendObject = parsedConfig.object if parsedConfig.object else 1  # 0: recomm
 model = method.split('_')[0]
 
 mkdir(['res', database, method, order, 'recommendation'])
-recommendLogPath = parentDir + '/res/%s/%s/%s/recommendation/recommendation.log' % (database, method, order)
+recommendLogPath = parentDir + '/res/%s/%s/%s/recommendation/recommendation_relation=%s_recommend=%s.log' \
+                   % (database, method, order, relation, 'tail' if recommendObject else 'head')
 f = open(recommendLogPath, 'w')
 f.close()
 
@@ -89,5 +90,5 @@ params.set_import_files(importPath)
 params.set_test_recommendation(True)
 params.set_recommend_result_path(recommendLogPath)
 params.init()
-exec ('params.set_model(models.%s)' % model)
+exec('params.set_model(models.%s)' % model)
 params.test()
