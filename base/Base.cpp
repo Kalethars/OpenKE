@@ -40,6 +40,9 @@ extern "C"
 INT getValidTotal();
 
 extern "C"
+INT getRecommendTotal();
+
+extern "C"
 void randReset();
 
 extern "C"

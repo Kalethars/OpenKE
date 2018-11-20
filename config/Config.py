@@ -13,10 +13,12 @@ class Config(object):
         self.parentDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
         self.lib = ctypes.cdll.LoadLibrary(self.parentDir + "/release/Base.so")
-        self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+        self.lib.sampling.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+                                      ctypes.c_void_p,
                                       ctypes.c_int64, ctypes.c_int64, ctypes.c_int64]
         self.lib.getHeadBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         self.lib.getTailBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+        self.lib.getRecommendBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         self.lib.testHead.argtypes = [ctypes.c_void_p, ctypes.c_bool]
         self.lib.testTail.argtypes = [ctypes.c_void_p, ctypes.c_bool]
         self.lib.getTestBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
@@ -29,6 +31,7 @@ class Config(object):
         self.test_flag = False
         self.in_path = None
         self.out_path = None
+        self.recommend_result_path = None
         self.bern = 0
         self.hidden_size = 100
         self.ent_size = self.hidden_size
@@ -49,8 +52,10 @@ class Config(object):
         self.optimizer = None
         self.test_link_prediction = False
         self.test_triple_classification = False
+        self.test_recommendation = False
         self.train_weighted = False
         self.test_weighted = False
+        self.recommend_count = 10
 
     def init(self):
         self.trainModel = None
@@ -118,6 +123,17 @@ class Config(object):
             self.valid_neg_h_addr = self.valid_neg_h.__array_interface__['data'][0]
             self.valid_neg_t_addr = self.valid_neg_t.__array_interface__['data'][0]
             self.valid_neg_r_addr = self.valid_neg_r.__array_interface__['data'][0]
+        if self.test_recommendation:
+            self.lib.importRecommendFiles()
+
+            self.rcmd_h = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
+            self.rcmd_t = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
+            self.rcmd_r = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
+            self.rcmd_w = np.zeros(self.lib.getEntityTotal(), dtype=np.float32)
+            self.rcmd_h_addr = self.rcmd_h.__array_interface__['data'][0]
+            self.rcmd_t_addr = self.rcmd_t.__array_interface__['data'][0]
+            self.rcmd_r_addr = self.rcmd_r.__array_interface__['data'][0]
+            self.rcmd_w_addr = self.rcmd_w.__array_interface__['data'][0]
 
     def get_ent_total(self):
         return self.entTotal
@@ -149,6 +165,12 @@ class Config(object):
     def set_test_triple_classification(self, flag):
         self.test_triple_classification = flag
 
+    def set_test_recommendation(self, flag):
+        self.test_recommendation = flag
+
+    def set_recommend_count(self, count):
+        self.recommend_count = count
+
     def set_log_on(self, flag):
         self.log_on = flag
 
@@ -160,6 +182,9 @@ class Config(object):
 
     def set_out_files(self, path):
         self.out_path = path
+
+    def set_recommend_result_path(self, path):
+        self.recommend_result_path = path
 
     def set_bern(self, bern):
         self.bern = bern
@@ -349,7 +374,7 @@ class Config(object):
                 if self.out_path != None:
                     self.save_parameters(self.out_path)
 
-    def test(self, output):
+    def test(self, output = None):
         with self.graph.as_default():
             with self.sess.as_default():
                 if self.importName != None:
@@ -384,3 +409,8 @@ class Config(object):
                     res_neg = self.test_step(self.test_neg_h, self.test_neg_t, self.test_neg_r)
                     self.lib.test_triple_classification(res_pos.__array_interface__['data'][0],
                                                         res_neg.__array_interface__['data'][0])
+                if self.test_recommendation:
+                    self.lib.getRecommendBatch(self.rcmd_h_addr, self.rcmd_t_addr, self.rcmd_r_addr, self.rcmd_w_addr)
+                    res = self.test_step_with_weight(self.rcmd_h, self.rcmd_t, self.rcmd_r, self.rcmd_w)
+                    self.lib.recommend(res.__array_interface__['data'][0],
+                                       self.recommend_count, self.recommend_result_path)

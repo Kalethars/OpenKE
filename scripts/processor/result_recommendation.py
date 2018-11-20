@@ -1,5 +1,5 @@
 # Execution order:
-# result_mapper -> pca_results_saver -> result_recommendation
+# result_mapper -> pca_results_saver (optional) -> result_recommendation
 
 import argparse
 import os
@@ -300,14 +300,14 @@ limited = not (parsedArgs.unlimited if parsedArgs.unlimited else False)
 
 types = ['paper', 'author', 'institute', 'field', 'venue']
 
-for type in types:
-    if target and type != target:
+for typ in types:
+    if target and typ != target:
         continue
     infoReadDir = parentDir + '/data/' + database + '/info/'
     vectorReadDir = parentDir + '/res/' + '/'.join([database, method, str(order)]) + '/'
     recommendationDir = vectorReadDir + 'recommendation/'
 
-    outputPath = recommendationDir + type + 'Recommendation' + \
+    outputPath = recommendationDir + typ + 'Recommendation' + \
                  '_norm=' + str(round(norm, 2)).rstrip('.0') + \
                  ('_PCA' if pca else '') + \
                  ('' if limited else '_unlimited') + '.txt'
@@ -317,15 +317,15 @@ for type in types:
     if not os.path.exists(recommendationDir):
         os.mkdir(recommendationDir)
 
-    f = codecs.open(infoReadDir + type + 'Info.data', 'r', 'gbk')
+    f = codecs.open(infoReadDir + typ + 'Info.data', 'r', 'gbk')
     infoLines = f.read().split('\n')
     f.close()
 
     if pca:
-        f = open(vectorReadDir + 'pca/' + type + 'PCA.data', 'r')
+        f = open(vectorReadDir + 'pca/' + typ + 'PCA.data', 'r')
     else:
-        f = open(vectorReadDir + type + 'Vector.data', 'r')
+        f = open(vectorReadDir + typ + 'Vector.data', 'r')
     vectorLines = f.read().split('\n')
     f.close()
 
-    exec(type + 'Recommendation()')
+    exec(typ + 'Recommendation()')

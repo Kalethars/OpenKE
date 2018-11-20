@@ -53,6 +53,7 @@ INT tripleTotal = 0;
 INT testTotal = 0;
 INT trainTotal = 0;
 INT validTotal = 0;
+INT recommendTotal = 0;
 
 extern "C"
 INT getEntityTotal() {
@@ -82,6 +83,11 @@ INT getTestTotal() {
 extern "C"
 INT getValidTotal() {
 	return validTotal;
+}
+
+extern "C"
+INT getRecommendTotal() {
+	return recommendTotal;
 }
 /*
 ============================================================

@@ -226,6 +226,31 @@ void importTestFiles() {
     printf("All triples loaded.\n");
 }
 
+Triple *recommendList;
+
+extern "C"
+void importRecommendFiles() {
+    FILE *fin;
+    INT tmp, recommendEntity; // recommendEntity: 0 = head given, 1 (or other) = tail given
+
+	fin = fopen((inPath + "recommend2id.txt").c_str(), "r");
+    tmp = fscanf(fin, "%ld", &recommendTotal);
+
+    for (INT i = 0; i < recommendTotal; i++) {
+        tmp = fscanf(fin, "%ld", &recommendEntity);
+        tmp = fscanf(fin, "%ld", &recommendList[i].r);
+        if (recommendEntity == 0) {
+            tmp = fscanf(fin, "%ld", &recommendList[i].h);
+            recommendList[i].t = -1;
+        } else {
+            tmp = fscanf(fin, "%ld", &recommendList[i].t);
+            recommendList[i].h = -1;
+        }
+        recommendList[i].w = 1.0;
+    }
+
+    fclose(fin);
+}
 
 INT *head_lef;
 INT *head_rig;

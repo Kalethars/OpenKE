@@ -3,6 +3,63 @@
 #include "Setting.h"
 #include "Reader.h"
 #include "Corrupt.h"
+/*=====================================================================================
+entity recommendation
+======================================================================================*/
+INT lastRecommend = 0;
+
+extern "C"
+void getRecommendBatch(INT *ph, INT *pt, INT *pr, REAL *pw) {
+    for (INT i = 0; i < entityTotal; i++) {
+        if (recommendList[lastRecommend].h == -1) {
+            ph[i] = i;
+            pt[i] = recommendList[lastRecommend].t;
+        } else {
+            ph[i] = recommendList[lastRecommend].h;
+            pt[i] = i;
+        }
+        pr[i] = recommendList[lastRecommend].r;
+        pw[i] = recommendList[lastRecommend].w;
+    }
+}
+
+void recommend(REAL *con, INT recommendCount, const char* output) {
+    INT h = recommendList[lastRecommend].h;
+    INT t = recommendList[lastRecommend].t;
+    INT r = recommendList[lastRecommend].r;
+
+    INT* candidates;
+    INT candidateTotal;
+
+    FILE* fp=fopen(output, "a");
+    if (h == -1) {
+        candidateTotal = head_rig[r] - head_lef[r];
+        candidates = (INT *)calloc(candidateTotal, sizeof(INT));
+
+        for (INT i = head_lef[r]; i < head_rig[r]; i++) {
+            candidates[i - head_lef[r]] = head_type[i];
+        }
+        std::sort(candidates, candidates + candidateTotal, [](const INT a, const INT b){return con[a] < con[b];})
+
+        fprintf(fp, "Recommend head entity. Given tail = %ld, relation = %ld.\n", t, r);
+    } else {
+        candidateTotal = tail_rig[r] - tail_lef[r];
+        candidates = (INT *)calloc(candidateTotal, sizeof(INT));
+
+        for (INT i = tail_lef[r]; i < tail_rig[r]; i++) {
+            candidates[i - tail_lef[r]] = tail_type[i];
+        }
+        std::sort(candidates, candidates + candidateTotal, [](const INT a, const INT b){return con[a] < con[b];})
+        fprintf(fp, "Recommend tail entity. Given head = %ld, relation = %ld.\n", h, r);
+    }
+
+    if recommendCount <= 0:
+        recommendCount = candidateTotal;
+    for (INT i = 0; i < recommendCount; i++) {
+        fprintf(fp, "%ld\t%ld\n", i, candidates[i]);
+    }
+    fclose(fp);
+}
 
 /*=====================================================================================
 link prediction
