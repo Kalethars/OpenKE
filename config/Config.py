@@ -21,6 +21,7 @@ class Config(object):
         self.lib.getRecommendBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
         self.lib.testHead.argtypes = [ctypes.c_void_p, ctypes.c_bool]
         self.lib.testTail.argtypes = [ctypes.c_void_p, ctypes.c_bool]
+        self.lib.recommend.argtypes = [ctypes.c_void_p, ctypes.c_int64, ctypes.c_char_p]
         self.lib.getTestBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
                                           ctypes.c_void_p, ctypes.c_void_p]
         self.lib.getValidBatch.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
@@ -124,6 +125,7 @@ class Config(object):
             self.valid_neg_t_addr = self.valid_neg_t.__array_interface__['data'][0]
             self.valid_neg_r_addr = self.valid_neg_r.__array_interface__['data'][0]
         if self.test_recommendation:
+            self.lib.importTestFiles()
             self.lib.importRecommendFiles()
 
             self.rcmd_h = np.zeros(self.lib.getEntityTotal(), dtype=np.int64)
@@ -410,7 +412,9 @@ class Config(object):
                     self.lib.test_triple_classification(res_pos.__array_interface__['data'][0],
                                                         res_neg.__array_interface__['data'][0])
                 if self.test_recommendation:
-                    self.lib.getRecommendBatch(self.rcmd_h_addr, self.rcmd_t_addr, self.rcmd_r_addr, self.rcmd_w_addr)
-                    res = self.test_step_with_weight(self.rcmd_h, self.rcmd_t, self.rcmd_r, self.rcmd_w)
-                    self.lib.recommend(res.__array_interface__['data'][0],
-                                       self.recommend_count, self.recommend_result_path)
+                    total = self.lib.getRecommendTotal()
+                    for times in range(total):
+                        self.lib.getRecommendBatch(self.rcmd_h_addr, self.rcmd_t_addr, self.rcmd_r_addr, self.rcmd_w_addr)
+                        res = self.test_step_with_weight(self.rcmd_h, self.rcmd_t, self.rcmd_r, self.rcmd_w)
+                        self.lib.recommend(res.__array_interface__['data'][0],
+                                           self.recommend_count, self.recommend_result_path)

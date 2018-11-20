@@ -23,41 +23,86 @@ void getRecommendBatch(INT *ph, INT *pt, INT *pr, REAL *pw) {
     }
 }
 
+struct PAIR {
+	INT key;
+	REAL value;
+
+	static bool cmp_value(const PAIR &a, const PAIR &b) {
+		return (a.value < b.value);
+	}
+};
+
+extern "C"
 void recommend(REAL *con, INT recommendCount, const char* output) {
     INT h = recommendList[lastRecommend].h;
     INT t = recommendList[lastRecommend].t;
     INT r = recommendList[lastRecommend].r;
 
-    INT* candidates;
+    PAIR* candidates;
     INT candidateTotal;
 
-    FILE* fp=fopen(output, "a");
+    FILE* fp = fopen(output, "a");
     if (h == -1) {
         candidateTotal = head_rig[r] - head_lef[r];
-        candidates = (INT *)calloc(candidateTotal, sizeof(INT));
+        candidates = (PAIR *)calloc(candidateTotal, sizeof(PAIR));
 
         for (INT i = head_lef[r]; i < head_rig[r]; i++) {
-            candidates[i - head_lef[r]] = head_type[i];
+            candidates[i - head_lef[r]].key = head_type[i];
+            candidates[i - head_lef[r]].value = con[i];
         }
-        std::sort(candidates, candidates + candidateTotal, [](const INT a, const INT b){return con[a] < con[b];})
+        std::sort(candidates, candidates + candidateTotal, PAIR::cmp_value);
 
-        fprintf(fp, "Recommend head entity. Given tail = %ld, relation = %ld.\n", t, r);
+        fprintf(fp, "Case %ld. Recommend head entity. Given tail = %ld, relation = %ld.\n", lastRecommend + 1, t, r);
+        printf("Case %ld. Recommend head entity. Given tail = %ld, relation = %ld.\n", lastRecommend + 1, t, r);
+
+        if (recommendCount <= 0) {
+            recommendCount = candidateTotal;
+        }
+
+        INT j = 0;
+        for (INT i = 0; i < recommendCount; i++) {
+            while (_find(candidates[j].key, t, r)) {
+                j++;
+            }
+            if (i == recommendCount -1) {
+                fprintf(fp, "%ld\n", candidates[j].key);
+            } else {
+                fprintf(fp, "%ld\t", candidates[j].key);
+            }
+            j++;
+        }
     } else {
         candidateTotal = tail_rig[r] - tail_lef[r];
-        candidates = (INT *)calloc(candidateTotal, sizeof(INT));
+        candidates = (PAIR *)calloc(candidateTotal, sizeof(PAIR));
 
         for (INT i = tail_lef[r]; i < tail_rig[r]; i++) {
-            candidates[i - tail_lef[r]] = tail_type[i];
+            candidates[i - tail_lef[r]].key = tail_type[i];
+            candidates[i - tail_lef[r]].value = con[i];
         }
-        std::sort(candidates, candidates + candidateTotal, [](const INT a, const INT b){return con[a] < con[b];})
-        fprintf(fp, "Recommend tail entity. Given head = %ld, relation = %ld.\n", h, r);
-    }
+        std::sort(candidates, candidates + candidateTotal, PAIR::cmp_value);
 
-    if recommendCount <= 0:
-        recommendCount = candidateTotal;
-    for (INT i = 0; i < recommendCount; i++) {
-        fprintf(fp, "%ld\t%ld\n", i, candidates[i]);
+        fprintf(fp, "Case %ld. Recommend tail entity. Given head = %ld, relation = %ld.\n", lastRecommend + 1, h, r);
+        printf("Case %ld. Recommend tail entity. Given head = %ld, relation = %ld.\n", lastRecommend + 1, h, r);
+
+        if (recommendCount <= 0) {
+            recommendCount = candidateTotal;
+        }
+
+        INT j = 0;
+        for (INT i = 0; i < recommendCount; i++) {
+            while (_find(h, candidates[j].key, r)) {
+                j++;
+            }
+            if (i == recommendCount -1) {
+                fprintf(fp, "%ld\n", candidates[j].key);
+            } else {
+                fprintf(fp, "%ld\t", candidates[j].key);
+            }
+            j++;
+        }
     }
+    lastRecommend++;
+
     fclose(fp);
 }
 

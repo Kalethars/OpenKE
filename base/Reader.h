@@ -230,11 +230,15 @@ Triple *recommendList;
 
 extern "C"
 void importRecommendFiles() {
+    printf("Start loading recommend file.\n");
+
     FILE *fin;
     INT tmp, recommendEntity; // recommendEntity: 0 = head given, 1 (or other) = tail given
 
 	fin = fopen((inPath + "recommend2id.txt").c_str(), "r");
     tmp = fscanf(fin, "%ld", &recommendTotal);
+    printf("Recommend total: %ld\n", recommendTotal);
+    recommendList = (Triple *)calloc(recommendTotal, sizeof(Triple));
 
     for (INT i = 0; i < recommendTotal; i++) {
         tmp = fscanf(fin, "%ld", &recommendEntity);
@@ -250,6 +254,8 @@ void importRecommendFiles() {
     }
 
     fclose(fin);
+
+    printf("Recommend file loaded.\n");
 }
 
 INT *head_lef;
