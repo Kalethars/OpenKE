@@ -53,6 +53,17 @@ def generateRecommendFile(relation, recommendObject):
 
 
 def generateTypeConstraint():
+    f = open(benchmarkDir + 'triplets.txt', 'r')
+    s = f.read().split('\n')
+    f.close()
+
+    legalEntities = set()
+    for line in s:
+        splited = line.split()
+        if len(splited) != 3:
+            continue
+        legalEntities.add(splited[0], splited[2])
+
     f = open(benchmarkDir + 'entity2id.txt', 'r')
     s = f.read().split('\n')
     f.close()
@@ -62,6 +73,8 @@ def generateTypeConstraint():
     for line in s:
         splited = line.split()
         if len(splited) != 2:
+            continue
+        if not splited[0] in legalEntities:
             continue
         entityIndex[splited[0]] = splited[1]
         typeCount[splited[0][0]] = typeCount.get(splited[0][0], 0) + 1
