@@ -62,7 +62,8 @@ def generateTypeConstraint():
         splited = line.split()
         if len(splited) != 3:
             continue
-        legalEntities.add(splited[0], splited[2])
+        legalEntities.add(splited[0])
+        legalEntities.add(splited[2])
 
     f = open(benchmarkDir + 'entity2id.txt', 'r')
     s = f.read().split('\n')
