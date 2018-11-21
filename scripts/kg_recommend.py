@@ -63,8 +63,8 @@ parsedConfig = parser.parse_args()
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
 method = parsedConfig.method
 order = parsedConfig.order if parsedConfig.order else getBestOrder(database, method)
-relation = parsedConfig.relation if parsedConfig.relation else 2
-recommendObject = parsedConfig.object if parsedConfig.object else 1  # 0: recommend head, 1: recommend tail;
+relation = parsedConfig.relation if not parsedConfig.relation is None else 2
+recommendObject = parsedConfig.object if not parsedConfig.object is None else 1  # 0: recommend head, 1: recommend tail;
 
 model = method.split('_')[0]
 
