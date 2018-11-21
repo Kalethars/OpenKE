@@ -56,15 +56,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
-parser.add_argument('--relation', type=int, required=False)
-parser.add_argument('--object', type=int, required=False)
+parser.add_argument('--relation', type=int, required=True)
+parser.add_argument('--object', type=int, required=True)
 parsedConfig = parser.parse_args()
 
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
 method = parsedConfig.method
 order = parsedConfig.order if parsedConfig.order else getBestOrder(database, method)
-relation = parsedConfig.relation if not parsedConfig.relation is None else 2
-recommendObject = parsedConfig.object if not parsedConfig.object is None else 1  # 0: recommend head, 1: recommend tail;
+relation = parsedConfig.relation
+recommendObject = parsedConfig.object  # 0: recommend head, 1: recommend tail;
 
 model = method.split('_')[0]
 
