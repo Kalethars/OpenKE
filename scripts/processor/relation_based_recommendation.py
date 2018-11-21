@@ -94,14 +94,15 @@ for line in s:
         continue
     relationName[splited[1]] = camel(relationMap.get(splited[0], splited[0]))
 
-fileList = os.listdir(recommendationDir)
+rawLogDir = recommendationDir + 'raw/'
+fileList = os.listdir(rawLogDir)
 for fileName in fileList:
     if 'relation=' in fileName and 'recommend=' in fileName:
         relationId = re.split('\.|_', fileName.split('relation=')[1])[0]
         recommendObject = re.split('\.|_', fileName.split('recommend=')[1])[0]
         givenObject = 'head' if recommendObject == 'tail' else 'tail'
 
-        f = open(recommendationDir + fileName, 'r')
+        f = open(rawLogDir + fileName, 'r')
         s = f.read().split('\n')
         f.close()
 
@@ -117,7 +118,7 @@ for fileName in fileList:
                 recommendLine = s[i + 1]
                 recommendIds[givenId] = list(map(lambda x: x.strip(), recommendLine.split()))
 
-        f = open(recommendationDir + 'analyzed/recommendation_%s_%s.txt' %
+        f = open(recommendationDir + 'recommendation_%s_%s.txt' %
                  (relationName[relationId], recommendObject), 'w')
         givenIds = sorted(givenIds, key=lambda x: entityName[x])
         for givenId in givenIds:

@@ -332,7 +332,7 @@ def paperRecommendationAnalyzer():
     s = f.read().split('\n')
     f.close()
 
-    analyzedFilePath = recommendationDir + '/analyzed/paper' + filenameSuffix
+    analyzedFilePath = recommendationDir + 'analyzed/paper' + filenameSuffix
     f = open(analyzedFilePath, 'w')
 
     paperRecommendation = dict()
@@ -448,7 +448,7 @@ def authorRecommendationAnalyzer():
     s = f.read().split('\n')
     f.close()
 
-    analyzedFilePath = recommendationDir + '/analyzed/author' + filenameSuffix
+    analyzedFilePath = recommendationDir + 'analyzed/author' + filenameSuffix
     f = open(analyzedFilePath, 'w')
 
     authorRecommendation = dict()
@@ -558,7 +558,7 @@ def fieldRecommendationAnalyzer():
     s = f.read().split('\n')
     f.close()
 
-    analyzedFilePath = recommendationDir + '/analyzed/field' + filenameSuffix
+    analyzedFilePath = recommendationDir + 'analyzed/field' + filenameSuffix
     f = open(analyzedFilePath, 'w')
 
     fieldRecommendation = dict()
@@ -656,7 +656,7 @@ def instituteRecommendationAnalyzer():
     s = f.read().split('\n')
     f.close()
 
-    analyzedFilePath = recommendationDir + '/analyzed/institute' + filenameSuffix
+    analyzedFilePath = recommendationDir + 'analyzed/institute' + filenameSuffix
     f = open(analyzedFilePath, 'w')
 
     instituteRecommendation = dict()
@@ -747,7 +747,7 @@ def venueRecommendationAnalyzer():
     s = f.read().split('\n')
     f.close()
 
-    analyzedFilePath = recommendationDir + '/analyzed/venue' + filenameSuffix
+    analyzedFilePath = recommendationDir + 'analyzed/venue' + filenameSuffix
     f = open(analyzedFilePath, 'w')
 
     venueRecommendation = dict()
@@ -816,16 +816,135 @@ def venueRecommendationAnalyzer():
     output(logFile)
 
 
+def paperCitePaperRecommendationAnalyzer():
+    def paperProperties(recommendationId, paperId):
+        if recommendationId == paperId:
+            properties = [
+                ('Year', paperYears[paperId]),
+                ('Citation', paperCitations[paperId]),
+                ('Cite & Cited by', getLength(paperCitedPapers, paperId)),
+                ('Fields', getLength(paperFields, paperId)),
+                ('Authors', getLength(paperAuthors, paperId)),
+                ('Venue', '/'.join(list(map(lambda x: venueName[x], paperVenues.get(paperId, []))))),
+                ('Institutes', getLength(paperInstitutes, paperId))
+            ]
+        else:
+            properties = [
+                ('Year', paperYears[recommendationId]),
+                ('Citation', paperCitations[recommendationId]),
+                ('Co-cites', coCount(paperCitedPapers, paperId, recommendationId) +
+                             1 if recommendationId in paperCitedPapers.get(paperId, set()) else 0),
+                ('Co-fields', coCount(paperFields, paperId, recommendationId)),
+                ('Co-authors', coCount(paperAuthors, paperId, recommendationId)),
+                ('Co-venues', coCount(paperVenues, paperId, recommendationId)),
+                ('Co-institutes', coCount(paperInstitutes, paperId, recommendationId))
+            ]
+        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+
+    for object in ['head', 'tail']:
+        filePath = recommendationDir + 'recommendation_paperCitePaper_%s.txt' % object
+        f = open(filePath, 'r')
+        s = f.read().split('\n')
+        f.close()
+
+        analyzedFilePath = recommendationDir + 'analyzed/recommendation_paperCitePaper_%s_analyzed.txt' % object
+        f = open(analyzedFilePath, 'w')
+
+        paperRecommendation = dict()
+        paperIdSorted = []
+        for i in range(len(s)):
+            if '-' * 50 in s[i]:
+                paperId = s[i - 1].split()[1]
+                paperIdSorted.append(paperId)
+
+                f.write(s[i - 1] + '\n')
+                f.write(paperProperties(paperId, paperId) + '\n')
+                f.write('-' * 50 + '\n')
+
+                paperRecommendation[paperId] = []
+                for j in range(count):
+                    splited = s[i + j + 1].split()
+                    if len(splited) < 2:
+                        continue
+                    recommendationId = splited[1]
+                    paperRecommendation[paperId].append(recommendationId)
+
+                    f.write(s[i + j + 1] + '\n')
+                    f.write(paperProperties(recommendationId, paperId) + '\n')
+
+                f.write('\n')
+
+        f.close()
+
+        avgYearDiff = dict()
+        avgCiteDiff = dict()
+        avgCoCite = dict()
+        avgCoField = dict()
+        avgCoAuthor = dict()
+        avgCoVenue = dict()
+        avgCoInstitute = dict()
+        for num in hitAt:
+            avgYearDiff[num] = dict()
+            avgCiteDiff[num] = dict()
+            avgCoCite[num] = dict()
+            avgCoField[num] = dict()
+            avgCoAuthor[num] = dict()
+            avgCoVenue[num] = dict()
+            avgCoInstitute[num] = dict()
+        for paperId in paperIdSorted:
+            recommendationList = paperRecommendation[paperId]
+            for i in range(len(recommendationList)):
+                recommendationId = recommendationList[i]
+                for num in hitAt:
+                    if i < num:
+                        updateMetric(avgYearDiff[num], paperId, paperYears[recommendationId] - paperYears[paperId])
+                        updateMetric(avgCiteDiff[num], paperId,
+                                     paperCitations[recommendationId] - paperCitations[paperId])
+                        updateMetric(avgCoCite[num], paperId, coCount(paperCitedPapers, paperId, recommendationId))
+                        if recommendationId in paperCitedPapers.get(paperId, set()):
+                            updateMetric(avgCoCite[num], paperId, 1)
+                        updateMetric(avgCoField[num], paperId, coCount(paperFields, paperId, recommendationId))
+                        updateMetric(avgCoAuthor[num], paperId, coCount(paperAuthors, paperId, recommendationId))
+                        updateMetric(avgCoVenue[num], paperId, coCount(paperVenues, paperId, recommendationId))
+                        updateMetric(avgCoInstitute[num], paperId, coCount(paperInstitutes, paperId, recommendationId))
+
+            for num in hitAt:
+                avgYearDiff[num][paperId] /= num
+                avgCiteDiff[num][paperId] /= num
+                avgCoCite[num][paperId] /= num
+                avgCoField[num][paperId] /= num
+                avgCoAuthor[num][paperId] /= num
+                avgCoVenue[num][paperId] /= num
+                avgCoInstitute[num][paperId] /= num
+
+        output(logFile, 'Recommend %s papers:' % ('novel' if object == 'head' else 'traditional'))
+        output(logFile, ' ' * 25, end='')
+        for num in hitAt:
+            valueString = 'Hit@' + str(num)
+            output(logFile, valueString, end=' ' * (12 - len(valueString)))
+        output(logFile)
+        outputMetric('Average Year Diff', avgYearDiff)
+        outputMetric('Average Citation Diff', avgCiteDiff)
+        outputMetric('Average Co-cites', avgCoCite)
+        outputMetric('Average Co-fields', avgCoField)
+        outputMetric('Average Co-authors', avgCoAuthor)
+        outputMetric('Average Co-venues', avgCoVenue)
+        outputMetric('Average Co-institutes', avgCoInstitute)
+        output(logFile)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
-parser.add_argument('--pca', type=bool, required=False)
+parser.add_argument('--pca', type=bool, required=False)  # not recommended
 parser.add_argument('--norm', type=int, required=False)
 parser.add_argument('--count', type=int, required=False)
+# If need to analyze relation based recommendation results, add target=relbased
 parser.add_argument('--target', type=str, required=False)
 parser.add_argument('--unlimited', type=bool, required=False)
 parser.add_argument('--nolog', type=bool, required=False)
+parser.add_argument('--relbased', type=bool, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -894,6 +1013,13 @@ for type in types:
         if os.path.exists(filePath):
             output(logFile, type.capitalize())
             exec('%sRecommendationAnalyzer()' % type)
+
+if 'relbased' in target:
+    if not logFile is None:
+        logFile.close()
+        logFile = open(recommendationDir + 'analyzed/relation_based_recommendation_analysis.log', 'w')
+
+    paperCitePaperRecommendationAnalyzer()
 
 if not logFile is None:
     logFile.close()

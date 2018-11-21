@@ -127,8 +127,8 @@ recommendObject = parsedConfig.object  # 0: recommend head, 1: recommend tail;
 
 model = method.split('_')[0]
 
-mkdir(['res', database, method, order, 'recommendation'])
-recommendLogPath = parentDir + '/res/%s/%s/%s/recommendation/recommendation_relation=%s_recommend=%s.log' \
+mkdir(['res', database, method, order, 'recommendation', 'raw'])
+recommendLogPath = parentDir + '/res/%s/%s/%s/recommendation/raw/recommendation_relation=%s_recommend=%s.log' \
                    % (database, method, order, relation, 'tail' if recommendObject else 'head')
 f = open(recommendLogPath, 'w')
 f.close()
