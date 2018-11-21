@@ -95,7 +95,7 @@ def generateTypeConstraint():
     os.rename(benchmarkDir + 'type_constrain.txt', benchmarkDir + 'type_constrain.bak')
     f = open(benchmarkDir + 'type_constrain.txt', 'w')
     f.write('%i\t%i\t%i\n' % (relationCount, headCount, tailCount))
-    for relation in relationMap.keys():
+    for relation in sorted(relationMap.keys()):
         for object in range(2):
             typ = relationMap[relation][object]
             f.write('%s\t%i' % (relation, typeCount[typ]))
