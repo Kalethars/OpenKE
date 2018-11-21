@@ -52,6 +52,51 @@ def generateRecommendFile(relation, recommendObject):
     f.close()
 
 
+def generateTypeConstraint():
+    f = open(benchmarkDir + 'entity2id.txt', 'r')
+    s = f.read()
+    f.close()
+
+    entityIndex = dict()
+    typeCount = dict()
+    for line in s:
+        splited = line.split()
+        if len(splited) != 2:
+            continue
+        entityIndex[splited[0]] = splited[1]
+        typeCount[splited[0][0]] = typeCount.get(splited[0][0], 0) + 1
+
+    relationMap = {'0': ('a', 'i'),
+                   '1': ('a', 'f'),
+                   '2': ('p', 'a'),
+                   '3': ('p', 'f'),
+                   '4': ('p', 'v'),
+                   '5': ('p', 'p'),
+                   '6': ('f', 'f')
+                   }
+    relationCount = len(relationMap)
+    headCount = sum([typeCount[relationMap[relation][0]] for relation in relationMap.keys()])
+    tailCount = sum([typeCount[relationMap[relation][1]] for relation in relationMap.keys()])
+
+    os.rename(benchmarkDir + 'type_constain.txt', benchmarkDir + 'type_constain.bak')
+    f = open(benchmarkDir + 'type_constrain.txt', 'w')
+    f.write('%i\t%i\t%i\n' % (relationCount, headCount, tailCount))
+    for relation in relationMap.keys():
+        for object in range(2):
+            typ = relationMap[relation][object]
+            f.write('%s\t%i' % (relation, typeCount[typ]))
+            for entity in entityIndex.keys():
+                if entity[0] == typ:
+                    f.write('\t%s' % entityIndex[entity])
+            f.write('\n')
+    f.close()
+
+
+def revertTypeConstraint():
+    os.remove(benchmarkDir + 'type_constrain.txt')
+    os.rename(benchmarkDir + 'type_constain.bak', benchmarkDir + 'type_constain.txt')
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
@@ -78,6 +123,7 @@ resultDir = parentDir + '/res/%s/%s/' % (database, method)
 benchmarkDir = parentDir + '/benchmarks/%s/' % database
 
 generateRecommendFile(relation, recommendObject)
+generateTypeConstraint()
 
 importPath = resultDir + '%s/model.vec.tf' % order
 
@@ -92,3 +138,5 @@ params.set_recommend_result_path(recommendLogPath)
 params.init()
 exec('params.set_model(models.%s)' % model)
 params.test()
+
+revertTypeConstraint()
