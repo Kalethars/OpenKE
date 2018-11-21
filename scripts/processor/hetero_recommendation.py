@@ -127,6 +127,6 @@ for fileName in fileList:
                 recommendId = entityIndex[recommendIds[givenId][i]]
                 recommendName = entityName[recommendId]
                 recommendRank = recommendIds[givenId][i + 1]
-                f.write('%s\t%s\t%s\n' % (recommendRank, recommendId, relationName))
+                f.write('%s\t%s\t%s\n' % (recommendRank, recommendId, recommendName))
             f.write('\n')
         f.close()

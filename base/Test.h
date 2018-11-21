@@ -48,7 +48,7 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
 
         for (INT i = head_lef[r]; i < head_rig[r]; i++) {
             candidates[i - head_lef[r]].key = head_type[i];
-            candidates[i - head_lef[r]].value = con[i];
+            candidates[i - head_lef[r]].value = con[head_type[i]];
         }
         std::sort(candidates, candidates + candidateTotal, PAIR::cmp_value);
 
@@ -61,7 +61,7 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
 
         INT j = 0;
         for (INT i = 0; i < recommendCount; i++) {
-            while (_find(candidates[j].key, t, r)) {
+            while (_find(candidates[j].key, t, r) || t == candidates[j].key) {
                 j++;
             }
             if (i == recommendCount -1) {
@@ -77,7 +77,7 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
 
         for (INT i = tail_lef[r]; i < tail_rig[r]; i++) {
             candidates[i - tail_lef[r]].key = tail_type[i];
-            candidates[i - tail_lef[r]].value = con[i];
+            candidates[i - tail_lef[r]].value = con[tail_type[i]];
         }
         std::sort(candidates, candidates + candidateTotal, PAIR::cmp_value);
 
@@ -90,7 +90,7 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
 
         INT j = 0;
         for (INT i = 0; i < recommendCount; i++) {
-            while (_find(h, candidates[j].key, r)) {
+            while (_find(h, candidates[j].key, r) || h == candidates[j].key) {
                 j++;
             }
             if (i == recommendCount -1) {
