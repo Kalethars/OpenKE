@@ -136,8 +136,8 @@ f.close()
 resultDir = parentDir + '/res/%s/%s/' % (database, method)
 benchmarkDir = parentDir + '/benchmarks/%s/' % database
 
-generateRecommendFile(relation, recommendObject)
 generateTypeConstraint()
+generateRecommendFile(relation, recommendObject)
 
 importPath = resultDir + '%s/model.vec.tf' % order
 
