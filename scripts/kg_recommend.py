@@ -54,7 +54,7 @@ def generateRecommendFile(relation, recommendObject):
 
 def generateTypeConstraint():
     f = open(benchmarkDir + 'entity2id.txt', 'r')
-    s = f.read()
+    s = f.read().split('\n')
     f.close()
 
     entityIndex = dict()
@@ -78,7 +78,7 @@ def generateTypeConstraint():
     headCount = sum([typeCount[relationMap[relation][0]] for relation in relationMap.keys()])
     tailCount = sum([typeCount[relationMap[relation][1]] for relation in relationMap.keys()])
 
-    os.rename(benchmarkDir + 'type_constain.txt', benchmarkDir + 'type_constain.bak')
+    os.rename(benchmarkDir + 'type_constrain.txt', benchmarkDir + 'type_constrain.bak')
     f = open(benchmarkDir + 'type_constrain.txt', 'w')
     f.write('%i\t%i\t%i\n' % (relationCount, headCount, tailCount))
     for relation in relationMap.keys():
@@ -94,7 +94,7 @@ def generateTypeConstraint():
 
 def revertTypeConstraint():
     os.remove(benchmarkDir + 'type_constrain.txt')
-    os.rename(benchmarkDir + 'type_constain.bak', benchmarkDir + 'type_constain.txt')
+    os.rename(benchmarkDir + 'type_constrain.bak', benchmarkDir + 'type_constrain.txt')
 
 
 parser = argparse.ArgumentParser()
