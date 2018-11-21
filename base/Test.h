@@ -65,9 +65,9 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
                 j++;
             }
             if (i == recommendCount -1) {
-                fprintf(fp, "%ld\n", candidates[j].key);
+                fprintf(fp, "%ld %ld\n", candidates[j].key, j + 1);
             } else {
-                fprintf(fp, "%ld\t", candidates[j].key);
+                fprintf(fp, "%ld %ld\t", candidates[j].key, j + 1);
             }
             j++;
         }
@@ -94,9 +94,9 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
                 j++;
             }
             if (i == recommendCount -1) {
-                fprintf(fp, "%ld\n", candidates[j].key);
+                fprintf(fp, "%ld %ld\n", candidates[j].key, j + 1);
             } else {
-                fprintf(fp, "%ld\t", candidates[j].key);
+                fprintf(fp, "%ld %ld\t", candidates[j].key, j + 1);
             }
             j++;
         }
