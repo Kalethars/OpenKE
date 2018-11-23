@@ -1063,7 +1063,7 @@ def paperIsWrittenByAuthorAnalyzer():
             valueString = 'Hit@' + str(num)
             output(logFile, valueString, end=' ' * (12 - len(valueString)))
         output(logFile)
-        outputMetric('Average Year Diff', avgYearDiffAbs)
+        outputMetric('Average Year Diff Abs', avgYearDiffAbs)
         outputMetric('Average Co-fields', avgCoField)
         outputMetric('Average Co-authors', avgCoAuthor)
         outputMetric('Average Co-venues', avgCoVenue)
