@@ -117,6 +117,7 @@ parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--relation', type=int, required=True)
 parser.add_argument('--object', type=int, required=True)
+parser.add_argument('--replace', type=int, required=False)
 parsedConfig = parser.parse_args()
 
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
@@ -124,6 +125,7 @@ method = parsedConfig.method
 order = parsedConfig.order if parsedConfig.order else getBestOrder(database, method)
 relation = parsedConfig.relation
 recommendObject = parsedConfig.object  # 0: recommend head, 1: recommend tail;
+replaceTypeConstraint = parsedConfig.replace if parsedConfig.replace is not None else 1
 
 model = method.split('_')[0]
 
@@ -136,7 +138,8 @@ f.close()
 resultDir = parentDir + '/res/%s/%s/' % (database, method)
 benchmarkDir = parentDir + '/benchmarks/%s/' % database
 
-generateTypeConstraint()
+if replaceTypeConstraint:
+    generateTypeConstraint()
 generateRecommendFile(relation, recommendObject)
 
 importPath = resultDir + '%s/model.vec.tf' % order
@@ -153,4 +156,5 @@ params.init()
 exec('params.set_model(models.%s)' % model)
 params.test()
 
-revertTypeConstraint()
+if replaceTypeConstraint:
+    revertTypeConstraint()

@@ -61,15 +61,15 @@ def formattedRound(number, digit):
         return rounded + (digit - len(rounded.split('.')[1])) * '0'
 
 
-def coCount(data, a, b):  # One set
+def coCount(data, a, b):  # One dict
     return len(data.get(a, set()) & data.get(b, set()))
 
 
-def coCount2(dataA, dataB, a, b):  # Two homo sets
+def coCount2(dataA, dataB, a, b):  # Two homo dicts
     return len((dataA.get(a, set()) & dataB.get(b, set())) | (dataB.get(a, set()) & dataA.get(b, set())))
 
 
-def coCount3(dataA, dataB, a, b):  # Two hetero sets/dicts
+def coCount3(dataA, dataB, a, b):  # Two hetero dicts
     return len(set(dataA.get(a, set())) & set(dataB.get(b, set())))
 
 
@@ -851,7 +851,6 @@ def paperIsWrittenByAuthorAnalyzer():
             else:
                 properties = [
                     ('Year', paperYears[recommendationId]),
-                    # ('Citation', paperCitations[recommendationId]),
                     ('Co-fields', coCount3(authorFieldsCount, paperFields, authorId, recommendationId)),
                     ('Co-authors', coCount3(authorCoAuthors, paperAuthors, authorId, recommendationId)),
                     ('Co-venues', coCount3(authorVenues, paperVenues, authorId, recommendationId)),
@@ -896,7 +895,6 @@ def paperIsWrittenByAuthorAnalyzer():
         f.close()
 
         avgYearDiffAbs = dict()
-        # avgCitation = dict()
         avgCoField = dict()
         avgCoAuthor = dict()
         avgCoVenue = dict()
@@ -904,7 +902,6 @@ def paperIsWrittenByAuthorAnalyzer():
         avgCoCite = dict()
         for num in hitAt:
             avgYearDiffAbs[num] = dict()
-            # avgCitation[num] = dict()
             avgCoField[num] = dict()
             avgCoAuthor[num] = dict()
             avgCoVenue[num] = dict()
@@ -918,7 +915,6 @@ def paperIsWrittenByAuthorAnalyzer():
                     if i < num:
                         updateMetric(avgYearDiffAbs[num], authorId,
                                      abs(paperYears[recommendationId] - authorYears[authorId]))
-                        # updateMetric(avgCitation[num], authorId, paperCitations[recommendationId])
                         updateMetric(avgCoField[num], authorId,
                                      coCount3(authorFieldsCount, paperFields, authorId, recommendationId))
                         updateMetric(avgCoAuthor[num], authorId,
@@ -934,7 +930,6 @@ def paperIsWrittenByAuthorAnalyzer():
 
             for num in hitAt:
                 avgYearDiffAbs[num][authorId] /= num
-                # avgCitation[num][authorId] /= num
                 avgCoField[num][authorId] /= num
                 avgCoAuthor[num][authorId] /= num
                 avgCoVenue[num][authorId] /= num
@@ -948,7 +943,6 @@ def paperIsWrittenByAuthorAnalyzer():
             output(logFile, valueString, end=' ' * (12 - len(valueString)))
         output(logFile)
         outputMetric('Average Year Diff Abs', avgYearDiffAbs)
-        # outputMetric('Average Citation', avgCitation)
         outputMetric('Average Co-fields', avgCoField)
         outputMetric('Average Co-authors', avgCoAuthor)
         outputMetric('Average Co-venues', avgCoVenue)
@@ -1192,6 +1186,116 @@ def paperCitePaperAnalyzer():
         output(logFile)
 
 
+def paperIsInFieldAnalyzer():
+    def coProperties(recommendationId, paperId):
+        if recommendationId == paperId:
+            properties = [
+                ('Year', paperYears[paperId]),
+                ('Citation', paperCitations[paperId]),
+                ('Cite & Cited by', getLength(paperCitedPapers, paperId)),
+                ('Authors', getLength(paperAuthors, paperId)),
+                ('Venue', '/'.join(list(map(lambda x: venueName[x], paperVenues.get(paperId, [])))))
+            ]
+        else:
+            properties = [
+                ('Co-papers', coCount3(paperCitedPapers, fieldPapers, paperId, recommendationId)),
+                ('Co-authors', coCount3(paperAuthors, fieldAuthors, paperId, recommendationId)),
+                ('Co-venues', coCount3(paperVenues, fieldVenues, paperId, recommendationId)),
+                ('Co-words', coCount3(paperTitleStems, fieldNameStems, paperId, recommendationId))
+            ]
+        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+
+    import nltk
+    stemmer = nltk.PorterStemmer()
+
+    filePath = recommendationDir + 'recommendation_paperIsInField_tail.txt'
+    f = open(filePath, 'r')
+    s = f.read().split('\n')
+    f.close()
+
+    analyzedFilePath = recommendationDir + 'analyzed/recommendation_paperIsInField_tail_analyzed.txt'
+    f = open(analyzedFilePath, 'w')
+
+    fieldRecommendation = dict()
+    paperIdSorted = []
+    paperTitleStems = dict()
+    fieldNameStems = dict()
+    for i in range(len(s)):
+        if '-' * 50 in s[i]:
+            splited = s[i - 1].split()
+            paperId = splited[1]
+            if getLength(paperFields, paperId) > 0:
+                continue
+            paperIdSorted.append(paperId)
+            paperTitle = ' '.join(splited[2:])
+            paperTitleStems[paperId] = set(map(lambda x: stemmer.stem(x), nltk.word_tokenize(paperTitle)))
+
+            f.write(s[i - 1] + '\n')
+            f.write(coProperties(paperId, paperId) + '\n')
+            f.write('-' * 50 + '\n')
+
+            fieldRecommendation[paperId] = []
+            for j in range(count):
+                splited = s[i + j + 1].split()
+                if len(splited) < 2:
+                    continue
+                recommendationId = splited[1]
+                fieldRecommendation[paperId].append(recommendationId)
+                if recommendationId not in fieldNameStems:
+                    fieldName = ' '.join(splited[2:])
+                    fieldNameStems[recommendationId] = set(map(lambda x: stemmer.stem(x),
+                                                               nltk.word_tokenize(fieldName)))
+
+                f.write(s[i + j + 1] + '\n')
+                f.write(coProperties(recommendationId, paperId) + '\n')
+
+            f.write('\n')
+
+    f.close()
+
+    avgCoPaper = dict()
+    avgCoAuthor = dict()
+    avgCoVenue = dict()
+    avgCoWord = dict()
+    for num in hitAt:
+        avgCoPaper[num] = dict()
+        avgCoAuthor[num] = dict()
+        avgCoVenue[num] = dict()
+        avgCoWord[num] = dict()
+    for paperId in paperIdSorted:
+        recommendationList = fieldRecommendation[paperId]
+        for i in range(len(recommendationList)):
+            recommendationId = recommendationList[i]
+            for num in hitAt:
+                if i < num:
+                    updateMetric(avgCoPaper[num], paperId,
+                                 coCount3(paperCitedPapers, fieldPapers, paperId, recommendationId))
+                    updateMetric(avgCoAuthor[num], paperId,
+                                 coCount3(paperAuthors, fieldAuthors, paperId, recommendationId))
+                    updateMetric(avgCoVenue[num], paperId,
+                                 coCount3(paperVenues, fieldVenues, paperId, recommendationId))
+                    updateMetric(avgCoWord[num], paperId,
+                                 coCount3(paperTitleStems, fieldNameStems, paperId, recommendationId))
+
+        for num in hitAt:
+            avgCoPaper[num][paperId] /= num
+            avgCoAuthor[num][paperId] /= num
+            avgCoVenue[num][paperId] /= num
+            avgCoWord[num][paperId] /= num
+
+    output(logFile, 'Recommend field for papers (relation completion):')
+    output(logFile, ' ' * 25, end='')
+    for num in hitAt:
+        valueString = 'Hit@' + str(num)
+        output(logFile, valueString, end=' ' * (12 - len(valueString)))
+    output(logFile)
+    outputMetric('Average Co-papers', avgCoPaper)
+    outputMetric('Average Co-authors', avgCoAuthor)
+    outputMetric('Average Co-venues', avgCoVenue)
+    outputMetric('Average Co-words', avgCoWord)
+    output(logFile)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
@@ -1281,6 +1385,7 @@ if target is not None and 'relbased' in target:
 
     paperIsWrittenByAuthorAnalyzer()
     paperCitePaperAnalyzer()
+    paperIsInFieldAnalyzer()  # For relation completion
 
 if not logFile is None:
     logFile.close()

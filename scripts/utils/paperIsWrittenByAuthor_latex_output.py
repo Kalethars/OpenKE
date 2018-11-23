@@ -101,11 +101,11 @@ for candidate in candidates:
             bestScore[title][model] = max(bestScore[title][model], scoreValue)
 
 metricSeq = ['Average Year Diff Abs:',
+             'Average Co-cites:',
              'Average Co-fields:',
              'Average Co-authors:',
              'Average Co-venues:',
-             'Average Co-institutes:',
-             'Average Co-cites:'
+             'Average Co-institutes:'
              ]
 for i in range(len(outputTitle)):
     title = outputTitle[i][0]
