@@ -39,6 +39,14 @@ def calcDistance(v1, v2, norm):
     return sum([abs(v1[i] - v2[i]) ** norm for i in range(len(v1))])
 
 
+def calcCosSimilarity(v1, v2, norm=None):
+    return 1 - sum([v1[i] * v2[i] for i in range(len(v1))])
+
+
+def calcCosSimilarityForComplex(v1, v2, norm=None):
+    return 1 - sum([(v1[i] * v2[i].conjugate()).real for i in range(len(v1))])
+
+
 def paperRecommendation():
     global outputPath
 
@@ -66,7 +74,7 @@ def paperRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2:
                 continue
-            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+            distance[entityId2] = calc(vectors[entityId], vectors[entityId2], norm)
 
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
@@ -108,7 +116,7 @@ def venueRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2:
                 continue
-            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+            distance[entityId2] = calc(vectors[entityId], vectors[entityId2], norm)
 
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] +
@@ -160,7 +168,7 @@ def authorRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and authorPaperCount.get(entityId2, 0) < 3):
                 continue
-            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+            distance[entityId2] = calc(vectors[entityId], vectors[entityId2], norm)
 
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
@@ -210,7 +218,7 @@ def fieldRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and fieldPaperCount.get(entityId2, 0) < 5):
                 continue
-            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+            distance[entityId2] = calc(vectors[entityId], vectors[entityId2], norm)
 
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
@@ -265,7 +273,7 @@ def instituteRecommendation():
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and institutePaperCount.get(entityId2, 0) < 5):
                 continue
-            distance[entityId2] = calcDistance(vectors[entityId], vectors[entityId2], norm)
+            distance[entityId2] = calc(vectors[entityId], vectors[entityId2], norm)
 
         sortedResults = sorted(distance.items(), key=lambda x: x[1])
         f.write('Recommend: ' + entityId + ' - ' + name[entityId] + '\n')
@@ -297,6 +305,16 @@ target = parsedArgs.target
 pca = parsedArgs.pca if parsedArgs.pca else False
 norm = parsedArgs.norm if parsedArgs.norm else (2 if pca else 1)
 limited = not (parsedArgs.unlimited if parsedArgs.unlimited else False)
+
+model = method.split('_')[0].lower()
+if 'trans' in model:
+    calc = calcDistance
+elif model == 'distmult':
+    calc = calcCosSimilarity
+elif model == 'complex':
+    calc = calcCosSimilarityForComplex
+else:
+    calc = calcDistance
 
 types = ['paper', 'author', 'institute', 'field', 'venue']
 
