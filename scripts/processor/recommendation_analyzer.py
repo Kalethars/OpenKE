@@ -2,6 +2,7 @@ import argparse
 import os
 import math
 import codecs
+import nltk
 
 try:
     import win_unicode_console
@@ -101,6 +102,10 @@ def addToSet(data, a, b):
 
 def averageValue(l):
     return sum(l) / len(l)
+
+
+def buildPropertiesString(properties):
+    return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
 
 
 def infoLoader():
@@ -338,7 +343,7 @@ def paperRecommendationAnalyzer():
                 ('Co-venues', coCount(paperVenues, paperId, recommendationId)),
                 ('Co-institutes', coCount(paperInstitutes, paperId, recommendationId))
             ]
-        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+        return buildPropertiesString(properties)
 
     filePath = recommendationDir + 'paper' + filenameSuffix
     f = open(filePath, 'r')
@@ -456,7 +461,7 @@ def authorRecommendationAnalyzer():
                 ('Co-co-authors', coCount(authorCoAuthors, authorId, recommendationId)),
                 ('Co-cites', coCount2(authorCitedPapers, authorPapers, authorId, recommendationId))
             ]
-        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+        return buildPropertiesString(properties)
 
     filePath = recommendationDir + 'author' + filenameSuffix
     f = open(filePath, 'r')
@@ -571,7 +576,7 @@ def fieldRecommendationAnalyzer():
                  (1 if recommendationId in fieldHierarchical.get(fieldId, set()) else 0)),
                 ('Co-cites', coCount2(fieldCitedPapers, fieldPapers, fieldId, recommendationId))
             ]
-        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+        return buildPropertiesString(properties)
 
     filePath = recommendationDir + 'field' + filenameSuffix
     f = open(filePath, 'r')
@@ -669,7 +674,7 @@ def instituteRecommendationAnalyzer():
                 ('Co-fields-count', minSum(instituteFieldsCount, instituteId, recommendationId)),
                 ('Co-cites', coCount2(instituteCitedPapers, institutePapers, instituteId, recommendationId))
             ]
-        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+        return buildPropertiesString(properties)
 
     filePath = recommendationDir + 'institute' + filenameSuffix
     f = open(filePath, 'r')
@@ -760,7 +765,7 @@ def venueRecommendationAnalyzer():
                 ('Co-fields-count', minSum(venueFieldsCount, venueId, recommendationId)),
                 ('Co-cites', coCount2(venueCitedPapers, venuePapers, venueId, recommendationId))
             ]
-        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+        return buildPropertiesString(properties)
 
     filePath = recommendationDir + 'venue' + filenameSuffix
     f = open(filePath, 'r')
@@ -858,9 +863,11 @@ def paperIsWrittenByAuthorAnalyzer():
                     ('Co-cites', coCount3(authorCitedPapers, paperCitedPapers, authorId, recommendationId) +
                      (1 if recommendationId in authorCitedPapers.get(authorId, set()) else 0))
                 ]
-            return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+            return buildPropertiesString(properties)
 
         filePath = recommendationDir + 'recommendation_paperIsWrittenByAuthor_head.txt'
+        if not os.path.exists(filePath):
+            return
         f = open(filePath, 'r')
         s = f.read().split('\n')
         f.close()
@@ -972,9 +979,11 @@ def paperIsWrittenByAuthorAnalyzer():
                     ('Co-venues', coCount3(paperVenues, authorVenues, paperId, recommendationId)),
                     ('Co-institutes', coCount3(paperInstitutes, authorInstitutes, paperId, recommendationId))
                 ]
-            return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+            return buildPropertiesString(properties)
 
         filePath = recommendationDir + 'recommendation_paperIsWrittenByAuthor_tail.txt'
+        if not os.path.exists(filePath):
+            return
         f = open(filePath, 'r')
         s = f.read().split('\n')
         f.close()
@@ -1092,10 +1101,12 @@ def paperCitePaperAnalyzer():
                 ('Co-venues', coCount(paperVenues, paperId, recommendationId)),
                 ('Co-institutes', coCount(paperInstitutes, paperId, recommendationId))
             ]
-        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+        return buildPropertiesString(properties)
 
     for object in ['head', 'tail']:
         filePath = recommendationDir + 'recommendation_paperCitePaper_%s.txt' % object
+        if not os.path.exists(filePath):
+            continue
         f = open(filePath, 'r')
         s = f.read().split('\n')
         f.close()
@@ -1187,6 +1198,22 @@ def paperCitePaperAnalyzer():
 
 
 def paperIsInFieldAnalyzer():
+    def deStopWords(words):
+        return [word for word in words if word not in nltk.corpus.stopwords.words('english')]
+
+    def handleWords(name):
+        return set(map(lambda x: stemmer.stem(x), deStopWords(nltk.word_tokenize(name))))
+
+    def partitionIndex(dataA, a, b):
+        count = 0
+        for paperId in dataA.get(a, []):
+            if b in paperFields.get(paperId, set()):
+                count += 1
+        return count / max(min(getLength(dataA, a), getLength(fieldPapers, b)), 1)
+
+    def calcScore(property):
+        return sum([property[i] * coeff[i] for i in range(len(property))])
+
     def coProperties(recommendationId, paperId):
         if recommendationId == paperId:
             properties = [
@@ -1194,21 +1221,40 @@ def paperIsInFieldAnalyzer():
                 ('Citation', paperCitations[paperId]),
                 ('Cite & Cited by', getLength(paperCitedPapers, paperId)),
                 ('Authors', getLength(paperAuthors, paperId)),
-                ('Venue', '/'.join(list(map(lambda x: venueName[x], paperVenues.get(paperId, [])))))
+                ('Venue', '/'.join(list(map(lambda x: venueName[x], paperVenues.get(paperId, []))))),
+                ('Institutes', getLength(paperInstitutes, paperId))
             ]
         else:
+            coPapers = partitionIndex(paperCitedPapers, paperId, recommendationId)
+            coAuthors = 0
+            for authorId in paperAuthors.get(paperId, []):
+                coAuthors += partitionIndex(authorPapers, authorId, recommendationId)
+            coVenues = 0
+            for venueId in paperVenues.get(paperId, []):
+                coVenues += partitionIndex(venuePapers, venueId, recommendationId)
+            coInstitutes = 0
+            for instituteId in paperInstitutes.get(paperId, []):
+                coInstitutes += partitionIndex(institutePapers, instituteId, recommendationId)
+            coWords = min(math.sqrt(coCount3(paperTitleStems, fieldNameStems, paperId, recommendationId) /
+                                    min(max(len(fieldNameStems[recommendationId]), 1), 3)), 1)
             properties = [
-                ('Co-papers', coCount3(paperCitedPapers, fieldPapers, paperId, recommendationId)),
-                ('Co-authors', coCount3(paperAuthors, fieldAuthors, paperId, recommendationId)),
-                ('Co-venues', coCount3(paperVenues, fieldVenues, paperId, recommendationId)),
-                ('Co-words', coCount3(paperTitleStems, fieldNameStems, paperId, recommendationId))
+                ('Paper Index', coPapers),
+                ('Author Index', coAuthors),
+                ('Venue Index', coVenues),
+                ('Institute Index', coInstitutes),
+                ('Word Index', coWords)
             ]
-        return '\t'.join([properties[i][0] + ': ' + str(properties[i][1]) for i in range(len(properties))])
+        return properties
 
-    import nltk
+    # Initialization
     stemmer = nltk.PorterStemmer()
+    baseline = [0.2064, 0.3212, 0.2777, 0.0730, 0.2442]
+    s = sum([x ** 2 for x in baseline])
+    coeff = [x / s for x in baseline]
 
     filePath = recommendationDir + 'recommendation_paperIsInField_tail.txt'
+    if not os.path.exists(filePath):
+        return
     f = open(filePath, 'r')
     s = f.read().split('\n')
     f.close()
@@ -1220,6 +1266,7 @@ def paperIsInFieldAnalyzer():
     paperIdSorted = []
     paperTitleStems = dict()
     fieldNameStems = dict()
+    properties = dict()
     for i in range(len(s)):
         if '-' * 50 in s[i]:
             splited = s[i - 1].split()
@@ -1228,13 +1275,14 @@ def paperIsInFieldAnalyzer():
                 continue
             paperIdSorted.append(paperId)
             paperTitle = ' '.join(splited[2:])
-            paperTitleStems[paperId] = set(map(lambda x: stemmer.stem(x), nltk.word_tokenize(paperTitle)))
+            paperTitleStems[paperId] = handleWords(paperTitle)
 
             f.write(s[i - 1] + '\n')
-            f.write(coProperties(paperId, paperId) + '\n')
+            f.write(buildPropertiesString(coProperties(paperId, paperId)) + '\n')
             f.write('-' * 50 + '\n')
 
             fieldRecommendation[paperId] = []
+            properties[paperId] = dict()
             for j in range(count):
                 splited = s[i + j + 1].split()
                 if len(splited) < 2:
@@ -1243,11 +1291,13 @@ def paperIsInFieldAnalyzer():
                 fieldRecommendation[paperId].append(recommendationId)
                 if recommendationId not in fieldNameStems:
                     fieldName = ' '.join(splited[2:])
-                    fieldNameStems[recommendationId] = set(map(lambda x: stemmer.stem(x),
-                                                               nltk.word_tokenize(fieldName)))
+                    fieldNameStems[recommendationId] = handleWords(fieldName)
 
                 f.write(s[i + j + 1] + '\n')
-                f.write(coProperties(recommendationId, paperId) + '\n')
+                properties[paperId][recommendationId] = coProperties(recommendationId, paperId)
+                propertiesForOutput = [(each[0], formattedRound(each[1], 3))
+                                       for each in properties[paperId][recommendationId]]
+                f.write(buildPropertiesString(propertiesForOutput) + '\n')
 
             f.write('\n')
 
@@ -1256,32 +1306,38 @@ def paperIsInFieldAnalyzer():
     avgCoPaper = dict()
     avgCoAuthor = dict()
     avgCoVenue = dict()
+    avgCoInstitute = dict()
     avgCoWord = dict()
+    avgScore = dict()
     for num in hitAt:
         avgCoPaper[num] = dict()
         avgCoAuthor[num] = dict()
         avgCoVenue[num] = dict()
+        avgCoInstitute[num] = dict()
         avgCoWord[num] = dict()
+        avgScore[num] = dict()
     for paperId in paperIdSorted:
         recommendationList = fieldRecommendation[paperId]
         for i in range(len(recommendationList)):
             recommendationId = recommendationList[i]
+            property = [properties[paperId][recommendationId][i][1]
+                        for i in range(len(properties[paperId][recommendationId]))]
             for num in hitAt:
                 if i < num:
-                    updateMetric(avgCoPaper[num], paperId,
-                                 coCount3(paperCitedPapers, fieldPapers, paperId, recommendationId))
-                    updateMetric(avgCoAuthor[num], paperId,
-                                 coCount3(paperAuthors, fieldAuthors, paperId, recommendationId))
-                    updateMetric(avgCoVenue[num], paperId,
-                                 coCount3(paperVenues, fieldVenues, paperId, recommendationId))
-                    updateMetric(avgCoWord[num], paperId,
-                                 coCount3(paperTitleStems, fieldNameStems, paperId, recommendationId))
+                    updateMetric(avgCoPaper[num], paperId, property[0])
+                    updateMetric(avgCoAuthor[num], paperId, property[1])
+                    updateMetric(avgCoVenue[num], paperId, property[2])
+                    updateMetric(avgCoInstitute[num], paperId, property[3])
+                    updateMetric(avgCoWord[num], paperId, property[4])
+                    updateMetric(avgScore[num], paperId, calcScore(property))
 
         for num in hitAt:
             avgCoPaper[num][paperId] /= num
             avgCoAuthor[num][paperId] /= num
             avgCoVenue[num][paperId] /= num
+            avgCoInstitute[num][paperId] /= num
             avgCoWord[num][paperId] /= num
+            avgScore[num][paperId] /= num
 
     output(logFile, 'Recommend field for papers (relation completion):')
     output(logFile, ' ' * 25, end='')
@@ -1289,10 +1345,12 @@ def paperIsInFieldAnalyzer():
         valueString = 'Hit@' + str(num)
         output(logFile, valueString, end=' ' * (12 - len(valueString)))
     output(logFile)
-    outputMetric('Average Co-papers', avgCoPaper)
-    outputMetric('Average Co-authors', avgCoAuthor)
-    outputMetric('Average Co-venues', avgCoVenue)
+    outputMetric('Average Paper Index', avgCoPaper)
+    outputMetric('Average Author Index', avgCoAuthor)
+    outputMetric('Average Venue Index', avgCoVenue)
+    outputMetric('Average Institute Index', avgCoInstitute)
     outputMetric('Average Co-words', avgCoWord)
+    outputMetric('Average Score', avgScore)
     output(logFile)
 
 
@@ -1371,12 +1429,12 @@ if noLog:
 else:
     logFile = open(recommendationDir + 'analyzed/recommendation_analysis.log', 'w')
 
-for type in types:
-    if target is None or type in target:
-        filePath = recommendationDir + type + filenameSuffix
+for typ in types:
+    if target is None or typ in target:
+        filePath = recommendationDir + typ + filenameSuffix
         if os.path.exists(filePath):
-            output(logFile, type.capitalize())
-            exec('%sRecommendationAnalyzer()' % type)
+            output(logFile, typ.capitalize())
+            exec('%sRecommendationAnalyzer()' % typ)
 
 if target is not None and 'relbased' in target:
     if not logFile is None:

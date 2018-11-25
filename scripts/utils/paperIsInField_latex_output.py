@@ -23,13 +23,7 @@ candidates = [('TransE_detailed', 6, 'TransE', 'TransE'),
               ('TransH_test', 1, 'TransH', 'TransH'),
               ('WTransH_test', 1, 'TransH', 'W-TransH')
               ]
-bestFunc = {'Average Year Diff Abs:': min,
-            'Average Co-fields:': max,
-            'Average Co-authors:': max,
-            'Average Co-venues:': max,
-            'Average Co-institutes:': max,
-            'Average Co-cites:': max
-            }
+bestFunc = {'Average Year Diff Abs:': min}
 avgAt = [10, 3, 1]
 values = dict()
 bestValues = dict()
@@ -70,45 +64,16 @@ for candidate in candidates:
             bestValues[model][title][metric] = [func(bestValues[model][title][metric][i], value[i])
                                                 for i in range(len(value))]
 
-score = dict()
-bestScore = dict()
-outputTitle = [('Recommend papers for author:', -15),
-               ('Recommend authors for paper:', -14)]
-for candidate in candidates:
-    method = candidate[0]
-    model = candidate[2]
-    name = candidate[3]
-
-    linkPredictionLog = '../../log/ACE17K/analyzed/%s_analyzed.log' % method
-    f = codecs.open(linkPredictionLog, 'r', 'utf-8')
-    s = f.read().split('\n')
-    f.close()
-
-    for i in range(len(outputTitle)):
-        title = outputTitle[i][0]
-        lineNum = outputTitle[i][1]
-        scoreValue = float(s[lineNum].split()[-2])
-
-        if title not in score:
-            score[title] = dict()
-        if title not in bestScore:
-            bestScore[title] = dict()
-
-        score[title][name] = scoreValue
-        if model not in bestScore[title]:
-            bestScore[title][model] = scoreValue
-        else:
-            bestScore[title][model] = max(bestScore[title][model], scoreValue)
-
-metricSeq = ['Average Year Diff Abs:',
-             'Average Co-cites:',
-             'Average Co-fields:',
-             'Average Co-authors:',
-             'Average Co-venues:',
-             'Average Co-institutes:'
+outputTitle = ['Recommend field for papers (relation completion):']
+metricSeq = ['Average Paper Index:',
+             'Average Author Index:',
+             'Average Venue Index:',
+             'Average Institute Index:',
+             'Average Co-words:',
+             'Average Score:'
              ]
 for i in range(len(outputTitle)):
-    title = outputTitle[i][0]
+    title = outputTitle[i]
     for j in range(len(candidates)):
         candidate = candidates[j]
         model = candidate[2]
@@ -119,20 +84,15 @@ for i in range(len(outputTitle)):
                 line = '\\multirow{%i}{*}{%s} &' % (len(avgAt), name)
             else:
                 line = '&'
-            line += ' %i &' % avgAt[k]
+            line += ' %i' % avgAt[k]
             for l in range(len(metricSeq)):
                 metric = metricSeq[l]
                 value = values[title][name][metric][k]
                 bestValue = bestValues[model][title][metric][k]
                 if value == bestValue:
-                    line += ' \\textbf{%s} &' % formattedRound(value, 4)
+                    line += ' & \\textbf{%s}' % formattedRound(value, 4)
                 else:
-                    line += ' %s &' % formattedRound(value, 4)
-            if k == 0:
-                if score[title][name] == bestScore[title][model]:
-                    line += ' \\multirow{%i}{*}{\\textbf{%s}}' % (len(avgAt), formattedRound(score[title][name], 3))
-                else:
-                    line += ' \\multirow{%i}{*}{%s}' % (len(avgAt), formattedRound(score[title][name], 3))
+                    line += ' & %s' % formattedRound(value, 4)
             line += ' \\\\'
             print(line)
     if i != len(outputTitle) - 1:
