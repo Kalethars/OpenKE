@@ -12,3 +12,4 @@ from .Analogy import Analogy
 from .WTransE import WTransE
 from .WTransE2 import WTransE2
 from .WTransH import WTransH
+from .WComplEx import WComplEx

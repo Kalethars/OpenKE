@@ -337,6 +337,38 @@ def WTransH():
     end()
 
 
+def WComplEx():
+    global logPath, order, configLine
+
+    name = 'WComplEx'
+    initVariables()
+
+    begin(name + '_' + order)
+
+    paramMap = parseParams(configLine)
+
+    params = initParams(paramMap)
+    params.set_in_path(databasePath)
+    params.set_work_threads(threads)
+    if 'lmbda' in paramMap.keys():
+        params.set_lmbda(float(paramMap['lmbda']))
+    params.set_opt_method("Adagrad")
+
+    mkdir(['res', database, configName, order])
+    exportPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/model.vec.tf'
+    outPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/embedding.vec.json'
+
+    params.set_export_files(exportPath)
+    params.set_out_files(outPath)
+
+    params.init()
+    params.set_model(models.WComplEx)
+    params.run()
+    params.test(logPath)
+
+    end()
+
+
 mkdir(['log'])
 mkdir(['res'])
 parser = argparse.ArgumentParser()
@@ -375,5 +407,7 @@ elif method == 'wtranse2':
     WTransE(True)
 elif method == 'wtransh':
     WTransH()
+elif method == 'wcomplex':
+    WComplEx()
 else:
     raise ValueError('Invalid method!')
