@@ -1,5 +1,5 @@
 # Execution order:
-# result_mapper -> pca_results_saver (optional) -> result_recommendation
+# result_mapper -> result_recommendation
 
 import argparse
 import os
@@ -291,7 +291,6 @@ parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--update', type=bool, required=False)
 parser.add_argument('--count', type=int, required=False)
 parser.add_argument('--target', type=str, required=False)
-parser.add_argument('--pca', type=bool, required=False)
 parser.add_argument('--norm', type=float, required=False)
 parser.add_argument('--unlimited', type=bool, required=False)
 parsedArgs = parser.parse_args()
@@ -302,32 +301,30 @@ order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
 update = parsedArgs.update if parsedArgs.update else False
 recommendCount = parsedArgs.count if parsedArgs.count and parsedArgs.count > 10 else 10
 target = parsedArgs.target
-pca = parsedArgs.pca if parsedArgs.pca else False
-norm = parsedArgs.norm if parsedArgs.norm else (2 if pca else 1)
+norm = parsedArgs.norm if parsedArgs.norm else 1
 limited = not (parsedArgs.unlimited if parsedArgs.unlimited else False)
 
 model = method.split('_')[0].lower()
 if 'trans' in model:
     calc = calcDistance
-elif model == 'distmult':
+elif 'distmult' in model:
     calc = calcCosSimilarity
-elif model == 'complex':
+elif 'complex' in model:
     calc = calcCosSimilarityForComplex
 else:
     calc = calcDistance
 
-types = ['paper', 'author', 'institute', 'field', 'venue']
+types = ['venue', 'institute', 'paper', 'field', 'author']
 
 for typ in types:
     if target and typ != target:
         continue
-    infoReadDir = parentDir + '/data/' + database + '/info/'
-    vectorReadDir = parentDir + '/res/' + '/'.join([database, method, str(order)]) + '/'
+    infoReadDir = parentDir + '/data/%s/info/' % database
+    vectorReadDir = parentDir + '/res/%s/%s/%i/' % (database, method, order)
     recommendationDir = vectorReadDir + 'recommendation/'
 
     outputPath = recommendationDir + typ + 'Recommendation' + \
                  '_norm=' + str(round(norm, 2)).rstrip('.0') + \
-                 ('_PCA' if pca else '') + \
                  ('' if limited else '_unlimited') + '.txt'
     if not update:
         if os.path.exists(outputPath):
@@ -339,11 +336,13 @@ for typ in types:
     infoLines = f.read().split('\n')
     f.close()
 
-    if pca:
-        f = open(vectorReadDir + 'pca/' + typ + 'PCA.data', 'r')
-    else:
-        f = open(vectorReadDir + typ + 'Vector.data', 'r')
+    f = open(vectorReadDir + typ + 'Vector.data', 'r')
     vectorLines = f.read().split('\n')
     f.close()
 
     exec(typ + 'Recommendation()')
+    os.system('python recommendation_analyzer.py --method=%s --order=%i --target=%s%s' %
+              (method, order, typ, ' --unlimited=True' if not limited else ''))
+
+os.system('python recommendation_analyzer.py --method=%s --order=%i%s' %
+          (method, order, ' --unlimited=True' if not limited else ''))
