@@ -43,7 +43,7 @@ class WComplEx(Model):
         e2_t = tf.nn.embedding_lookup(self.ent2_embeddings, t)
         r1 = tf.nn.embedding_lookup(self.rel1_embeddings, r)
         r2 = tf.nn.embedding_lookup(self.rel2_embeddings, r)
-        w = tf.reciprocal(self.get_all_weights(in_batch=False))
+        w = tf.reciprocal(tf.expand_dims(self.get_all_weights(in_batch=False), -1))
         power = tf.pow(tf.complex(r1, r2), tf.complex(w, 0.))
         r1_w = tf.real(power)
         r2_w = tf.imag(power)
