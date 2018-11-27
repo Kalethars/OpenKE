@@ -118,5 +118,8 @@ if 'normal_vectors' in data.keys():
     if update or not os.path.exists(dataSavePath):
         f = open(dataSavePath, 'w')
         for i in range(len(data['normal_vectors'])):
-            f.write('\t'.join(list(map(lambda x: str(x), data['normal_vectors'][i]))) + '\n')
+            vector = data['normal_vectors'][i]
+            l2norm = sum([abs(vector[i]) ** 2 for i in range(len(vector))]) ** 0.5
+            vector = [vector[i] / l2norm for i in range(len(vector))]
+            f.write('\t'.join(list(map(lambda x: str(x), vector))) + '\n')
         f.close()

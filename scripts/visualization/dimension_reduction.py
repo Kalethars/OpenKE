@@ -7,14 +7,12 @@ import numpy as np
 import argparse
 import os
 
+try:
+    import win_unicode_console
 
-def toHex(value):
-    hexValue = str(hex(round(value * 255)))[2:].upper()
-    return '0' * (2 - len(hexValue)) + hexValue
-
-
-def toHexColor(color):
-    return '#%s%s%s' % (toHex(color[0]), toHex(color[1]), toHex(color[2]))
+    win_unicode_console.enable()
+except:
+    pass
 
 
 def calcDistance(v1, v2, norm=1):
@@ -39,25 +37,48 @@ parsedArgs = parser.parse_args()
 
 method = parsedArgs.method if parsedArgs.method else 'WTransH_test'
 order = parsedArgs.order if parsedArgs.order else 1
-target = parsedArgs.target if parsedArgs.target else 'venue'
+target = parsedArgs.target.lower() if parsedArgs.target else 'venue'
+if not target.lower() in {'venue', 'paper'}:
+    raise ValueError('Target type not supported!')
 alg = parsedArgs.alg.lower() if parsedArgs.alg else 'tsne'
 overwrite = parsedArgs.overwrite if parsedArgs.overwrite else False
 
 model = method.split('_')[0].lower()
 
-f = open('../../res/ACE17K/%s/%i/venueVector.data' % (method, order), 'r')
-s = f.read().split('\n')
+f = open('../../data/ACE17K/info/%sInfo.data' % target, 'r')
+infoLines = f.read().split('\n')
 f.close()
 
+f = open('../../res/ACE17K/%s/%i/%sVector.data' % (method, order, target), 'r')
+vectorLines = f.read().split('\n')
+f.close()
+
+miscs = []  # id, label, category
 nodes = []
-for line in s:
-    splited = line.split()
+for i in range(len(infoLines)):
+    splited = infoLines[i].split('\t')
+    if target == 'venue':
+        if len(splited) != 5:
+            continue
+        miscs.append([])
+        miscs[-1].append(splited[0])
+        miscs[-1].append(splited[2])
+        miscs[-1].append(splited[3])
+    else:
+        if len(splited) != 2:
+            continue
+        miscs.append([])
+        miscs[-1].append(splited[0])
+        miscs[-1].append(splited[1])
+
+    splited = vectorLines[i].split()
     if len(splited) < 2:
         continue
     if not 'complex' in model:
         nodes.append(list(map(lambda x: float(x), splited)))
     else:
         nodes.append(list(map(lambda x: complex(x), splited)))
+
 num = len(nodes)
 dimension = len(nodes[0])
 
@@ -65,13 +86,51 @@ f = open('./data/venue_color.data', 'r')
 s = f.read().split('\n')
 f.close()
 
-miscs = []
-color = []
+color = dict()
 for line in s:
     splited = line.split()
     if len(splited) == 4:
-        miscs.append(splited)
-        color.append(toHexColor(list(map(lambda x: float(x), splited[1:]))))
+        color[splited[0]] = splited[1:]
+
+if target == 'paper':
+    f = open('../../data/ACE17K/info/venueInfo.data', 'r')
+    s = f.read().split('\n')
+    f.close()
+
+    venueName = dict()
+    venueCategory = dict()
+    for line in s:
+        splited = line.split('\t')
+        if len(splited) != 5:
+            continue
+        venueName[splited[0]] = splited[2]
+        venueCategory[splited[0]] = splited[3]
+
+    f = open('../../benchmarks/ACE17K/triplets.txt', 'r')
+    s = f.read().split('\n')
+    f.close()
+
+    paperVenue = dict()
+    for line in s:
+        splited = line.split()
+        if len(splited) != 3:
+            continue
+        if splited[1] != '4':
+            continue
+        paperId = splited[0][1:]
+        venueId = splited[2][1:]
+        if not paperId in paperVenue:
+            paperVenue[paperId] = dict()
+        paperVenue[paperId][venueId] = paperVenue[paperId].get(venueId, 0) + 1
+
+    for i in range(len(miscs)):
+        paperId = miscs[i][0]
+        if not paperId in paperVenue:
+            miscs[i].append(None)
+            continue
+        venueId = sorted(paperVenue[paperId].keys(), key=lambda x: paperVenue[paperId][x], reverse=True)[0]
+        miscs[i][1] = venueName[venueId]
+        miscs[i].append(venueCategory[venueId])
 
 norm = 1
 if 'trans' in model:
@@ -85,15 +144,25 @@ elif 'complex' in model:
 else:
     calc = calcDistance
 
+count = 0
+percentage = 1
+total = num * (num + 1) / 2
+
 distance = np.zeros((num, num))
 for i in range(num):
-    for j in range(num):
+    for j in range(i, num):
         distance[i][j] = calc(nodes[i], nodes[j], norm)
         if distance[i][j] < 0:
             distance[i][j] = 0
+        distance[j][i] = distance[i][j]
+
+        count += 1
+        if count / total * 100 >= percentage:
+            print(str(percentage) + '%')
+            percentage += 1
 
 if alg == 'tsne':
-    tsne = TSNE(n_components=2, metric='precomputed', n_iter=10000, learning_rate=150.0, perplexity=30)
+    tsne = TSNE(n_components=2, metric='precomputed', n_iter=10000, learning_rate=150.0, perplexity=30, verbose=True)
     tsne.fit_transform(distance)
     result = list(tsne.embedding_)
 elif alg == 'lda':
@@ -107,13 +176,16 @@ elif alg == 'pca':
 else:
     raise ValueError('Incorrect algorithm!')
 
-outputName = '%s_%s' % (model, alg)
-if (not overwrite) and os.path.exists('./data/%s_venue.data' % outputName):
-    outputName = '%s_%s2' % (model, alg)
-f = open('./data/%s_venue.data' % outputName, 'w')
+modelOrig = method.split('_')[0]
+outputName = '%s_%s' % (modelOrig, alg)
+if (not overwrite) and os.path.exists('./data/%s_%s.data' % (outputName, target)):
+    outputName = '%s_%s2' % (modelOrig, alg)
+f = open('./data/%s_%s.data' % (outputName, target), 'w')
 for i in range(len(result)):
+    if miscs[i][2] is None:
+        continue
     vector = list(result[i])
-    f.write('%f\t%f\t%s' % (vector[0], vector[1], '\t'.join(miscs[i])) + '\n')
+    f.write('%f\t%f\t%s' % (vector[0], vector[1], '\t'.join([miscs[i][1]] + color[miscs[i][2]])) + '\n')
 f.close()
 
-os.system('python canvas_painter.py --method=%s' % outputName)
+os.system('python canvas_painter.py --method=%s --target=%s' % (outputName, target))
