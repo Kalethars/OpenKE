@@ -26,8 +26,10 @@ def getBestOrder(database, method):
 
 def recommendCombinedRelation(model, relations, directions=None):
     def getRelationVector(relation, direction):
-        if direction or model in {'distmult', 'complex'}:
+        if direction or model in {'distmult'}:
             return relationVectors[relation]
+        elif model in {'complex'}:
+            return [x.conjugate() for x in relationVectors[relation]]
         elif model in {'transe', 'transh'}:
             return [-x for x in relationVectors[relation]]
         else:
@@ -37,19 +39,17 @@ def recommendCombinedRelation(model, relations, directions=None):
         if model in {'transe', 'transh'}:
             return sum([abs(v1[i] - v2[i]) for i in range(len(v1))])
         elif model == 'distmult':
-            return 1 - sum([v1[i] * v2[i] for i in range(len(v1))])
+            return -sum([v1[i] * v2[i] for i in range(len(v1))])
         elif model == 'complex':
-            return 1 - sum([(v1[i] * v2[i].conjugate()).real for i in range(len(v1))])
+            return -sum([(v1[i] * v2[i].conjugate()).real for i in range(len(v1))])
         else:
             raise ValueError('Invalid model!')
 
     def applyRelation(e, r):
         if model in {'transe', 'transh'}:
             return [e[i] + r[i] for i in range(len(e))]
-        elif model == 'distmult':
+        elif model in {'distmult', 'complex'}:
             return [e[i] * r[i] for i in range(len(e))]
-        elif model == 'complex':
-            return [(e[i] * r[i]).conjugate() for i in range(len(e))]
         else:
             raise ValueError('Invalid model!')
 
@@ -77,7 +77,7 @@ def recommendCombinedRelation(model, relations, directions=None):
 
     outputPath = parentDir + '/res/%s/%s/%i/recommendation/combinedRecommendation_%s_%s.txt' % \
                  (database, method, order, headType, tailType)
-    if (not update) and os.path.exists(outputPath):
+    if (not update) and (recommendCount > 0) and os.path.exists(outputPath):
         return
 
     entityList = sortedEntityInfo[headType]
@@ -87,7 +87,10 @@ def recommendCombinedRelation(model, relations, directions=None):
     print('Recommending %s for %s...' % (tailType, headType))
     print(len(entityList))
 
-    f = open(outputPath, 'w')
+    if recommendCount > 0:
+        f = open(outputPath, 'w')
+    else:
+        recommendResults = dict()
     for i in range(len(entityList)):
         entityId = entityList[i]
         entityVector = vectors[entityId]
@@ -101,18 +104,127 @@ def recommendCombinedRelation(model, relations, directions=None):
             distance[recommendId] = calcDistance(entityVector, recommendVector)
         sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
 
-        f.write('Recommend: %s - %s\n' % (entityId, entityInfo[headType][entityId]))
-        f.write('-' * 50 + '\n')
-        for j in range(count):
-            recommendId = sortedDistance[j]
-            f.write('%s\t%s\n' % (recommendId, entityInfo[tailType][recommendId]))
-        f.write('\n')
+        if recommendCount > 0:
+            f.write('Recommend: %s - %s\n' % (entityId, entityInfo[headType][entityId]))
+            f.write('-' * 50 + '\n')
+            for j in range(recommendCount):
+                recommendId = sortedDistance[j]
+                f.write('%s\t%s\n' % (recommendId, entityInfo[tailType][recommendId]))
+            f.write('\n')
+        else:
+            recommendResults[entityId] = sortedDistance
 
         total += 1
         if int(total * 100 / len(entityList)) > int((total - 1) * 100 / len(entityList)):
             print(str(int(total * 100 / len(entityList))) + '%')
 
+    if recommendCount > 0:
+        f.close()
+        return
+    else:
+        return recommendResults
+
+
+def loadPaperInstitute():
+    global paperInstitute, institutePaper
+
+    f = open(parentDir + '/data/%s/paperAuthorAffiliations.data' % database, 'r')
+    s = f.read().split('\n')
     f.close()
+
+    for line in s:
+        splited = line.split('\t')
+        if len(splited) != 4:
+            continue
+        if len(splited[2]) != 8:
+            continue
+        paperId = splited[0]
+        instituteId = splited[2]
+        if not paperId in paperInstitute:
+            paperInstitute[paperId] = set()
+        paperInstitute[paperId].add(instituteId)
+        if not instituteId in institutePaper:
+            institutePaper[instituteId] = set()
+        institutePaper[instituteId].add(paperId)
+
+
+def testVenueField():
+    recommendCombinedRelation(model, relations=[4, 3], directions=[False, True])
+    recommendCombinedRelation(model, relations=[3, 4], directions=[False, True])
+
+
+def testAuthorVenue():
+    recommendCombinedRelation(model, relations=[2, 4], directions=[False, True])
+    recommendCombinedRelation(model, relations=[4, 2], directions=[False, True])
+
+
+def testPaperInstitute():
+    def testLinkPrediction(groundTruth, predicted, headType, tailType):
+        global testResultLog
+        f = open(testResultLog, 'a')
+
+        hitAt = [10, 3, 1]
+        meanReciprocalRank = 0
+        hitAtValue = dict()
+        for num in hitAt:
+            hitAtValue[num] = 0
+
+        total = 0
+        for headId in groundTruth.keys():
+            total += len(groundTruth[headId])
+
+            rank = dict()
+            found = dict()
+            for tailId in groundTruth[headId]:
+                rank[tailId] = -1
+                found[tailId] = False
+
+            cnt = 1
+            for predictId in predicted.get(headId, []):
+                if not predictId in groundTruth[headId]:
+                    cnt += 1
+                else:
+                    rank[predictId] = cnt
+
+            for tailId in groundTruth[headId]:
+                meanReciprocalRank += 1 / rank[tailId]
+                for num in hitAt:
+                    if rank[tailId] <= num:
+                        hitAtValue[num] += 1
+
+        meanReciprocalRank /= total
+        for num in hitAt:
+            hitAtValue[num] /= total
+
+        f.write('Predict %s for %s:\n' % (headType, tailType))
+        f.write('MRR:\t%f\n' % (meanReciprocalRank))
+        for num in hitAt:
+            f.write('Hit@%i:\t%f\n' % (num, hitAtValue[num]))
+        f.write('Score:\t%f\n' % (meanReciprocalRank * sum(hitAtValue.values()) / len(hitAtValue)))
+        f.write('\n')
+
+        f.close()
+
+    if recommendCount <= 0:
+        global paperInstitute, institutePaper
+
+    paperInstituteResults = recommendCombinedRelation(model, relations=[2, 0], directions=[True, True])
+    if recommendCount <= 0:
+        testLinkPrediction(paperInstitute, paperInstituteResults, 'institute', 'paper')
+
+    institutePaperResults = recommendCombinedRelation(model, relations=[0, 2], directions=[False, False])
+    if recommendCount <= 0:
+        testLinkPrediction(institutePaper, institutePaperResults, 'paper', 'institute')
+
+
+def test():
+    if recommendCount > 0:
+        # Predict field for venue, combine relation 4 (paper_is_published_on_venue) and relation 3 (paper_is_in_field)
+        testVenueField()
+        # Predict venue for author, combine relation 2 (paper_is_written_by_author) and relation 4 (paper_is_published_on_venue)
+        testAuthorVenue()
+    # Predict paper for institute, combine relation 2 (paper_is_written_by_author) and relation 0 (author_work_in_institute)
+    testPaperInstitute()
 
 
 parser = argparse.ArgumentParser()
@@ -126,7 +238,7 @@ parsedArgs = parser.parse_args()
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method
 order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
-count = parsedArgs.count if parsedArgs.count else 10
+recommendCount = parsedArgs.count if parsedArgs.count is not None else 10  # if recommendCount <= 0, test link prediction
 update = parsedArgs.update if parsedArgs.update else False
 
 if 'transe' in method.lower():
@@ -203,9 +315,13 @@ for typ in types:
 
     sortedEntityInfo[typ] = sorted(entityInfo[typ].keys(), key=lambda x: entityInfo[typ][x])
 
-# Recommend field for venue, combine relation 4 (paper_is_published_on_venue) and relation 3 (paper_is_in_field)
-recommendCombinedRelation(model, relations=[4, 3], directions=[False, True])
-recommendCombinedRelation(model, relations=[3, 4], directions=[False, True])
-# Recommend paper for institute, combine relation 2 (paper_is_written_by_author) and relation 0 (author_work_in_institute)
-recommendCombinedRelation(model, relations=[2, 0], directions=[True, True])
-recommendCombinedRelation(model, relations=[0, 2], directions=[False, False])
+if recommendCount <= 0:
+    paperInstitute = dict()
+    institutePaper = dict()
+    loadPaperInstitute()
+
+    testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/combined_recommendation_analysis.log' % \
+                    (database, method, order)
+    f = open(testResultLog, 'w')
+    f.close()
+test()
