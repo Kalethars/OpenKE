@@ -122,6 +122,7 @@ for fileName in fileList:
                     recommendLine = s[i + j + 1]
                     recommendInfos[givenId].append(map(lambda x: x.strip(), recommendLine.split()))
                 i = i + count + 1
+            i += 1
 
         f = open(recommendationDir + 'recommendation_%s_%s.txt' %
                  (relationName[relationId], recommendObject), 'w')
@@ -129,7 +130,7 @@ for fileName in fileList:
         for givenId in givenIds:
             f.write('Recommend: %s - %s\n' % (givenId, entityName[givenId]))
             f.write('-' * 50 + '\n')
-            for i in range(len(recommendInfos[givenId])):
+            for i in range(min(10, len(recommendInfos[givenId]))):
                 recommendInfo = recommendInfos[givenId][i]
                 recommendId = entityIndex[recommendInfo[0]]
                 recommendName = entityName[recommendId]
