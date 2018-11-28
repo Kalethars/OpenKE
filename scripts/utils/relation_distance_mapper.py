@@ -109,8 +109,8 @@ for fileName in fileList:
         while i < len(s):
             line = s[i]
             if '%s = ' % givenObject in line and 'relation = ' in line:
-                caseId = line.split('Case ')[1].split('.')[0]
-                print('Found case: %s' % caseId)
+                # caseId = line.split('Case ')[1].split('.')[0]
+                # print('Found case: %s' % caseId)
 
                 given = re.split('\.|,', line.split('%s = ' % givenObject)[1])[0]
                 givenId = entityIndex[given]
@@ -138,7 +138,7 @@ for fileName in fileList:
         print('Entities of given type: %i' % len(entityList[givenType]))
         assert len(distances.keys()) == len(entityList[givenType])
 
-        f = open(distmapDir + 'distmap_%i_%s.data' % (relationId, recommendObject), 'w')
+        f = open(distmapDir + 'distmap_%i_%s.data' % (relationId, 'pos' if givenObject == 'head' else 'neg'), 'w')
         # First line for given entityIds (rows)
         for i in range(len(entityList[givenType])):
             if i == 0:
