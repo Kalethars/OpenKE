@@ -133,7 +133,7 @@ for fileName in fileList:
             for i in range(min(10, len(recommendInfos[givenId]))):
                 recommendInfo = recommendInfos[givenId][i]
                 recommendId = entityIndex[recommendInfo[0]]
-                recommendName = entityName[recommendId]
+                recommendName = entityName[recommendId].encode('utf-8').decode('ascii', 'ignore')
                 recommendRank = recommendInfo[1]
                 recommendDist = recommendInfo[2]
                 f.write('%s\t%s\t%s\n' % (recommendRank, recommendId, recommendName))
