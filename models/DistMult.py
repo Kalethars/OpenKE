@@ -51,4 +51,9 @@ class DistMult(Model):
         predict_h_e = tf.nn.embedding_lookup(self.ent_embeddings, predict_h)
         predict_t_e = tf.nn.embedding_lookup(self.ent_embeddings, predict_t)
         predict_r_e = tf.nn.embedding_lookup(self.rel_embeddings, predict_r)
+
+        predict_h_e=tf.nn.l2_normalize(predict_h_e, 1)
+        predict_t_e=tf.nn.l2_normalize(predict_t_e, 1)
+        predict_r_e=tf.nn.l2_normalize(predict_r_e, 1)
+
         self.predict = -tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e), 1, keep_dims=True)

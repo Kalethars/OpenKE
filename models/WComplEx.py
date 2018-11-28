@@ -25,8 +25,8 @@ class WComplEx(Model):
     It is proved that HolE is subsumed by ComplEx as a special case.
     '''
 
-    def _calc(self, e1_h, e2_h, e1_t, e2_t, r1, r2):
-        return e1_h * e1_t * r1 + e2_h * e2_t * r1 + e1_h * e2_t * r2 - e2_h * e1_t * r2
+    def _calc(self, h, t, r):
+        return tf.real(h * t * tf.conj(r))
 
     def loss_def(self):
         # Obtaining the initial configuration of the model
@@ -43,15 +43,23 @@ class WComplEx(Model):
         e2_t = tf.nn.embedding_lookup(self.ent2_embeddings, t)
         r1 = tf.nn.embedding_lookup(self.rel1_embeddings, r)
         r2 = tf.nn.embedding_lookup(self.rel2_embeddings, r)
+
+        e_h = tf.complex(e1_h, e2_h)
+        e_t = tf.complex(e1_t, e2_t)
+        e_r = tf.complex(r1, r2)
         w = tf.reciprocal(tf.expand_dims(self.get_all_weights(in_batch=False), -1))
-        power = tf.pow(tf.complex(r1, r2), tf.complex(w, 0.))
-        r1_w = tf.real(power)
-        r2_w = tf.imag(power)
+        e_r = tf.pow(e_r, tf.complex(w, 0.))
+
+        e_h = tf.nn.l2_normalize(e_h, 1)
+        e_t = tf.nn.l2_normalize(e_t, 1)
+        e_r = tf.nn.l2_normalize(e_r, 1)
+
         # Calculating score functions for all positive triples and negative triples
-        res = tf.reduce_sum(self._calc(e1_h, e2_h, e1_t, e2_t, r1_w, r2_w), 1, keep_dims=False)
+        res = tf.reduce_sum(self._calc(e_h, e_t, e_r), 1, keep_dims=False)
         loss_func = tf.reduce_mean(tf.nn.softplus(- y * res), 0, keep_dims=False)
-        regul_func = tf.reduce_mean(e1_h ** 2) + tf.reduce_mean(e1_t ** 2) + tf.reduce_mean(e2_h ** 2) + tf.reduce_mean(
-            e2_t ** 2) + tf.reduce_mean(r1_w ** 2) + tf.reduce_mean(r2_w ** 2)
+        regul_func = tf.reduce_mean(tf.real(e_h) ** 2) + tf.reduce_mean(tf.imag(e_h) ** 2) \
+                     + tf.reduce_mean(tf.real(e_t) ** 2) + tf.reduce_mean(tf.imag(e_t) ** 2) \
+                     + tf.reduce_mean(tf.real(e_r) ** 2) + tf.reduce_mean(tf.imag(e_r) ** 2)
         # Calculating loss to get what the framework will optimize
         self.loss = loss_func + config.lmbda * regul_func
 
@@ -64,10 +72,15 @@ class WComplEx(Model):
         predict_h_e2 = tf.nn.embedding_lookup(self.ent2_embeddings, predict_h)
         predict_t_e2 = tf.nn.embedding_lookup(self.ent2_embeddings, predict_t)
         predict_r_e2 = tf.nn.embedding_lookup(self.rel2_embeddings, predict_r)
+
+        predict_h_e = tf.complex(predict_h_e1, predict_h_e2)
+        predict_t_e = tf.complex(predict_t_e1, predict_t_e2)
+        predict_r_e = tf.complex(predict_r_e1, predict_r_e2)
         w_e = tf.reciprocal(self.get_predict_weights())
-        power = tf.pow(tf.complex(predict_r_e1, predict_r_e2), tf.complex(w_e, 0.))
-        predict_r_e1_w = tf.real(power)
-        predict_r_e2_w = tf.imag(power)
-        self.predict = -tf.reduce_sum(
-            self._calc(predict_h_e1, predict_h_e2, predict_t_e1, predict_t_e2, predict_r_e1_w, predict_r_e2_w), 1,
-            keep_dims=True)
+        predict_r_e = tf.pow(predict_r_e, tf.complex(w_e, 0.))
+
+        predict_h_e = tf.nn.l2_normalize(predict_h_e, 1)
+        predict_t_e = tf.nn.l2_normalize(predict_t_e, 1)
+        predict_r_e = tf.nn.l2_normalize(predict_r_e, 1)
+
+        self.predict = -tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e), 1, keep_dims=True)

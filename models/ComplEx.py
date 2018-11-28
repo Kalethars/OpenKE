@@ -25,8 +25,8 @@ class ComplEx(Model):
     It is proved that HolE is subsumed by ComplEx as a special case.
     '''
 
-    def _calc(self, e1_h, e2_h, e1_t, e2_t, r1, r2):
-        return e1_h * e1_t * r1 + e2_h * e2_t * r1 + e1_h * e2_t * r2 - e2_h * e1_t * r2
+    def _calc(self, h, t, r):
+        return tf.real(h * t * tf.conj(r))
 
     def loss_def(self):
         # Obtaining the initial configuration of the model
@@ -43,8 +43,12 @@ class ComplEx(Model):
         e2_t = tf.nn.embedding_lookup(self.ent2_embeddings, t)
         r1 = tf.nn.embedding_lookup(self.rel1_embeddings, r)
         r2 = tf.nn.embedding_lookup(self.rel2_embeddings, r)
+
+        e_h = tf.complex(e1_h, e2_h)
+        e_t = tf.complex(e1_t, e2_t)
+        e_r = tf.complex(r1, r2)
         # Calculating score functions for all positive triples and negative triples
-        res = tf.reduce_sum(self._calc(e1_h, e2_h, e1_t, e2_t, r1, r2), 1, keep_dims=False)
+        res = tf.reduce_sum(self._calc(e_h, e_t, e_r), 1, keep_dims=False)
         if config.train_weighted:
             w = self.get_all_weights(in_batch=False)
             loss_func = tf.reduce_mean(tf.nn.softplus(- w * y * res), 0, keep_dims=False)
@@ -64,6 +68,13 @@ class ComplEx(Model):
         predict_h_e2 = tf.nn.embedding_lookup(self.ent2_embeddings, predict_h)
         predict_t_e2 = tf.nn.embedding_lookup(self.ent2_embeddings, predict_t)
         predict_r_e2 = tf.nn.embedding_lookup(self.rel2_embeddings, predict_r)
-        self.predict = -tf.reduce_sum(
-            self._calc(predict_h_e1, predict_h_e2, predict_t_e1, predict_t_e2, predict_r_e1, predict_r_e2), 1,
-            keep_dims=True)
+
+        predict_h_e = tf.complex(predict_h_e1, predict_h_e2)
+        predict_t_e = tf.complex(predict_t_e1, predict_t_e2)
+        predict_r_e = tf.complex(predict_r_e1, predict_r_e2)
+
+        predict_h_e = tf.nn.l2_normalize(predict_h_e, 1)
+        predict_t_e = tf.nn.l2_normalize(predict_t_e, 1)
+        predict_r_e = tf.nn.l2_normalize(predict_r_e, 1)
+
+        self.predict = -tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e), 1, keep_dims=True)

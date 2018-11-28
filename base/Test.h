@@ -52,23 +52,20 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
         }
         std::sort(candidates, candidates + candidateTotal, PAIR::cmp_value);
 
-        fprintf(fp, "Case %ld. Recommend head entity. Given tail = %ld, relation = %ld.\n", lastRecommend + 1, t, r);
-        printf("Case %ld. Recommend head entity. Given tail = %ld, relation = %ld.\n", lastRecommend + 1, t, r);
-
         if (recommendCount <= 0) {
             recommendCount = candidateTotal;
         }
+
+        fprintf(fp, "Case %ld. Recommend head entity. Given tail = %ld, relation = %ld, count = %ld.\n",
+                lastRecommend + 1, t, r, recommendCount);
+        printf("Case %ld. Recommend head entity. Given tail = %ld, relation = %ld.\n", lastRecommend + 1, t, r);
 
         INT j = 0;
         for (INT i = 0; i < recommendCount; i++) {
             while (_find(candidates[j].key, t, r) || t == candidates[j].key) {
                 j++;
             }
-            if (i == recommendCount -1) {
-                fprintf(fp, "%ld %ld\n", candidates[j].key, j + 1);
-            } else {
-                fprintf(fp, "%ld %ld\t", candidates[j].key, j + 1);
-            }
+            fprintf(fp, "\t%ld\t%ld\t%.4f\n", candidates[j].key, j + 1, candidates[j].value);
             j++;
         }
     } else {
@@ -81,23 +78,20 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
         }
         std::sort(candidates, candidates + candidateTotal, PAIR::cmp_value);
 
-        fprintf(fp, "Case %ld. Recommend tail entity. Given head = %ld, relation = %ld.\n", lastRecommend + 1, h, r);
-        printf("Case %ld. Recommend tail entity. Given head = %ld, relation = %ld.\n", lastRecommend + 1, h, r);
-
         if (recommendCount <= 0) {
             recommendCount = candidateTotal;
         }
+
+        fprintf(fp, "Case %ld. Recommend tail entity. Given head = %ld, relation = %ld, count = %ld.\n",
+                lastRecommend + 1, h, r, recommendCount);
+        printf("Case %ld. Recommend tail entity. Given head = %ld, relation = %ld.\n", lastRecommend + 1, h, r);
 
         INT j = 0;
         for (INT i = 0; i < recommendCount; i++) {
             while (_find(h, candidates[j].key, r) || h == candidates[j].key) {
                 j++;
             }
-            if (i == recommendCount -1) {
-                fprintf(fp, "%ld %ld\n", candidates[j].key, j + 1);
-            } else {
-                fprintf(fp, "%ld %ld\t", candidates[j].key, j + 1);
-            }
+            fprintf(fp, "\t%ld\t%ld\t%.4f\n", candidates[j].key, j + 1, candidates[j].value);
             j++;
         }
     }
