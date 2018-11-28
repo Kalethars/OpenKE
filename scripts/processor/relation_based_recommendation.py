@@ -122,7 +122,8 @@ for fileName in fileList:
                     recommendLine = s[i + j + 1]
                     recommendInfos[givenId].append(map(lambda x: x.strip(), recommendLine.split()))
                 i = i + count + 1
-            i += 1
+            else:
+                i += 1
 
         f = open(recommendationDir + 'recommendation_%s_%s.txt' %
                  (relationName[relationId], recommendObject), 'w')
