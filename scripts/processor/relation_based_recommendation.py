@@ -107,16 +107,21 @@ for fileName in fileList:
         f.close()
 
         givenIds = []
-        recommendIds = dict()
-        for i in range(len(s)):
+        recommendInfos = dict()
+        i = 0
+        while i < len(s):
             line = s[i]
             if '%s = ' % givenObject in line and 'relation = ' in line:
                 given = re.split('\.|,', line.split('%s = ' % givenObject)[1])[0]
                 givenId = entityIndex[given]
                 givenIds.append(givenId)
+                count = int(re.split('\.|,', line.split('count = ')[1])[0])
 
-                recommendLine = s[i + 1]
-                recommendIds[givenId] = list(map(lambda x: x.strip(), recommendLine.split()))
+                recommendInfos[givenId] = []
+                for j in range(count):
+                    recommendLine = s[i + j + 1]
+                    recommendInfos[givenId].append(map(lambda x: x.strip(), recommendLine.split()))
+                i = i + count + 1
 
         f = open(recommendationDir + 'recommendation_%s_%s.txt' %
                  (relationName[relationId], recommendObject), 'w')
@@ -124,10 +129,12 @@ for fileName in fileList:
         for givenId in givenIds:
             f.write('Recommend: %s - %s\n' % (givenId, entityName[givenId]))
             f.write('-' * 50 + '\n')
-            for i in range(0, len(recommendIds[givenId]), 2):
-                recommendId = entityIndex[recommendIds[givenId][i]]
+            for i in range(len(recommendInfos[givenId])):
+                recommendInfo = recommendInfos[givenId][i]
+                recommendId = entityIndex[recommendInfo[0]]
                 recommendName = entityName[recommendId]
-                recommendRank = recommendIds[givenId][i + 1]
+                recommendRank = recommendInfo[1]
+                recommendDist = recommendInfo[2]
                 f.write('%s\t%s\t%s\n' % (recommendRank, recommendId, recommendName))
             f.write('\n')
         f.close()

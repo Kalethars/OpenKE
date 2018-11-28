@@ -118,6 +118,7 @@ parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--relation', type=int, required=True)
 parser.add_argument('--object', type=int, required=True)
 parser.add_argument('--replace', type=int, required=False)
+parser.add_argument('--count', type=int, required=False)
 parsedConfig = parser.parse_args()
 
 database = parsedConfig.database if parsedConfig.database else 'ACE17K'
@@ -126,6 +127,7 @@ order = parsedConfig.order if parsedConfig.order else getBestOrder(database, met
 relation = parsedConfig.relation
 recommendObject = parsedConfig.object  # 0: recommend head, 1: recommend tail;
 replaceTypeConstraint = parsedConfig.replace if parsedConfig.replace is not None else 1
+recommendCount = parsedConfig.count if parsedConfig.count is not None else 10
 
 model = method.split('_')[0]
 
@@ -150,6 +152,7 @@ params.set_test_flag(True)
 params.set_work_threads(32)
 params.set_dimension(getDimension(method, order))
 params.set_import_files(importPath)
+params.set_recommend_count(recommendCount)
 params.set_test_recommendation(True)
 params.set_recommend_result_path(recommendLogPath)
 params.init()
