@@ -40,6 +40,7 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
 
     PAIR* candidates;
     INT candidateTotal;
+    bool printAll = false;
 
     FILE* fp = fopen(output, "a");
     if (h == -1) {
@@ -54,6 +55,7 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
 
         if (recommendCount <= 0) {
             recommendCount = candidateTotal;
+            printAll = true;
         }
 
         fprintf(fp, "Case %ld. Recommend head entity. Given tail = %ld, relation = %ld, count = %ld.\n",
@@ -61,12 +63,18 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
         printf("Case %ld. Recommend head entity. Given tail = %ld, relation = %ld.\n", lastRecommend + 1, t, r);
 
         INT j = 0;
-        for (INT i = 0; i < recommendCount; i++) {
-            while (_find(candidates[j].key, t, r) || t == candidates[j].key) {
+        if (printAll) {
+            for (INT i = 0; i < recommendCount; i++) {
+                fprintf(fp, "\t%ld\t%ld\t%.4f\n", candidates[i].key, i + 1, candidates[i].value);
+            }
+        } else {
+            for (INT i = 0; i < recommendCount; i++) {
+                while (_find(candidates[j].key, t, r) || t == candidates[j].key) {
+                    j++;
+                }
+                fprintf(fp, "\t%ld\t%ld\t%.4f\n", candidates[j].key, j + 1, candidates[j].value);
                 j++;
             }
-            fprintf(fp, "\t%ld\t%ld\t%.4f\n", candidates[j].key, j + 1, candidates[j].value);
-            j++;
         }
     } else {
         candidateTotal = tail_rig[r] - tail_lef[r];
@@ -80,6 +88,7 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
 
         if (recommendCount <= 0) {
             recommendCount = candidateTotal;
+            printAll = true;
         }
 
         fprintf(fp, "Case %ld. Recommend tail entity. Given head = %ld, relation = %ld, count = %ld.\n",
@@ -87,12 +96,18 @@ void recommend(REAL *con, INT recommendCount, const char* output) {
         printf("Case %ld. Recommend tail entity. Given head = %ld, relation = %ld.\n", lastRecommend + 1, h, r);
 
         INT j = 0;
-        for (INT i = 0; i < recommendCount; i++) {
-            while (_find(h, candidates[j].key, r) || h == candidates[j].key) {
+        if (printAll) {
+            for (INT i = 0; i < recommendCount; i++) {
+                fprintf(fp, "\t%ld\t%ld\t%.4f\n", candidates[i].key, i + 1, candidates[i].value);
+            }
+        } else {
+            for (INT i = 0; i < recommendCount; i++) {
+                while (_find(candidates[j].key, t, r) || t == candidates[j].key) {
+                    j++;
+                }
+                fprintf(fp, "\t%ld\t%ld\t%.4f\n", candidates[j].key, j + 1, candidates[j].value);
                 j++;
             }
-            fprintf(fp, "\t%ld\t%ld\t%.4f\n", candidates[j].key, j + 1, candidates[j].value);
-            j++;
         }
     }
     lastRecommend++;
