@@ -64,7 +64,7 @@ for typ in types:
 
     for i in range(len(infoLines) - 1):
         entityInfo = parseInfo(typ, infoLines[i])
-        entityName[entityInfo[0]] = entityInfo[1]
+        entityName[entityInfo[0]] = entityInfo[1].encode('utf-8').decode('ascii', 'ignore')
 
 f = open(benchmarkDir + 'entity2id.txt', 'r')
 s = f.read().split('\n')
