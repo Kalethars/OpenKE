@@ -50,9 +50,9 @@ class WComplEx(Model):
         w = tf.reciprocal(tf.expand_dims(self.get_all_weights(in_batch=False), -1))
         e_r = tf.pow(e_r, tf.complex(w, 0.))
 
-        e_h = tf.nn.l2_normalize(e_h, 1)
-        e_t = tf.nn.l2_normalize(e_t, 1)
-        e_r = tf.nn.l2_normalize(e_r, 1)
+        e_h /= tf.norm(e_h, 2, axis=1, keep_dims=True)
+        e_t /= tf.norm(e_t, 2, axis=1, keep_dims=True)
+        e_r /= tf.norm(e_r, 2, axis=1, keep_dims=True)
 
         # Calculating score functions for all positive triples and negative triples
         res = tf.reduce_sum(self._calc(e_h, e_t, e_r), 1, keep_dims=False)
@@ -79,8 +79,8 @@ class WComplEx(Model):
         w_e = tf.reciprocal(self.get_predict_weights())
         predict_r_e = tf.pow(predict_r_e, tf.complex(w_e, 0.))
 
-        predict_h_e = tf.nn.l2_normalize(predict_h_e, 1)
-        predict_t_e = tf.nn.l2_normalize(predict_t_e, 1)
-        predict_r_e = tf.nn.l2_normalize(predict_r_e, 1)
+        predict_h_e /= tf.norm(predict_h_e, 2, axis=1, keep_dims=True)
+        predict_t_e /= tf.norm(predict_t_e, 2, axis=1, keep_dims=True)
+        predict_r_e /= tf.norm(predict_r_e, 2, axis=1, keep_dims=True)
 
         self.predict = -tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e), 1, keep_dims=True)
