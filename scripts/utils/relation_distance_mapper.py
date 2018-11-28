@@ -93,8 +93,9 @@ for fileName in fileList:
         relationId = int(re.split('\.|_', fileName.split('relation=')[1])[0])
         recommendObject = re.split('\.|_', fileName.split('recommend=')[1])[0]
         givenObject = 'head' if recommendObject == 'tail' else 'tail'
+        direction = 'pos' if givenObject == 'head' else 'neg'
 
-        print('Mapping distance of relation %i by %s' % (relationId, recommendObject))
+        print('Mapping distance of relation %i by %s' % (relationId, direction))
 
         givenType = relationHeadType[relationId] if givenObject == 'head' else relationTailType[relationId]
         recommendType = relationTailType[relationId] if givenObject == 'head' else relationHeadType[relationId]
@@ -138,7 +139,7 @@ for fileName in fileList:
         print('Entities of given type: %i' % len(entityList[givenType]))
         assert len(distances.keys()) == len(entityList[givenType])
 
-        f = open(distmapDir + 'distmap_%i_%s.data' % (relationId, 'pos' if givenObject == 'head' else 'neg'), 'w')
+        f = open(distmapDir + 'distmap_%i_%s.data' % (relationId, direction), 'w')
         # First line for given entityIds (rows)
         for i in range(len(entityList[givenType])):
             if i == 0:
