@@ -73,6 +73,4 @@ class ComplEx(Model):
         predict_t_e = tf.complex(predict_t_e1, predict_t_e2)
         predict_r_e = tf.complex(predict_r_e1, predict_r_e2)
 
-        predict_r_e /= tf.norm(predict_r_e, 2, axis=1, keep_dims=True)
-
         self.predict = -tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e), 1, keep_dims=True)

@@ -25,6 +25,16 @@ class WComplEx(Model):
     It is proved that HolE is subsumed by ComplEx as a special case.
     '''
 
+    def _rotate(self, r, w):
+        right = tf.cast(tf.greater_equal(w, 1), tf.complex64)
+        left = tf.cast(tf.less(w, 1), tf.complex64)
+        complex_w = tf.cast(w, tf.complex64)
+        right_r = tf.pow(r, tf.reciprocal(complex_w))
+        left_r = -tf.conj(tf.pow(-tf.conj(r), complex_w))
+        res = right * right_r + left * left_r
+        res = res * tf.cast(tf.abs(r) / tf.abs(res), tf.complex64)
+        return res
+
     def _calc(self, h, t, r):
         return tf.real(h * t * tf.conj(r))
 
@@ -47,10 +57,8 @@ class WComplEx(Model):
         e_h = tf.complex(e1_h, e2_h)
         e_t = tf.complex(e1_t, e2_t)
         e_r = tf.complex(r1, r2)
-        w = tf.reciprocal(tf.expand_dims(self.get_all_weights(in_batch=False), -1))
-        e_r = tf.pow(e_r, tf.complex(w, 0.))
-
-        e_r /= tf.norm(e_r, 2, axis=1, keep_dims=True)
+        w = tf.expand_dims(self.get_all_weights(in_batch=False), -1)
+        e_r = self._rotate(e_r, w)
 
         # Calculating score functions for all positive triples and negative triples
         res = tf.reduce_sum(self._calc(e_h, e_t, e_r), 1, keep_dims=False)
@@ -74,9 +82,7 @@ class WComplEx(Model):
         predict_h_e = tf.complex(predict_h_e1, predict_h_e2)
         predict_t_e = tf.complex(predict_t_e1, predict_t_e2)
         predict_r_e = tf.complex(predict_r_e1, predict_r_e2)
-        w_e = tf.reciprocal(self.get_predict_weights())
-        predict_r_e = tf.pow(predict_r_e, tf.complex(w_e, 0.))
-
-        predict_r_e /= tf.norm(predict_r_e, 2, axis=1, keep_dims=True)
+        w_e = self.get_predict_weights()
+        predict_r_e = self._rotate(predict_r_e, w_e)
 
         self.predict = -tf.reduce_sum(self._calc(predict_h_e, predict_t_e, predict_r_e), 1, keep_dims=True)
