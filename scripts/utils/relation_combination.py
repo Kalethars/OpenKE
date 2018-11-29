@@ -381,10 +381,6 @@ def testLinkPrediction(groundTruth, predicted, headType, tailType):
         total += len(groundTruth[headId])
 
         rank = dict()
-        found = dict()
-        for tailId in groundTruth[headId]:
-            rank[tailId] = -1
-            found[tailId] = False
 
         cnt = 1
         for predictId in predicted.get(headId, []):
@@ -394,10 +390,11 @@ def testLinkPrediction(groundTruth, predicted, headType, tailType):
                 rank[predictId] = cnt
 
         for tailId in groundTruth[headId]:
-            meanReciprocalRank += 1 / rank[tailId]
-            for num in hitAt:
-                if rank[tailId] <= num:
-                    hitAtValue[num] += 1
+            if tailId in rank:
+                meanReciprocalRank += 1 / rank[tailId]
+                for num in hitAt:
+                    if rank[tailId] <= num:
+                        hitAtValue[num] += 1
 
     meanReciprocalRank /= total
     for num in hitAt:
