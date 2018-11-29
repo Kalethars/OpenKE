@@ -1,5 +1,6 @@
 # Execution order:
 # result_mapper -> result_recommendation
+from __future__ import print_function
 
 import argparse
 import os
