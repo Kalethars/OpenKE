@@ -26,6 +26,14 @@ def getBestOrder(database, method):
         return 1
 
 
+def mkdir(folders):
+    path = parentDir + '/'
+    for i in range(len(folders)):
+        path += str(folders[i]) + '/'
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+
 def loadEntityInfo(typ):
     global entityInfo, entityVectors, sortedEntityInfo
 
@@ -416,6 +424,8 @@ if recommendCount <= 0:
 
     testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/combined_recommendation_analysis.log' % \
                     (database, method, order)
+    mkdir(['res', database, method, order, 'recommendation', 'analyzed'])
     f = open(testResultLog, 'w')
     f.close()
+
 test()
