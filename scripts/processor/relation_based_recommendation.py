@@ -39,6 +39,15 @@ def camel(s):
     return splited[0] + ''.join(list(map(lambda x: x.capitalize(), splited[1:])))
 
 
+def addToSet(data, a, b):
+    if data.get(a, 0) == 0:
+        data[a] = set()
+    if type(b) is set:
+        data[a] = data[a] | b
+    else:
+        data[a].add(b)
+
+
 def buildTriplet(h, r, t, reversed=False):
     if reversed:
         return ' '.join([t, r, h])
@@ -52,24 +61,39 @@ def loadTriplets():
     f.close()
 
     triplets = set()
+    typeConstraint = [dict(), dict()]
     for line in s:
         splited = line.split()
         if len(splited) != 3:
             continue
+        headId = splited[0][1:]
+        relationId = splited[1]
+        tailId = splited[2][1:]
         triplets.add(buildTriplet(splited[0][1:], splited[1], splited[2][1:]))
+        addToSet(typeConstraint[0], relationId, headId)
+        addToSet(typeConstraint[1], relationId, tailId)
 
-    return triplets
+    return triplets, typeConstraint
+
+
+def specialCaseValidation(relationId, recommendId, direction):
+    if relationId == '3':
+        if not recommendId in typeConstraint[direction][relationId]:
+            return False
+    return True
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
+parser.add_argument('--update', type=bool, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method
 order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
+update = parsedArgs.update if parsedArgs.update else False
 
 types = ['paper', 'author', 'institute', 'field', 'venue']
 
@@ -116,7 +140,7 @@ for line in s:
         continue
     relationName[splited[1]] = camel(relationMap.get(splited[0], splited[0]))
 
-triplets = loadTriplets()
+triplets, typeConstraint = loadTriplets()
 
 rawLogDir = recommendationDir + 'raw/'
 fileList = os.listdir(rawLogDir)
@@ -125,6 +149,10 @@ for fileName in fileList:
         relationId = re.split('\.|_', fileName.split('relation=')[1])[0]
         recommendObject = re.split('\.|_', fileName.split('recommend=')[1])[0]
         givenObject = 'head' if recommendObject == 'tail' else 'tail'
+
+        outputPath = recommendationDir + 'recommendation_%s_%s.txt' % (relationName[relationId], recommendObject)
+        if not update and os.path.exists(outputPath):
+            continue
 
         f = open(rawLogDir + fileName, 'r')
         s = f.read().split('\n')
@@ -149,8 +177,7 @@ for fileName in fileList:
             else:
                 i += 1
 
-        f = open(recommendationDir + 'recommendation_%s_%s.txt' %
-                 (relationName[relationId], recommendObject), 'w')
+        f = open(outputPath, 'w')
         givenIds = sorted(givenIds, key=lambda x: entityName[x])
         for givenId in givenIds:
             f.write('Recommend: %s - %s\n' % (givenId, entityName[givenId]))
@@ -164,6 +191,8 @@ for fileName in fileList:
                 recommendDist = recommendInfo[2]
 
                 if buildTriplet(givenId, relationId, recommendId, givenObject == 'tail') in triplets:
+                    continue
+                if specialCaseValidation(relationId, recommendId, recommendObject == 'tail'):
                     continue
                 f.write('%s\t%s\t%s\n' % (recommendRank, recommendId, recommendName))
 

@@ -298,8 +298,8 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
                             if not available(recommendId, relations[-1], directions[-1]):
                                 continue
                         rank += 1
-                        if algorithm == 'minmrr':
-                            distance = 1 / rank
+                        if algorithm == 'maxmrr':
+                            distance = -1 / rank
                         minDistance[j + 1][recommendId] = min(minDistance[j + 1].get(recommendId, MAX),
                                                               minDistance[j][entityId] + distance)
 
@@ -355,7 +355,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
 
     if algorithm == 'chained':
         chainedModel()
-    elif algorithm in {'mindist', 'minmrr'}:
+    elif algorithm in {'mindist', 'maxmrr'}:
         minDistModel(algorithm)
 
     outputFile.close()
@@ -459,7 +459,7 @@ parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--predict', type=bool, required=False)
 parser.add_argument('--update', type=bool, required=False)
-parser.add_argument('--alg', type=str, required=False)  # 'chained', 'mindist' or 'minmrr'
+parser.add_argument('--alg', type=str, required=False)  # 'chained', 'mindist' or 'maxmrr'
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -482,7 +482,7 @@ elif 'complex' in method.lower():
 else:
     raise ValueError('Invalid model!')
 
-if not algorithm in {'chained', 'mindist', 'minmrr'}:
+if not algorithm in {'chained', 'mindist', 'maxmrr'}:
     raise ValueError('Invalid algorithm!')
 
 f = open(parentDir + '/res/%s/%s/%i/relationVector.data' % (database, method, order), 'r')
