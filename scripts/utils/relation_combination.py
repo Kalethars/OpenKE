@@ -487,19 +487,20 @@ else:
 if not algorithm in {'chained', 'mindist', 'maxmrr'}:
     raise ValueError('Invalid algorithm!')
 
-f = open(parentDir + '/res/%s/%s/%i/relationVector.data' % (database, method, order), 'r')
-s = f.read().split('\n')
-f.close()
-
 relationVectors = []
-for line in s:
-    splited = line.split()
-    if len(splited) < 2:
-        continue
-    try:
-        relationVectors.append(list(map(lambda x: float(x), splited)))
-    except:
-        relationVectors.append(list(map(lambda x: complex(x), splited)))
+if algorithm in {'chained'}:
+    f = open(parentDir + '/res/%s/%s/%i/relationVector.data' % (database, method, order), 'r')
+    s = f.read().split('\n')
+    f.close()
+
+    for line in s:
+        splited = line.split()
+        if len(splited) < 2:
+            continue
+        try:
+            relationVectors.append(list(map(lambda x: float(x), splited)))
+        except:
+            relationVectors.append(list(map(lambda x: complex(x), splited)))
 
 normalVectors = []
 if model == 'transh':

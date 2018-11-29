@@ -178,8 +178,13 @@ else:
 
 modelOrig = method.split('_')[0]
 outputName = '%s_%s' % (modelOrig, alg)
-if (not overwrite) and os.path.exists('./data/%s_%s.data' % (outputName, target)):
-    outputName = '%s_%s2' % (modelOrig, alg)
+n = 1
+while True:
+    if (not overwrite) and os.path.exists('./data/%s_%s.data' % (outputName, target)):
+        n += 1
+        outputName = '%s_%s%i' % (modelOrig, alg, n)
+    else:
+        break
 f = open('./data/%s_%s.data' % (outputName, target), 'w')
 for i in range(len(result)):
     if miscs[i][2] is None:
