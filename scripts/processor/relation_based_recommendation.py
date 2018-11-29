@@ -200,7 +200,7 @@ for fileName in fileList:
                 if specialCaseValidation(relationId, recommendId, recommendObject == 'tail'):
                     specialCaseCount += 1
                     continue
-                f.write('%s\t%s\t%s\n' % (recommendRank - specialCaseCount, recommendId, recommendName))
+                f.write('%i\t%s\t%s\n' % (int(recommendRank) - specialCaseCount, recommendId, recommendName))
 
                 count += 1
                 if count == 10:
