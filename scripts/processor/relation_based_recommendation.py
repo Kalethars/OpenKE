@@ -183,6 +183,7 @@ for fileName in fileList:
             f.write('Recommend: %s - %s\n' % (givenId, entityName[givenId]))
             f.write('-' * 50 + '\n')
             count = 0
+            specialCaseCount = 0
             for i in range(len(recommendInfos[givenId])):
                 recommendInfo = recommendInfos[givenId][i]
                 recommendId = entityIndex[recommendInfo[0]]
@@ -191,13 +192,15 @@ for fileName in fileList:
                 recommendDist = recommendInfo[2]
 
                 if givenId == recommendId:
+                    specialCaseCount += 1
                     continue
                 triplet = buildTriplet(givenId, relationId, recommendId, givenObject == 'tail')
                 if triplet in triplets:
                     continue
                 if specialCaseValidation(relationId, recommendId, recommendObject == 'tail'):
+                    specialCaseCount += 1
                     continue
-                f.write('%s\t%s\t%s\n' % (recommendRank, recommendId, recommendName))
+                f.write('%s\t%s\t%s\n' % (recommendRank - specialCaseCount, recommendId, recommendName))
 
                 count += 1
                 if count == 10:
