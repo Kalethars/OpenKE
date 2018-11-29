@@ -39,6 +39,28 @@ def camel(s):
     return splited[0] + ''.join(list(map(lambda x: x.capitalize(), splited[1:])))
 
 
+def buildTriplet(h, r, t, reversed=False):
+    if reversed:
+        return ' '.join([t, r, h])
+    else:
+        return ' '.join([h, r, t])
+
+
+def loadTriplets():
+    f = open(parentDir + '/benchmarks/%s/triplets.txt' % database)
+    s = f.read().split('\n')
+    f.close()
+
+    triplets = set()
+    for line in s:
+        splited = line.split()
+        if len(splited) != 3:
+            continue
+        triplets.add(buildTriplet(splited[0], splited[1], splited[2]))
+
+    return triplets
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
@@ -94,6 +116,8 @@ for line in s:
         continue
     relationName[splited[1]] = camel(relationMap.get(splited[0], splited[0]))
 
+triplets = loadTriplets()
+
 rawLogDir = recommendationDir + 'raw/'
 fileList = os.listdir(rawLogDir)
 for fileName in fileList:
@@ -131,12 +155,20 @@ for fileName in fileList:
         for givenId in givenIds:
             f.write('Recommend: %s - %s\n' % (givenId, entityName[givenId]))
             f.write('-' * 50 + '\n')
-            for i in range(min(10, len(recommendInfos[givenId]))):
+            count = 0
+            for i in range(len(recommendInfos[givenId])):
                 recommendInfo = recommendInfos[givenId][i]
                 recommendId = entityIndex[recommendInfo[0]]
                 recommendName = entityName[recommendId].encode('utf-8').decode('ascii', 'ignore')
                 recommendRank = recommendInfo[1]
                 recommendDist = recommendInfo[2]
+
+                if buildTriplet(givenId, relationId, recommendId, givenObject == 'tail') in triplets:
+                    continue
                 f.write('%s\t%s\t%s\n' % (recommendRank, recommendId, recommendName))
+
+                count += 1
+                if count == 10:
+                    break
             f.write('\n')
         f.close()

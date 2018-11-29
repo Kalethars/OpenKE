@@ -135,6 +135,7 @@ def loadRelationEntityDistances(relations, directions):
                 valueEntity = valueEntities[j]
                 value = float(values[j])
                 relationEntityDistances[-1][keyEntity].append((valueEntity, value))
+            relationEntityDistances[-1][keyEntity].sort(key=lambda x: x[1])
 
         print('Relation = %i with direction = %i loaded, key entities = %i, value entities = %i.' %
               (relationId, direction, len(keyEntities), len(valueEntities)))
@@ -277,7 +278,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
 
             outputProgress(distances, entityId)
 
-    def minDistModel():
+    def minDistModel(algorithm):
         startTiming(len(entityList))
         MAX = 10000000
 
@@ -290,10 +291,15 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
             for j in range(num):
                 for entityId in minDistance[j].keys():
                     distances = relationEntityDistances[j][entityId]
-                    for (recommendId, distance) in distances:
+                    rank = 0
+                    for k in range(len(distances)):
+                        (recommendId, distance) = distances[k]
                         if j == num - 1:
                             if not available(recommendId, relations[-1], directions[-1]):
                                 continue
+                        rank += 1
+                        if algorithm == 'minmrr':
+                            distance = 1 / rank
                         minDistance[j + 1][recommendId] = min(minDistance[j + 1].get(recommendId, MAX),
                                                               minDistance[j][entityId] + distance)
 
@@ -349,8 +355,8 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
 
     if algorithm == 'chained':
         chainedModel()
-    elif algorithm == 'mindist':
-        minDistModel()
+    elif algorithm in {'mindist', 'minmrr'}:
+        minDistModel(algorithm)
 
     outputFile.close()
     if linkPredict and groundTruth is not None:
@@ -453,7 +459,7 @@ parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--predict', type=bool, required=False)
 parser.add_argument('--update', type=bool, required=False)
-parser.add_argument('--alg', type=str, required=False)  # 'chained' or 'mindist'
+parser.add_argument('--alg', type=str, required=False)  # 'chained', 'mindist' or 'minmrr'
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -476,7 +482,7 @@ elif 'complex' in method.lower():
 else:
     raise ValueError('Invalid model!')
 
-if not algorithm in ['chained', 'mindist']:
+if not algorithm in {'chained', 'mindist', 'minmrr'}:
     raise ValueError('Invalid algorithm!')
 
 f = open(parentDir + '/res/%s/%s/%i/relationVector.data' % (database, method, order), 'r')
