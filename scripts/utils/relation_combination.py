@@ -1,5 +1,6 @@
 import argparse
 import os
+import gc
 
 try:
     import win_unicode_console
@@ -24,7 +25,84 @@ def getBestOrder(database, method):
         return 1
 
 
-def recommendCombinedRelation(model, relations, directions=None):
+def loadEntityInfo(typ):
+    global entityInfo, entityVectors, sortedEntityInfo
+
+    f = open(parentDir + '/data/%s/info/%sInfo.data' % (database, typ), 'r')
+    infoLines = f.read().split('\n')
+    f.close()
+    entityInfo[typ] = dict()
+
+    if algorithm == 'chained':
+        f = open(parentDir + '/res/%s/%s/%i/%sVector.data' % (database, method, order, typ), 'r')
+        vectorLines = f.read().split('\n')
+        f.close()
+        entityVectors[typ] = dict()
+
+    for i in range(len(infoLines)):
+        splited = infoLines[i].split('\t')
+        if typ != 'venue':
+            if len(splited) != 2:
+                continue
+            entityId = splited[0]
+            info = splited[1]
+        else:
+            if len(splited) != 5:
+                continue
+            entityId = splited[0]
+            info = splited[2] + '\t' + splited[3].replace('.', ' ')
+        entityInfo[typ][entityId] = info.encode('utf-8').decode('ascii', 'ignore')
+
+        if algorithm == 'chained':
+            splited = vectorLines[i].split()
+            if len(splited) < 2:
+                continue
+            try:
+                entityVectors[typ][entityId] = list(map(lambda x: float(x), splited))
+            except:
+                entityVectors[typ][entityId] = list(map(lambda x: complex(x), splited))
+
+    sortedEntityInfo[typ] = sorted(entityInfo[typ].keys(), key=lambda x: entityInfo[typ][x])
+
+
+def loadRelationEntityDistances(relations, directions):
+    print('Loading distances...')
+
+    distmapDir = parentDir + '/res/%s/%s/%i/distmap/' % (database, method, order)
+    relationEntityDistances = []
+    for i in range(len(relations)):
+        relationId = int(relations[i])
+        direction = int(directions[i])  # pos for 1, neg for 0
+
+        distmapPath = distmapDir + 'distmap_%i_%s.data' % (relationId, 'pos' if direction else 'neg')
+        f = open(distmapPath, 'r')
+        s = f.read().split('\n')
+        f.close()
+
+        keyEntities = s[0].split()
+        valueEntities = s[1].split()
+
+        relationEntityDistances.append(dict())
+        for i in range(len(keyEntities)):
+            values = s[i + 2].split()
+            assert len(valueEntities) == len(values)
+
+            keyEntity = keyEntities[i]
+            relationEntityDistances[-1][keyEntity] = []
+            for j in range(len(valueEntities)):
+                valueEntity = valueEntities[j]
+                value = float(values[j])
+                relationEntityDistances[-1][keyEntity].append((valueEntity, value))
+
+        print('Relation = %i with direction = %i loaded, key entities = %i, value entities = %i.' %
+              (relationId, direction, len(keyEntities), len(valueEntities)))
+
+    print('Distances loaded.')
+
+    return relationEntityDistances
+
+
+def recommendCombinedRelation(model, algorithm, relations, directions=None):
     def getRelationVector(relation, direction):
         if direction or model in {'distmult'}:
             return relationVectors[relation]
@@ -69,21 +147,86 @@ def recommendCombinedRelation(model, relations, directions=None):
             if tailType != headType:
                 raise ValueError('Relations not matched!')
 
+    def chainedModel():
+        vectors = entityVectors[headType]
+        total = 0
+        for i in range(len(entityList)):
+            entityId = entityList[i]
+            entityVector = vectors[entityId]
+            for j in range(len(relations)):
+                relationVector = getRelationVector(relations[j], directions[j])
+                entityVector = applyRelation(transfer(entityVector, relations[j]), relationVector)
+
+            distances = dict()
+            for recommendId in entityVectors[tailType].keys():
+                recommendVector = transfer(entityVectors[tailType][recommendId], relations[-1])
+                distances[recommendId] = calcDistance(entityVector, recommendVector)
+            sortedDistances = sorted(distances.keys(), key=lambda x: distances[x])
+
+            if recommendCount > 0:
+                f.write('Recommend: %s - %s\n' % (entityId, entityInfo[headType][entityId]))
+                f.write('-' * 50 + '\n')
+                for j in range(recommendCount):
+                    recommendId = sortedDistances[j]
+                    f.write('%s\t%s\n' % (recommendId, entityInfo[tailType][recommendId]))
+                f.write('\n')
+            else:
+                recommendResults[entityId] = sortedDistances
+
+            total += 1
+            if int(total * 100 / len(entityList)) > int((total - 1) * 100 / len(entityList)):
+                print(str(int(total * 100 / len(entityList))) + '%')
+
+    def minDistModel():
+        MAX = 10000000
+
+        relationEntityDistances = loadRelationEntityDistances(relations, directions)
+
+        total = 0
+        for i in range(len(entityList)):
+            minDistance = [dict() for i in range((len(relations) + 1))]
+            minDistance[0][entityList[i]] = 0
+            for j in range(len(relations)):
+                for entityId in minDistance[j].keys():
+                    distances = relationEntityDistances[j][entityId]
+                    for (recommendId, distance) in distances:
+                        minDistance[j + 1][recommendId] = min(minDistance[j + 1].get(recommendId, MAX),
+                                                              minDistance[j][entityId] + distance)
+
+            distances = minDistance[-1]
+            sortedDistances = sorted(distances.keys(), key=lambda x: distances[x])
+
+            entityId = entityList[i]
+            if recommendCount > 0:
+                f.write('Recommend: %s - %s\n' % (entityId, entityInfo[headType][entityId]))
+                f.write('-' * 50 + '\n')
+                for j in range(recommendCount):
+                    recommendId = sortedDistances[j]
+                    f.write('%s\t%s\n' % (recommendId, entityInfo[tailType][recommendId]))
+                f.write('\n')
+            else:
+                recommendResults[entityId] = sortedDistances
+
+            total += 1
+            if int(total * 100 / len(entityList)) > int((total - 1) * 100 / len(entityList)):
+                print(str(int(total * 100 / len(entityList))) + '%')
+
+        del relationEntityDistances
+        gc.collect()
+
     if directions is None:
         directions = [True] * len(relations)
     validate()
     headType = relationHeads[relations[0]] if directions[0] else relationTails[relations[0]]
     tailType = relationTails[relations[-1]] if directions[-1] else relationHeads[relations[-1]]
 
-    outputPath = parentDir + '/res/%s/%s/%i/recommendation/combinedRecommendation_%s_%s.txt' % \
-                 (database, method, order, headType, tailType)
+    outputPath = parentDir + '/res/%s/%s/%i/recommendation/%s_recommendation_%s_%s.txt' % \
+                 (database, method, order, algorithm, headType, tailType)
     if (not update) and (recommendCount > 0) and os.path.exists(outputPath):
         return
 
     entityList = sortedEntityInfo[headType]
-    vectors = entityVectors[headType]
 
-    total = 0
     print('Recommending %s for %s...' % (tailType, headType))
     print(len(entityList))
 
@@ -91,32 +234,11 @@ def recommendCombinedRelation(model, relations, directions=None):
         f = open(outputPath, 'w')
     else:
         recommendResults = dict()
-    for i in range(len(entityList)):
-        entityId = entityList[i]
-        entityVector = vectors[entityId]
-        for j in range(len(relations)):
-            relationVector = getRelationVector(relations[j], directions[j])
-            entityVector = applyRelation(transfer(entityVector, relations[j]), relationVector)
 
-        distance = dict()
-        for recommendId in entityVectors[tailType].keys():
-            recommendVector = transfer(entityVectors[tailType][recommendId], relations[-1])
-            distance[recommendId] = calcDistance(entityVector, recommendVector)
-        sortedDistance = sorted(distance.keys(), key=lambda x: distance[x])
-
-        if recommendCount > 0:
-            f.write('Recommend: %s - %s\n' % (entityId, entityInfo[headType][entityId]))
-            f.write('-' * 50 + '\n')
-            for j in range(recommendCount):
-                recommendId = sortedDistance[j]
-                f.write('%s\t%s\n' % (recommendId, entityInfo[tailType][recommendId]))
-            f.write('\n')
-        else:
-            recommendResults[entityId] = sortedDistance
-
-        total += 1
-        if int(total * 100 / len(entityList)) > int((total - 1) * 100 / len(entityList)):
-            print(str(int(total * 100 / len(entityList))) + '%')
+    if algorithm == 'chained':
+        chainedModel()
+    elif algorithm == 'mindist':
+        minDistModel()
 
     if recommendCount > 0:
         f.close()
@@ -149,13 +271,13 @@ def loadPaperInstitute():
 
 
 def testVenueField():
-    recommendCombinedRelation(model, relations=[4, 3], directions=[False, True])
-    recommendCombinedRelation(model, relations=[3, 4], directions=[False, True])
+    recommendCombinedRelation(model, algorithm, relations=[4, 3], directions=[False, True])
+    recommendCombinedRelation(model, algorithm, relations=[3, 4], directions=[False, True])
 
 
 def testAuthorVenue():
-    recommendCombinedRelation(model, relations=[2, 4], directions=[False, True])
-    recommendCombinedRelation(model, relations=[4, 2], directions=[False, True])
+    recommendCombinedRelation(model, algorithm, relations=[2, 4], directions=[False, True])
+    recommendCombinedRelation(model, algorithm, relations=[4, 2], directions=[False, True])
 
 
 def testPaperInstitute():
@@ -208,11 +330,11 @@ def testPaperInstitute():
     if recommendCount <= 0:
         global paperInstitute, institutePaper
 
-    paperInstituteResults = recommendCombinedRelation(model, relations=[2, 0], directions=[True, True])
+    paperInstituteResults = recommendCombinedRelation(model, algorithm, relations=[2, 0], directions=[True, True])
     if recommendCount <= 0:
         testLinkPrediction(paperInstitute, paperInstituteResults, 'institute', 'paper')
 
-    institutePaperResults = recommendCombinedRelation(model, relations=[0, 2], directions=[False, False])
+    institutePaperResults = recommendCombinedRelation(model, algorithm, relations=[0, 2], directions=[False, False])
     if recommendCount <= 0:
         testLinkPrediction(institutePaper, institutePaperResults, 'paper', 'institute')
 
@@ -233,6 +355,7 @@ parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--count', type=int, required=False)
 parser.add_argument('--update', type=bool, required=False)
+parser.add_argument('--alg', type=str, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -240,6 +363,7 @@ method = parsedArgs.method
 order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
 recommendCount = parsedArgs.count if parsedArgs.count is not None else 10  # if recommendCount <= 0, test link prediction
 update = parsedArgs.update if parsedArgs.update else False
+algorithm = parsedArgs.alg.lower() if parsedArgs.alg else 'chained'  # 'chained' or 'mindist'
 
 if 'transe' in method.lower():
     model = 'transe'
@@ -282,38 +406,7 @@ entityInfo = dict()
 entityVectors = dict()
 sortedEntityInfo = dict()
 for typ in types:
-    f = open(parentDir + '/data/%s/info/%sInfo.data' % (database, typ), 'r')
-    infoLines = f.read().split('\n')
-    f.close()
-
-    f = open(parentDir + '/res/%s/%s/%i/%sVector.data' % (database, method, order, typ), 'r')
-    vectorLines = f.read().split('\n')
-    f.close()
-
-    entityInfo[typ] = dict()
-    entityVectors[typ] = dict()
-    for i in range(len(infoLines)):
-        splited = infoLines[i].split('\t')
-        if typ != 'venue':
-            if len(splited) != 2:
-                continue
-            entityId = splited[0]
-            entityInfo[typ][entityId] = splited[1]
-        else:
-            if len(splited) != 5:
-                continue
-            entityId = splited[0]
-            entityInfo[typ][entityId] = splited[2] + '\t' + splited[3].replace('.', ' ')
-
-        splited = vectorLines[i].split()
-        if len(splited) < 2:
-            continue
-        try:
-            entityVectors[typ][entityId] = list(map(lambda x: float(x), splited))
-        except:
-            entityVectors[typ][entityId] = list(map(lambda x: complex(x), splited))
-
-    sortedEntityInfo[typ] = sorted(entityInfo[typ].keys(), key=lambda x: entityInfo[typ][x])
+    loadEntityInfo(typ)
 
 if recommendCount <= 0:
     paperInstitute = dict()
