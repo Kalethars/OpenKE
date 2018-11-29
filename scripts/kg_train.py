@@ -1,6 +1,7 @@
 import argparse
+import os
+import sys
 import time
-import os, sys
 
 parentDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentDir)
@@ -369,38 +370,6 @@ def WComplEx():
     end()
 
 
-def KomplEx():
-    global logPath, order, configLine
-
-    name = 'KomplEx'
-    initVariables()
-
-    begin(name + '_' + order)
-
-    paramMap = parseParams(configLine)
-
-    params = initParams(paramMap)
-    params.set_in_path(databasePath)
-    params.set_work_threads(threads)
-    if 'lmbda' in paramMap.keys():
-        params.set_lmbda(float(paramMap['lmbda']))
-    params.set_opt_method("Adagrad")
-
-    mkdir(['res', database, configName, order])
-    exportPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/model.vec.tf'
-    outPath = parentDir + '/res/' + database + '/' + configName + '/' + order + '/embedding.vec.json'
-
-    params.set_export_files(exportPath)
-    params.set_out_files(outPath)
-
-    params.init()
-    params.set_model(models.KomplEx)
-    params.run()
-    params.test(logPath)
-
-    end()
-
-
 mkdir(['log'])
 mkdir(['res'])
 parser = argparse.ArgumentParser()
@@ -441,7 +410,5 @@ elif method == 'wtransh':
     WTransH()
 elif method == 'wcomplex':
     WComplEx()
-elif method == 'komplex':
-    KomplEx()
 else:
     raise ValueError('Invalid method!')
