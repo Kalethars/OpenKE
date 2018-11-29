@@ -1,6 +1,7 @@
 import argparse
 import os
 import codecs
+import time
 import gc
 
 try:
@@ -11,6 +12,29 @@ except:
     pass
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+times = 0
+timesTotal = 0
+startTime = 0
+
+
+def startTiming(total):
+    global times, timesTotal, startTime
+
+    times = 0
+    startTime = time.time()
+    timesTotal = total
+
+    print(timesTotal)
+
+
+def displayTiming():
+    global times, timesTotal, startTime
+
+    times += 1
+    print('\r%s\t%.2fs' % (str(round(100. * times / timesTotal, 2)) + '%', time.time() - startTime), end='')
+    if times == timesTotal:
+        print()
 
 
 def getBestOrder(database, method):
@@ -34,9 +58,16 @@ def mkdir(folders):
             os.mkdir(path)
 
 
-def loadEntityInfo(typ):
-    global entityInfo, entityVectors, sortedEntityInfo
+def addToSet(data, a, b):
+    if data.get(a, 0) == 0:
+        data[a] = set()
+    if type(b) is set:
+        data[a] = data[a] | b
+    else:
+        data[a].add(b)
 
+
+def loadEntityInfo(typ, entityInfo, entityVectors, sortedEntityInfo):
     f = codecs.open(parentDir + '/data/%s/info/%sInfo.data' % (database, typ), 'r', encoding='utf-8', errors='ignore')
     infoLines = f.read().split('\n')
     f.close()
@@ -60,7 +91,7 @@ def loadEntityInfo(typ):
                 continue
             entityId = splited[0]
             info = splited[2] + '\t' + splited[3].replace('.', ' ')
-        entityInfo[typ][entityId] = info.encode('utf-8').decode('ascii', 'ignore')
+        entityInfo[typ][entityId] = info.encode('utf-8').decode('ascii', 'ignore').strip()
 
         if algorithm == 'chained':
             splited = vectorLines[i].split()
@@ -111,6 +142,25 @@ def loadRelationEntityDistances(relations, directions):
     return relationEntityDistances
 
 
+def loadTypeConstraint():
+    f = open(parentDir + '/benchmarks/%s/triplets.txt' % database, 'r')
+    s = f.read().split('\n')
+    f.close()
+
+    typeConstraint = [dict(), dict()]
+    for line in s:
+        splited = line.split()
+        if len(splited) == 3:
+            headId = splited[0][1:]
+            relationId = int(splited[1])
+            tailId = splited[2][1:]
+
+            addToSet(typeConstraint[0], relationId, headId)
+            addToSet(typeConstraint[1], relationId, tailId)
+
+    return typeConstraint
+
+
 def recommendCombinedRelation(model, algorithm, relations, directions=None):
     def getRelationVector(relation, direction):
         if direction or model in {'distmult'}:
@@ -147,6 +197,9 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None):
         s = sum(v[i] * n[i] for i in range(len(v)))
         return [v[i] - s * n[i] for i in range(len(v))]
 
+    def available(entityId, relation, direction):
+        return entityId in typeConstraint[direction][relation]
+
     def validate():
         if len(relations) != len(directions):
             raise ValueError('Relations and directions must have the same length!')
@@ -157,8 +210,9 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None):
                 raise ValueError('Relations not matched!')
 
     def chainedModel():
+        startTiming(len(entityList))
+
         vectors = entityVectors[headType]
-        total = 0
         for i in range(len(entityList)):
             entityId = entityList[i]
             entityVector = vectors[entityId]
@@ -168,6 +222,8 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None):
 
             distances = dict()
             for recommendId in entityVectors[tailType].keys():
+                if not available(recommendId, relations[-1], directions[-1]):
+                    continue
                 recommendVector = transfer(entityVectors[tailType][recommendId], relations[-1])
                 distances[recommendId] = calcDistance(entityVector, recommendVector)
             sortedDistances = sorted(distances.keys(), key=lambda x: distances[x])
@@ -182,23 +238,25 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None):
             else:
                 recommendResults[entityId] = sortedDistances
 
-            total += 1
-            if int(total * 100 / len(entityList)) > int((total - 1) * 100 / len(entityList)):
-                print(str(int(total * 100 / len(entityList))) + '%')
+            displayTiming()
 
     def minDistModel():
+        startTiming(len(entityList))
         MAX = 10000000
 
         relationEntityDistances = loadRelationEntityDistances(relations, directions)
+        num = len(relations)
 
-        total = 0
         for i in range(len(entityList)):
-            minDistance = [dict() for i in range((len(relations) + 1))]
+            minDistance = [dict() for i in range(num + 1)]
             minDistance[0][entityList[i]] = 0
-            for j in range(len(relations)):
+            for j in range(num):
                 for entityId in minDistance[j].keys():
                     distances = relationEntityDistances[j][entityId]
                     for (recommendId, distance) in distances:
+                        if j == num - 1:
+                            if not available(recommendId, relations[-1], directions[-1]):
+                                continue
                         minDistance[j + 1][recommendId] = min(minDistance[j + 1].get(recommendId, MAX),
                                                               minDistance[j][entityId] + distance)
 
@@ -216,9 +274,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None):
             else:
                 recommendResults[entityId] = sortedDistances
 
-            total += 1
-            if int(total * 100 / len(entityList)) > int((total - 1) * 100 / len(entityList)):
-                print(str(int(total * 100 / len(entityList))) + '%')
+            displayTiming()
 
         del relationEntityDistances
         gc.collect()
@@ -237,7 +293,6 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None):
     entityList = sortedEntityInfo[headType]
 
     print('Recommending %s for %s...' % (tailType, headType))
-    print(len(entityList))
 
     if recommendCount > 0:
         f = open(outputPath, 'w')
@@ -256,13 +311,43 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None):
         return recommendResults
 
 
-def loadPaperInstitute():
-    global paperInstitute, institutePaper
+def loadAuthorVenue():
+    f = open(parentDir + '/benchmarks/%s/triplets.txt' % database, 'r')
+    s = f.read().split('\n')
+    f.close()
 
+    paperAuthor = dict()
+    paperVenue = dict()
+    authorVenue = dict()
+    venueAuthor = dict()
+    for line in s:
+        splited = line.split()
+        if len(splited) == 3:
+            headId = splited[0][1:]
+            relationId = splited[1]
+            tailId = splited[2][1:]
+
+            if relationId == '2':
+                addToSet(paperAuthor, headId, tailId)
+            elif relationId == '4':
+                addToSet(paperVenue, headId, tailId)
+
+    for paperId in paperAuthor.keys():
+        for authorId in paperAuthor[paperId]:
+            for venueId in paperVenue.get(paperId, set()):
+                addToSet(authorVenue, authorId, venueId)
+                addToSet(venueAuthor, venueId, authorId)
+
+    return authorVenue, venueAuthor
+
+
+def loadPaperInstitute():
     f = open(parentDir + '/data/%s/PaperAuthorAffiliations.data' % database, 'r')
     s = f.read().split('\n')
     f.close()
 
+    paperInstitute = dict()
+    institutePaper = dict()
     for line in s:
         splited = line.split('\t')
         if len(splited) != 4:
@@ -278,6 +363,55 @@ def loadPaperInstitute():
             institutePaper[instituteId] = set()
         institutePaper[instituteId].add(paperId)
 
+    return paperInstitute, institutePaper
+
+
+def testLinkPrediction(groundTruth, predicted, headType, tailType):
+    global testResultLog
+    f = open(testResultLog, 'a')
+
+    hitAt = [10, 3, 1]
+    meanReciprocalRank = 0
+    hitAtValue = dict()
+    for num in hitAt:
+        hitAtValue[num] = 0
+
+    total = 0
+    for headId in groundTruth.keys():
+        total += len(groundTruth[headId])
+
+        rank = dict()
+        found = dict()
+        for tailId in groundTruth[headId]:
+            rank[tailId] = -1
+            found[tailId] = False
+
+        cnt = 1
+        for predictId in predicted.get(headId, []):
+            if not predictId in groundTruth[headId]:
+                cnt += 1
+            else:
+                rank[predictId] = cnt
+
+        for tailId in groundTruth[headId]:
+            meanReciprocalRank += 1 / rank[tailId]
+            for num in hitAt:
+                if rank[tailId] <= num:
+                    hitAtValue[num] += 1
+
+    meanReciprocalRank /= total
+    for num in hitAt:
+        hitAtValue[num] /= total
+
+    f.write('Predict %s for %s:\n' % (tailType, headType))
+    f.write('MRR:\t%f\n' % (meanReciprocalRank))
+    for num in hitAt:
+        f.write('Hit@%i:\t%f\n' % (num, hitAtValue[num]))
+    f.write('Score:\t%f\n' % (meanReciprocalRank * sum(hitAtValue.values()) / len(hitAtValue)))
+    f.write('\n')
+
+    f.close()
+
 
 def testVenueField():
     recommendCombinedRelation(model, algorithm, relations=[4, 3], directions=[False, True])
@@ -285,75 +419,37 @@ def testVenueField():
 
 
 def testAuthorVenue():
-    recommendCombinedRelation(model, algorithm, relations=[2, 4], directions=[False, True])
-    recommendCombinedRelation(model, algorithm, relations=[4, 2], directions=[False, True])
+    if recommendCount <= 0:
+        authorVenue, venueAuthor = loadAuthorVenue()
+
+    authorVenueResults = recommendCombinedRelation(model, algorithm, relations=[2, 4], directions=[False, True])
+    if recommendCount <= 0:
+        testLinkPrediction(authorVenue, authorVenueResults, 'author', 'venue')
+
+    venueAuthorResults = recommendCombinedRelation(model, algorithm, relations=[4, 2], directions=[False, True])
+    if recommendCount <= 0:
+        testLinkPrediction(venueAuthor, venueAuthorResults, 'venue', 'author')
 
 
 def testPaperInstitute():
-    def testLinkPrediction(groundTruth, predicted, headType, tailType):
-        global testResultLog
-        f = open(testResultLog, 'a')
-
-        hitAt = [10, 3, 1]
-        meanReciprocalRank = 0
-        hitAtValue = dict()
-        for num in hitAt:
-            hitAtValue[num] = 0
-
-        total = 0
-        for headId in groundTruth.keys():
-            total += len(groundTruth[headId])
-
-            rank = dict()
-            found = dict()
-            for tailId in groundTruth[headId]:
-                rank[tailId] = -1
-                found[tailId] = False
-
-            cnt = 1
-            for predictId in predicted.get(headId, []):
-                if not predictId in groundTruth[headId]:
-                    cnt += 1
-                else:
-                    rank[predictId] = cnt
-
-            for tailId in groundTruth[headId]:
-                meanReciprocalRank += 1 / rank[tailId]
-                for num in hitAt:
-                    if rank[tailId] <= num:
-                        hitAtValue[num] += 1
-
-        meanReciprocalRank /= total
-        for num in hitAt:
-            hitAtValue[num] /= total
-
-        f.write('Predict %s for %s:\n' % (headType, tailType))
-        f.write('MRR:\t%f\n' % (meanReciprocalRank))
-        for num in hitAt:
-            f.write('Hit@%i:\t%f\n' % (num, hitAtValue[num]))
-        f.write('Score:\t%f\n' % (meanReciprocalRank * sum(hitAtValue.values()) / len(hitAtValue)))
-        f.write('\n')
-
-        f.close()
-
     if recommendCount <= 0:
-        global paperInstitute, institutePaper
+        paperInstitute, institutePaper = loadPaperInstitute()
 
     paperInstituteResults = recommendCombinedRelation(model, algorithm, relations=[2, 0], directions=[True, True])
     if recommendCount <= 0:
-        testLinkPrediction(paperInstitute, paperInstituteResults, 'institute', 'paper')
+        testLinkPrediction(paperInstitute, paperInstituteResults, 'paper', 'institute')
 
     institutePaperResults = recommendCombinedRelation(model, algorithm, relations=[0, 2], directions=[False, False])
     if recommendCount <= 0:
-        testLinkPrediction(institutePaper, institutePaperResults, 'paper', 'institute')
+        testLinkPrediction(institutePaper, institutePaperResults, 'institute', 'paper')
 
 
 def test():
     if recommendCount > 0:
         # Predict field for venue, combine relation 4 (paper_is_published_on_venue) and relation 3 (paper_is_in_field)
         testVenueField()
-        # Predict venue for author, combine relation 2 (paper_is_written_by_author) and relation 4 (paper_is_published_on_venue)
-        testAuthorVenue()
+    # Predict venue for author, combine relation 2 (paper_is_written_by_author) and relation 4 (paper_is_published_on_venue)
+    testAuthorVenue()
     # Predict paper for institute, combine relation 2 (paper_is_written_by_author) and relation 0 (author_work_in_institute)
     testPaperInstitute()
 
@@ -362,17 +458,17 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
-parser.add_argument('--count', type=int, required=False)
+parser.add_argument('--count', type=int, required=False)  # set count <= 0 to launch link prediction test
 parser.add_argument('--update', type=bool, required=False)
-parser.add_argument('--alg', type=str, required=False)
+parser.add_argument('--alg', type=str, required=False)  # 'chained' or 'mindist'
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method
 order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
-recommendCount = parsedArgs.count if parsedArgs.count is not None else 10  # if recommendCount <= 0, test link prediction
+recommendCount = parsedArgs.count if parsedArgs.count is not None else 10
 update = parsedArgs.update if parsedArgs.update else False
-algorithm = parsedArgs.alg.lower() if parsedArgs.alg else 'chained'  # 'chained' or 'mindist'
+algorithm = parsedArgs.alg.lower() if parsedArgs.alg else 'chained'
 
 if 'transe' in method.lower():
     model = 'transe'
@@ -384,6 +480,9 @@ elif 'complex' in method.lower():
     model = 'complex'
 else:
     raise ValueError('Invalid model!')
+
+if not algorithm in ['chained', 'mindist']:
+    raise ValueError('Invalid algorithm!')
 
 f = open(parentDir + '/res/%s/%s/%i/relationVector.data' % (database, method, order), 'r')
 s = f.read().split('\n')
@@ -415,15 +514,12 @@ entityInfo = dict()
 entityVectors = dict()
 sortedEntityInfo = dict()
 for typ in types:
-    loadEntityInfo(typ)
+    loadEntityInfo(typ, entityInfo, entityVectors, sortedEntityInfo)
+typeConstraint = loadTypeConstraint()
 
 if recommendCount <= 0:
-    paperInstitute = dict()
-    institutePaper = dict()
-    loadPaperInstitute()
-
-    testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/combined_recommendation_analysis.log' % \
-                    (database, method, order)
+    testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/%s_recommendation_analysis.log' % \
+                    (database, method, order, algorithm)
     mkdir(['res', database, method, order, 'recommendation', 'analyzed'])
     f = open(testResultLog, 'w')
     f.close()

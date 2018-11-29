@@ -4,6 +4,7 @@
 import argparse
 import os
 import codecs
+import time
 
 try:
     import win_unicode_console
@@ -13,6 +14,29 @@ except:
     pass
 
 parentDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+times = 0
+timesTotal = 0
+startTime = 0
+
+
+def startTiming(total):
+    global times, timesTotal, startTime
+
+    times = 0
+    startTime = time.time()
+    timesTotal = total
+
+    print(timesTotal)
+
+
+def displayTiming():
+    global times, timesTotal, startTime
+
+    times += 1
+    print('\r%s\t%.2fs' % (str(round(100. * times / timesTotal, 2)) + '%', time.time() - startTime), end='')
+    if times == timesTotal:
+        print()
 
 
 def getBestOrder(database, method):
@@ -60,16 +84,11 @@ def paperRecommendation():
 
     f = open(outputPath, 'w')
     print('Recommending papers...')
-    print(len(vectors))
 
     sortedKeys = map(lambda x: x[0], sorted(name.items(), key=lambda x: x[1].lower()))
 
-    count = 0
+    startTiming(len(vectors))
     for entityId in sortedKeys:
-        count += 1
-        if int(count * 100 / len(vectors)) > int((count - 1) * 100 / len(vectors)):
-            print(str(int(count * 100 / len(vectors))) + '%')
-
         distance = dict()
         for entityId2 in vectors.keys():
             if entityId == entityId2:
@@ -82,6 +101,9 @@ def paperRecommendation():
         for i in range(recommendCount):
             f.write(sortedResults[i][0] + '\t' + name[sortedResults[i][0]] + '\n')
         f.write('\n')
+
+        displayTiming()
+
     f.close()
 
 
@@ -102,16 +124,11 @@ def venueRecommendation():
 
     f = open(outputPath, 'w')
     print('Recommending venues...')
-    print(len(vectors))
 
     sortedKeys = map(lambda x: x[0], sorted(name.items(), key=lambda x: x[1].lower()))
 
-    count = 0
+    startTiming(len(vectors))
     for entityId in sortedKeys:
-        count += 1
-        if int(count * 100 / len(vectors)) > int((count - 1) * 100 / len(vectors)):
-            print(str(int(count * 100 / len(vectors))) + '%')
-
         distance = dict()
         for entityId2 in vectors.keys():
             if entityId == entityId2:
@@ -126,6 +143,9 @@ def venueRecommendation():
             f.write(sortedResults[i][0] + '\t' + name[sortedResults[i][0]] +
                     '\t' + venueType[sortedResults[i][0]] + '\t' + category[sortedResults[i][0]] + '\n')
         f.write('\n')
+
+        displayTiming()
+
     f.close()
 
 
@@ -154,16 +174,11 @@ def authorRecommendation():
 
     f = open(outputPath, 'w')
     print('Recommending authors...')
-    print(len(vectors))
 
     sortedKeys = map(lambda x: x[0], sorted(name.items(), key=lambda x: x[1].lower()))
 
-    count = 0
+    startTiming(len(vectors))
     for entityId in sortedKeys:
-        count += 1
-        if int(count * 100 / len(vectors)) > int((count - 1) * 100 / len(vectors)):
-            print(str(int(count * 100 / len(vectors))) + '%')
-
         distance = dict()
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and authorPaperCount.get(entityId2, 0) < 3):
@@ -176,6 +191,9 @@ def authorRecommendation():
         for i in range(recommendCount):
             f.write(sortedResults[i][0] + '\t' + name[sortedResults[i][0]] + '\n')
         f.write('\n')
+
+        displayTiming()
+
     f.close()
 
 
@@ -204,16 +222,11 @@ def fieldRecommendation():
 
     f = open(outputPath, 'w')
     print('Recommending fields...')
-    print(len(vectors))
 
     sortedKeys = map(lambda x: x[0], sorted(name.items(), key=lambda x: x[1].lower()))
 
-    count = 0
+    startTiming(len(vectors))
     for entityId in sortedKeys:
-        count += 1
-        if int(count * 100 / len(vectors)) > int((count - 1) * 100 / len(vectors)):
-            print(str(int(count * 100 / len(vectors))) + '%')
-
         distance = dict()
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and fieldPaperCount.get(entityId2, 0) < 5):
@@ -226,6 +239,9 @@ def fieldRecommendation():
         for i in range(recommendCount):
             f.write(sortedResults[i][0] + '\t' + name[sortedResults[i][0]] + '\n')
         f.write('\n')
+
+        displayTiming()
+
     f.close()
 
 
@@ -259,16 +275,11 @@ def instituteRecommendation():
 
     f = open(outputPath, 'w')
     print('Recommending institutes...')
-    print(len(vectors))
 
     sortedKeys = map(lambda x: x[0], sorted(name.items(), key=lambda x: x[1].lower()))
 
-    count = 0
+    startTiming(len(vectors))
     for entityId in sortedKeys:
-        count += 1
-        if int(count * 100 / len(vectors)) > int((count - 1) * 100 / len(vectors)):
-            print(str(int(count * 100 / len(vectors))) + '%')
-
         distance = dict()
         for entityId2 in vectors.keys():
             if entityId == entityId2 or (limited and institutePaperCount.get(entityId2, 0) < 5):
@@ -281,6 +292,9 @@ def instituteRecommendation():
         for i in range(recommendCount):
             f.write(sortedResults[i][0] + '\t' + name[sortedResults[i][0]] + '\n')
         f.write('\n')
+
+        displayTiming()
+
     f.close()
 
 
