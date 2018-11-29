@@ -190,6 +190,8 @@ for fileName in fileList:
                 recommendRank = recommendInfo[1]
                 recommendDist = recommendInfo[2]
 
+                if givenId == recommendId:
+                    continue
                 if buildTriplet(givenId, relationId, recommendId, givenObject == 'tail') in triplets:
                     continue
                 if specialCaseValidation(relationId, recommendId, recommendObject == 'tail'):
