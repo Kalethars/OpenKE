@@ -69,7 +69,7 @@ def loadTriplets():
         headId = splited[0][1:]
         relationId = splited[1]
         tailId = splited[2][1:]
-        triplets.add(buildTriplet(splited[0][1:], splited[1], splited[2][1:]))
+        triplets.add(buildTriplet(headId, relationId, tailId))
         addToSet(typeConstraint[0], relationId, headId)
         addToSet(typeConstraint[1], relationId, tailId)
 
@@ -77,10 +77,10 @@ def loadTriplets():
 
 
 def specialCaseValidation(relationId, recommendId, direction):
-    if relationId == '3':
+    if relationId == '3' and direction:
         if not recommendId in typeConstraint[direction][relationId]:
-            return False
-    return True
+            return True
+    return False
 
 
 parser = argparse.ArgumentParser()
@@ -192,7 +192,8 @@ for fileName in fileList:
 
                 if givenId == recommendId:
                     continue
-                if buildTriplet(givenId, relationId, recommendId, givenObject == 'tail') in triplets:
+                triplet = buildTriplet(givenId, relationId, recommendId, givenObject == 'tail')
+                if triplet in triplets:
                     continue
                 if specialCaseValidation(relationId, recommendId, recommendObject == 'tail'):
                     continue

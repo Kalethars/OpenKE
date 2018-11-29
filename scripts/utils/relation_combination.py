@@ -294,6 +294,8 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
                     rank = 0
                     for k in range(len(distances)):
                         (recommendId, distance) = distances[k]
+                        if entityId == recommendId:
+                            continue
                         if j == num - 1:
                             if not available(recommendId, relations[-1], directions[-1]):
                                 continue
