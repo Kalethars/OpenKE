@@ -326,9 +326,10 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
     headType = relationHeads[relations[0]] if directions[0] else relationTails[relations[0]]
     tailType = relationTails[relations[-1]] if directions[-1] else relationHeads[relations[-1]]
 
-    outputPath = parentDir + '/res/%s/%s/%i/recommendation/%s_recommendation_%s_%s.txt' % \
-                 (database, method, order, algorithm, headType, tailType)
-    if (not update) and (not linkPredict) and os.path.exists(outputPath):
+    outputPath = parentDir + '/res/%s/%s/%i/recommendation/%s_%s_%s_%s.txt' % \
+                 (database, method, order, algorithm,
+                  'prediction' if linkPredict else 'recommendation', headType, tailType)
+    if (not update) and os.path.exists(outputPath):
         return
 
     entityList = sortedEntityInfo[headType]
