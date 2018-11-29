@@ -1,5 +1,6 @@
 import argparse
 import os
+import codecs
 import gc
 
 try:
@@ -28,7 +29,7 @@ def getBestOrder(database, method):
 def loadEntityInfo(typ):
     global entityInfo, entityVectors, sortedEntityInfo
 
-    f = open(parentDir + '/data/%s/info/%sInfo.data' % (database, typ), 'r')
+    f = codecs.open(parentDir + '/data/%s/info/%sInfo.data' % (database, typ), 'r', encoding='utf-8', errors='ignore')
     infoLines = f.read().split('\n')
     f.close()
     entityInfo[typ] = dict()
@@ -250,7 +251,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None):
 def loadPaperInstitute():
     global paperInstitute, institutePaper
 
-    f = open(parentDir + '/data/%s/paperAuthorAffiliations.data' % database, 'r')
+    f = open(parentDir + '/data/%s/PaperAuthorAffiliations.data' % database, 'r')
     s = f.read().split('\n')
     f.close()
 
