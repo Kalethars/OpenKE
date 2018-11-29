@@ -56,7 +56,7 @@ def loadTriplets():
         splited = line.split()
         if len(splited) != 3:
             continue
-        triplets.add(buildTriplet(splited[0], splited[1], splited[2]))
+        triplets.add(buildTriplet(splited[0][1:], splited[1], splited[2][1:]))
 
     return triplets
 
