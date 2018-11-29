@@ -26,7 +26,7 @@ class ComplEx(Model):
     '''
 
     def _calc(self, h, t, r):
-        return tf.real(h * t * tf.conj(r))
+        return tf.real(h * r * tf.conj(t))
 
     def loss_def(self):
         # Obtaining the initial configuration of the model
