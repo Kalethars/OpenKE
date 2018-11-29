@@ -513,7 +513,7 @@ for typ in types:
 typeConstraint = loadTypeConstraint()
 
 if linkPredict:
-    testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/%s_recommendation_analysis.log' % \
+    testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/%s_prediction_analysis.log' % \
                     (database, method, order, algorithm)
     mkdir(['res', database, method, order, 'recommendation', 'analyzed'])
     f = open(testResultLog, 'w')
