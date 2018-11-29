@@ -1,8 +1,10 @@
 f = open('../relation_based_recommendation.sh', 'w')
 
 f.write('#!/usr/bin/env bash\n')
-methods = ['WTransE_test', 'TransH_test', 'WTransH_test', 'DistMult_detailed', 'ComplEx_advanced', 'WComplEx_advanced']
-orders = [1, 1, 1, 1, 2, 2]
+# methods = ['WTransE_test', 'TransH_test', 'WTransH_test', 'DistMult_detailed', 'ComplEx_advanced', 'WComplEx_advanced']
+methods = ['WComplEx_advanced']
+# orders = [1, 1, 1, 1, 2, 2]
+orders = [2]
 
 for i in range(len(methods)):
     method = methods[i]

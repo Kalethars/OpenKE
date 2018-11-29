@@ -304,18 +304,26 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
 
     def outputProgress(distances, headId):
         sortedDistances = sorted(distances.keys(), key=lambda x: distances[x])
-        outputFile.write('Recommend: %s - %s\n' % (headId, entityInfo[headType][headId]))
+
+        outputFile.write('%s: %s - %s\n' %
+                         ('Predict' if linkPredict else 'Recommend', headId, entityInfo[headType][headId]))
         outputFile.write('-' * 50 + '\n')
-        for j in range(recommendCount):
-            recommendId = sortedDistances[j]
-            outputFile.write('%i\t%s\t%s\n' % (j + 1, recommendId, entityInfo[tailType][recommendId]))
+
         if linkPredict:
             recommendResults[headId] = sortedDistances
 
+            cnt = 0
             for j in range(len(sortedDistances)):
+                if cnt == len(groundTruth.get(headId, set())):
+                    break
                 recommendId = sortedDistances[j]
                 if recommendId in groundTruth.get(headId, set()):
                     outputFile.write('%i\t%s\t%s\n' % (j + 1, recommendId, entityInfo[tailType][recommendId]))
+                    cnt += 1
+        else:
+            for j in range(recommendCount):
+                recommendId = sortedDistances[j]
+                outputFile.write('%i\t%s\t%s\n' % (j + 1, recommendId, entityInfo[tailType][recommendId]))
 
         outputFile.write('\n')
         displayTiming()
@@ -443,7 +451,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
-parser.add_argument('--count', type=int, required=False)  # set count <= 0 to launch link prediction test
+parser.add_argument('--predict', type=bool, required=False)
 parser.add_argument('--update', type=bool, required=False)
 parser.add_argument('--alg', type=str, required=False)  # 'chained' or 'mindist'
 parsedArgs = parser.parse_args()
@@ -451,11 +459,11 @@ parsedArgs = parser.parse_args()
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method
 order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
-recommendCount = parsedArgs.count if parsedArgs.count is not None else 10
+linkPredict = parsedArgs.predict if parsedArgs.predict else False
 update = parsedArgs.update if parsedArgs.update else False
 algorithm = parsedArgs.alg.lower() if parsedArgs.alg else 'chained'
 
-linkPredict = recommendCount <= 0
+recommendCount = 10 if linkPredict else 0
 
 if 'transe' in method.lower():
     model = 'transe'
