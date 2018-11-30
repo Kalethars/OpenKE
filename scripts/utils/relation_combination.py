@@ -203,7 +203,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
         f.write('MRR:\t%f\n' % (meanReciprocalRank))
         for num in hitAt:
             f.write('Hit@%i:\t%f\n' % (num, hitAtValue[num]))
-        f.write('Score:\t%f\n' % (meanReciprocalRank * sum(hitAtValue.values()) / len(hitAtValue)))
+        f.write('Score:\t%f\n' % (meanReciprocalRank * sum(hitAtValue.values())))
         f.write('\n')
 
         f.close()
@@ -245,6 +245,19 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
 
     def available(entityId, relation, direction):
         return entityId in typeConstraint[direction][relation]
+
+    def getLegalDistances(entityId, distances, coeff, checkArgs=None):
+        legalDistances = []
+        for i in range(len(distances)):
+            (recommendId, distance) = distances[i]
+            if entityId == recommendId:
+                continue
+            if checkArgs is not None:
+                if not available(recommendId, checkArgs[0], checkArgs[1]):
+                    continue
+            legalDistances.append((recommendId, distance))
+        remaining = int(coeff * len(legalDistances))
+        return legalDistances[:remaining]
 
     def validate():
         if len(relations) != len(directions):
@@ -290,18 +303,12 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
             minDistance[0][entityList[i]] = 0
             for j in range(num):
                 for entityId in minDistance[j].keys():
-                    distances = relationEntityDistances[j][entityId]
-                    rank = 0
+                    distances = getLegalDistances(entityId, relationEntityDistances[j][entityId], coeff,
+                                                  (relations[-1], directions[-1]) if j == num - 1 else None)
                     for k in range(len(distances)):
                         (recommendId, distance) = distances[k]
-                        if entityId == recommendId:
-                            continue
-                        if j == num - 1:
-                            if not available(recommendId, relations[-1], directions[-1]):
-                                continue
-                        rank += 1
                         if algorithm == 'maxmrr':
-                            distance = -1 / rank
+                            distance = -1 / (k + 1)
                         minDistance[j + 1][recommendId] = min(minDistance[j + 1].get(recommendId, MAX),
                                                               minDistance[j][entityId] + distance)
 
@@ -426,8 +433,8 @@ def testAuthorVenue():
         authorVenue, venueAuthor = loadAuthorVenue()
         recommendCombinedRelation(model, algorithm, relations=[2, 4], directions=[False, True],
                                   groundTruth=authorVenue)
-        recommendCombinedRelation(model, algorithm, relations=[4, 2], directions=[False, True],
-                                  groundTruth=venueAuthor)
+        # recommendCombinedRelation(model, algorithm, relations=[4, 2], directions=[False, True],
+        #                           groundTruth=venueAuthor)
     else:
         recommendCombinedRelation(model, algorithm, relations=[2, 4], directions=[False, True])
         recommendCombinedRelation(model, algorithm, relations=[4, 2], directions=[False, True])
@@ -438,8 +445,8 @@ def testPaperInstitute():
         paperInstitute, institutePaper = loadPaperInstitute()
         recommendCombinedRelation(model, algorithm, relations=[2, 0], directions=[True, True],
                                   groundTruth=paperInstitute)
-        recommendCombinedRelation(model, algorithm, relations=[0, 2], directions=[False, False],
-                                  groundTruth=institutePaper)
+        # recommendCombinedRelation(model, algorithm, relations=[0, 2], directions=[False, False],
+        #                           groundTruth=institutePaper)
     else:
         recommendCombinedRelation(model, algorithm, relations=[2, 0], directions=[True, True])
         recommendCombinedRelation(model, algorithm, relations=[0, 2], directions=[False, False])
@@ -462,6 +469,7 @@ parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--predict', type=bool, required=False)
 parser.add_argument('--update', type=bool, required=False)
 parser.add_argument('--alg', type=str, required=False)  # 'chained', 'mindist' or 'maxmrr'
+parser.add_argument('--coeff', type=float, required=False)  # meant for 'mindist' and 'maxmrr' to reduce calculation
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -470,6 +478,9 @@ order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
 linkPredict = parsedArgs.predict if parsedArgs.predict else False
 update = parsedArgs.update if parsedArgs.update else False
 algorithm = parsedArgs.alg.lower() if parsedArgs.alg else 'chained'
+coeff = parsedArgs.coeff if parsedArgs.coeff is not None else 1
+if coeff <= 0 or coeff > 1:
+    coeff = 1
 
 recommendCount = 10 if linkPredict else 0
 
@@ -522,8 +533,10 @@ for typ in types:
 typeConstraint = loadTypeConstraint()
 
 if linkPredict:
-    testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/%s_prediction_analysis.log' % \
-                    (database, method, order, algorithm)
+    coeffString = ('_coeff=%s' % str(round(coeff, 4)).rstrip('0.')) if \
+        (algorithm in {'mindist', 'maxmrr'} and coeff != 1) else ''
+    testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/%s_prediction_analysis%s.log' % \
+                    (database, method, order, algorithm, coeffString)
     mkdir(['res', database, method, order, 'recommendation', 'analyzed'])
     f = open(testResultLog, 'w')
     f.close()
