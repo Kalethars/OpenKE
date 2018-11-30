@@ -6,6 +6,7 @@ import numpy as np
 
 import argparse
 import os
+import time
 
 try:
     import win_unicode_console
@@ -13,6 +14,39 @@ try:
     win_unicode_console.enable()
 except:
     pass
+
+
+def startTiming(total):
+    global times, timesTotal, startTime
+
+    times = 0
+    startTime = time.time()
+    timesTotal = int(total)
+
+    print('Total loops: %i' % timesTotal)
+
+
+def displayTiming():
+    global times, timesTotal, startTime
+
+    times += 1
+    print('\r%s\t%.2fs' % (str(round(100. * times / timesTotal, 2)) + '%', time.time() - startTime), end='')
+    if times == timesTotal:
+        print()
+
+
+def determineOutputName():
+    modelOrig = method.split('_')[0]
+    outputName = '%s_%s_%s.data' % (modelOrig, alg, target)
+    n = 1
+    while True:
+        if (not overwrite) and os.path.exists('./data/%s' % outputName):
+            n += 1
+            outputName = '%s_%s%i_%s.data' % (modelOrig, alg, n, target)
+        else:
+            break
+    print('Output file name will be: %s' % outputName)
+    return outputName
 
 
 def calcDistance(v1, v2, norm=1):
@@ -35,8 +69,8 @@ parser.add_argument('--alg', type=str, required=False)
 parser.add_argument('--overwrite', type=bool, required=False)
 parsedArgs = parser.parse_args()
 
-method = parsedArgs.method if parsedArgs.method else 'WTransH_test'
-order = parsedArgs.order if parsedArgs.order else 1
+method = parsedArgs.method if parsedArgs.method else 'WComplEx_advanced'
+order = parsedArgs.order if parsedArgs.order else 6
 target = parsedArgs.target.lower() if parsedArgs.target else 'venue'
 if not target.lower() in {'venue', 'paper'}:
     raise ValueError('Target type not supported!')
@@ -44,6 +78,8 @@ alg = parsedArgs.alg.lower() if parsedArgs.alg else 'tsne'
 overwrite = parsedArgs.overwrite if parsedArgs.overwrite else False
 
 model = method.split('_')[0].lower()
+
+outputName = determineOutputName()
 
 f = open('../../data/ACE17K/info/%sInfo.data' % target, 'r')
 infoLines = f.read().split('\n')
@@ -144,9 +180,8 @@ elif 'complex' in model:
 else:
     calc = calcDistance
 
-count = 0
-percentage = 1
 total = num * (num + 1) / 2
+startTiming(total)
 
 distance = np.zeros((num, num))
 for i in range(num):
@@ -156,10 +191,7 @@ for i in range(num):
             distance[i][j] = 0
         distance[j][i] = distance[i][j]
 
-        count += 1
-        if count / total * 100 >= percentage:
-            print(str(percentage) + '%')
-            percentage += 1
+        displayTiming()
 
 if alg == 'tsne':
     tsne = TSNE(n_components=2, metric='precomputed', n_iter=10000, learning_rate=150.0, perplexity=30, verbose=True)
@@ -176,16 +208,7 @@ elif alg == 'pca':
 else:
     raise ValueError('Incorrect algorithm!')
 
-modelOrig = method.split('_')[0]
-outputName = '%s_%s' % (modelOrig, alg)
-n = 1
-while True:
-    if (not overwrite) and os.path.exists('./data/%s_%s.data' % (outputName, target)):
-        n += 1
-        outputName = '%s_%s%i' % (modelOrig, alg, n)
-    else:
-        break
-f = open('./data/%s_%s.data' % (outputName, target), 'w')
+f = open('./data/%s' % outputName, 'w')
 for i in range(len(result)):
     if miscs[i][2] is None:
         continue

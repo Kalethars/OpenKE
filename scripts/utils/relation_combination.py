@@ -20,14 +20,20 @@ timesTotal = 0
 startTime = 0
 
 
+def output(f, s='', end='\n'):
+    print(s + end, end='')
+    if not f is None:
+        f.write(s + end)
+
+
 def startTiming(total):
     global times, timesTotal, startTime
 
     times = 0
     startTime = time.time()
-    timesTotal = total
+    timesTotal = int(total)
 
-    print(timesTotal)
+    print('Total loops: %i' % timesTotal)
 
 
 def displayTiming():
@@ -125,6 +131,7 @@ def loadRelationEntityDistances(relations, directions):
         valueEntities = s[1].split()
 
         relationEntityDistances.append(dict())
+        startTiming(len(keyEntities))
         for i in range(len(keyEntities)):
             values = s[i + 2].split()
             assert len(valueEntities) == len(values)
@@ -136,6 +143,8 @@ def loadRelationEntityDistances(relations, directions):
                 value = float(values[j])
                 relationEntityDistances[-1][keyEntity].append((valueEntity, value))
             relationEntityDistances[-1][keyEntity].sort(key=lambda x: x[1])
+
+            displayTiming()
 
         print('Relation = %i with direction = %i loaded, key entities = %i, value entities = %i.' %
               (relationId, direction, len(keyEntities), len(valueEntities)))
@@ -167,7 +176,11 @@ def loadTypeConstraint():
 def recommendCombinedRelation(model, algorithm, relations, directions=None, groundTruth=None):
     def testLinkPrediction(groundTruth, predicted, headType, tailType):
         global testResultLog
-        f = open(testResultLog, 'a')
+
+        total = 0
+        for headId in groundTruth.keys():
+            total += len(groundTruth[headId])
+        print('Testing link prediction, triplets in ground truth: %i.' % total)
 
         hitAt = [10, 3, 1]
         meanReciprocalRank = 0
@@ -175,10 +188,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
         for num in hitAt:
             hitAtValue[num] = 0
 
-        total = 0
         for headId in groundTruth.keys():
-            total += len(groundTruth[headId])
-
             rank = dict()
 
             cnt = 1
@@ -199,11 +209,12 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
         for num in hitAt:
             hitAtValue[num] /= total
 
-        f.write('Predict %s for %s:\n' % (tailType, headType))
-        f.write('MRR:\t%f\n' % (meanReciprocalRank))
+        f = open(testResultLog, 'a')
+        output(f, 'Predict %s for %s:' % (tailType, headType))
+        output(f, 'MRR:\t%f' % (meanReciprocalRank))
         for num in hitAt:
-            f.write('Hit@%i:\t%f\n' % (num, hitAtValue[num]))
-        f.write('Score:\t%f\n' % (meanReciprocalRank * sum(hitAtValue.values())))
+            output(f, 'Hit@%i:\t%f' % (num, hitAtValue[num]))
+        output(f, 'Score:\t%f' % (meanReciprocalRank * sum(hitAtValue.values())))
         f.write('\n')
 
         f.close()
@@ -292,12 +303,12 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
             outputProgress(distances, entityId)
 
     def minDistModel(algorithm):
-        startTiming(len(entityList))
         MAX = 10000000
 
         relationEntityDistances = loadRelationEntityDistances(relations, directions)
         num = len(relations)
 
+        startTiming(len(entityList))
         for i in range(len(entityList)):
             minDistance = [dict() for i in range(num + 1)]
             minDistance[0][entityList[i]] = 0

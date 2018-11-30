@@ -26,9 +26,9 @@ def startTiming(total):
 
     times = 0
     startTime = time.time()
-    timesTotal = total
+    timesTotal = int(total)
 
-    print(timesTotal)
+    print('Total loops: %i' % timesTotal)
 
 
 def displayTiming():
