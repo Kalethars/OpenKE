@@ -65,6 +65,14 @@ def displayTiming():
         print()
 
 
+def mkdir(folders):
+    path = parentDir + '/'
+    for i in range(len(folders)):
+        path += str(folders[i]) + '/'
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+
 def formattedRound(number, digit):
     if digit == 0:
         return str(round(number))
@@ -230,6 +238,7 @@ for fieldId in triplets.keys():
 
 print(method)
 print('-' * 50)
+mkdir(['res', database, method, order, 'recommendation', 'analyzed'])
 f = open(parentDir + '/res/%s/%s/%i/recommendation/analyzed/groundTruth_Recommend_analyzed.log' %
          (database, method, order), 'w')
 for metric in ['citation', 'log_citation', 'year']:
