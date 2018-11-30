@@ -244,5 +244,5 @@ f = open(parentDir + '/res/%s/%s/%i/recommendation/analyzed/groundTruth_Recommen
          (database, method, order), 'w')
 for metric in ['citation', 'log_citation', 'year']:
     outputMetric(f, metric, metrics[metric])
-    output(f)
+output(f)
 f.close()
