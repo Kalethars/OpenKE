@@ -22,9 +22,7 @@ def formattedRound(number, digit):
 candidates = [('TransE_detailed', 6, 'TransE', 'TransE'),
               ('WTransE_test', 1, 'TransE', 'W-TransE'),
               ('TransH_test', 1, 'TransH', 'TransH'),
-              ('WTransH_test', 1, 'TransH', 'W-TransH'),
-              ('ComplEx_advanced', 2, 'ComplEx', 'ComplEx'),
-              ('WComplEx_advanced', 2, 'ComplEx', 'W-ComplEx')
+              ('WTransH_test', 1, 'TransH', 'W-TransH')
               ]
 bestFunc = {'Average Year Diff Abs:': min}
 avgAt = [10, 3, 1]

@@ -216,4 +216,5 @@ for i in range(len(result)):
     f.write('%f\t%f\t%s' % (vector[0], vector[1], '\t'.join([miscs[i][1]] + color[miscs[i][2]])) + '\n')
 f.close()
 
-os.system('python canvas_painter.py --method=%s --target=%s' % (outputName, target))
+os.system('python canvas_painter.py --method=%s --target=%s' %
+          ('_'.join(outputName.split('_')[:2]), target))

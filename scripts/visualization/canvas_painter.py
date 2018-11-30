@@ -101,30 +101,49 @@ def normalize(nodes, lowX=150, highX=1050, lowY=50, highY=950):
         node[0][1] = (node[0][1] - minY) / (maxY - minY) * (highY - lowY) + lowY
 
 
-def venueLegend(canvas, nodes, radius=3, offset=2):
+def venueLegend(canvas, nodes, radius=3, offset=5, split=False):
     f = open('./data/venue_color.data', 'r')
     s = f.read().split('\n')
     f.close()
 
     cnt = 0
-    colorIndex = dict()
+    x = 20
+    y = 20
     for line in s:
         splited = line.split()
         if len(splited) == 4:
             categoryName = splited[0].replace('.', ' ')
+            if split:
+                categoryName = categoryName.split('/')
+            else:
+                categoryName = [categoryName]
             color = toHexColor(list(map(lambda x: float(x), splited[1:])))
-            colorIndex[color] = '\n/'.join(categoryName.split('/'))
-            x = 20
-            y = 20 + cnt * 20
             Canvas.create_oval(canvas, x - radius, y - radius, x + radius, y + radius, fill=color, outline=color)
-            Canvas.create_text(canvas, x + radius + offset, y, text=categoryName, fill=color, anchor='w')
+            for i in range(len(categoryName)):
+                Canvas.create_text(canvas, x + radius + offset, y, text=categoryName[i], fill=color, anchor='w')
+                y += 20
 
-            cnt += 1
 
-
-def computeCore(points):
-    points = sorted(points)
-    return points[int(len(points) / 2)]
+def computeCore(pointX, pointY):
+    distances = []
+    num = len(pointX)
+    for i in range(num):
+        distances.append([])
+        for j in range(num):
+            if i == j:
+                distances[-1].append(0)
+            elif i > j:
+                distances[-1].append(distances[j][i])
+            else:
+                distances[-1].append(((pointX[i] - pointX[j]) ** 2 + (pointY[i] - pointY[j]) ** 2) ** 0.5)
+    minimum = -1
+    bestPoint = -1
+    for i in range(num):
+        sumDistance = sum(distances[i])
+        if minimum < 0 or sumDistance < minimum:
+            minimum = sum(distances[i])
+            bestPoint = i
+    return pointX[bestPoint], pointY[bestPoint]
 
 
 parser = argparse.ArgumentParser()
@@ -166,7 +185,7 @@ for line in s:
         color = toHexColor((float(splited[3]), float(splited[4]), float(splited[5])))
         nodes.append([coordinate, label, color])
         colors[label] = color
-normalize(nodes, 1150 - sizeX, 1150, 950 - sizeY, 950)
+normalize(nodes, 1050 - sizeX, 1050, 950 - sizeY, 950)
 nodeNum = len(nodes)
 
 pointX = dict()
@@ -181,8 +200,7 @@ for node in nodes:
 
 labels = []
 for label in pointX.keys():
-    coreX = computeCore(pointX[label])
-    coreY = computeCore(pointY[label])
+    coreX, coreY = computeCore(pointX[label], pointY[label])
     labels.append([[coreX, coreY], label, colors[label]])
 labelNum = len(labels)
 
@@ -226,7 +244,7 @@ if len(manualNode) > 0:
 
 window = Tk()
 window.title('%s graph of %s' % (target.capitalize(), method))
-canvas = Canvas(window, height=1000, width=1300, bg='white')
+canvas = Canvas(window, height=1000, width=1200, bg='white')
 
 for node in nodes:
     createPoint(canvas, node, radius)
@@ -235,7 +253,7 @@ for label in labels:
     createLabel(canvas, label, radius, noColor=False if target in {'venue'} else True)
 
 if target in {'venue', 'paper'}:
-    venueLegend(canvas, nodes)
+    venueLegend(canvas, nodes, split=True if target == 'paper' else False)
 
 canvas.pack()
 window.mainloop()
