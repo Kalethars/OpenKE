@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 
 import argparse
 import os
@@ -242,7 +243,6 @@ mkdir(['res', database, method, order, 'recommendation', 'analyzed'])
 f = open(parentDir + '/res/%s/%s/%i/recommendation/analyzed/groundTruth_Recommend_analyzed.log' %
          (database, method, order), 'w')
 for metric in ['citation', 'log_citation', 'year']:
-    for i in range(count):
-        outputMetric(f, metric, metrics[metric])
+    outputMetric(f, metric, metrics[metric])
     output(f)
 f.close()
