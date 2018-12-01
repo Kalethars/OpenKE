@@ -69,7 +69,7 @@ target = (parsedConfig.target if parsedConfig.target else 'all').lower()
 threads = parsedConfig.threads if parsedConfig.threads else 32
 
 paramConfig = dict()
-paramConfig['TransE'] = {'detailed': {'epoch': [5000],
+paramConfig['TransE'] = {'detailed': {'epoch': [2000],
                                       'dimension': [300],
                                       'nbatches': [100],
                                       'margin': [2.0, 2.5, 3.0, 3.5],
@@ -77,9 +77,18 @@ paramConfig['TransE'] = {'detailed': {'epoch': [5000],
                                       'bern': [0],
                                       'cuda': [1],
                                       'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
-                                      }
+                                      },
+                         'test': {'epoch': [500],
+                                  'dimension': [300],
+                                  'nbatches': [100],
+                                  'margin': [1.0, 3.0],
+                                  'alpha': [0.01, 0.0001, 0.01],
+                                  'bern': [0],
+                                  'cuda': [1],
+                                  'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
+                                  }
                          }
-paramConfig['TransH'] = {'detailed': {'epoch': [5000],
+paramConfig['TransH'] = {'detailed': {'epoch': [2000],
                                       'dimension': [300],
                                       'nbatches': [100],
                                       'margin': [1.5, 2.0, 2.5, 3.0],
@@ -87,9 +96,18 @@ paramConfig['TransH'] = {'detailed': {'epoch': [5000],
                                       'bern': [0],
                                       'cuda': [1],
                                       'model': ['ACE17K/TransH_test/1', 'ACE17K/WTransH_test/1']
-                                      }
+                                      },
+                         'test': {'epoch': [500],
+                                  'dimension': [300],
+                                  'nbatches': [100],
+                                  'margin': [1.0, 3.0],
+                                  'alpha': [0.01, 0.0001, 0.01],
+                                  'bern': [0],
+                                  'cuda': [1],
+                                  'model': ['ACE17K/TransH_test/1', 'ACE17K/WTransH_test/1']
+                                  }
                          }
-paramConfig['DistMult'] = {'detailed': {'epoch': [5000],
+paramConfig['DistMult'] = {'detailed': {'epoch': [2000],
                                         'dimension': [300],
                                         'nbatches': [100],
                                         'margin': [1.75],
@@ -99,7 +117,7 @@ paramConfig['DistMult'] = {'detailed': {'epoch': [5000],
                                         'model': ['ACE17K/DistMult_detailed/1']
                                         }
                            }
-paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
+paramConfig['ComplEx'] = {'advanced': {'epoch': [1000],
                                        'dimension': [150],
                                        'nbatches': [100],
                                        'margin': [2.0],
