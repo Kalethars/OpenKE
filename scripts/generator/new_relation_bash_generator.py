@@ -122,7 +122,7 @@ paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
                                        'lmbda': [0.01, 0.001],
                                        'bern': [0],
                                        'cuda': [0],
-                                       'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
+                                       'model': ['ACE17K/ComplEx_advanced/2', 'ACE17K/WComplEx_advanced/6']
                                        }
                           }
 
