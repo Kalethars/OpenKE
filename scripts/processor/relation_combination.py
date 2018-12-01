@@ -499,10 +499,16 @@ def test():
     if not linkPredict:
         # Predict field for venue, combine relation 4 (paper_is_published_on_venue) and relation 3 (paper_is_in_field)
         testVenueField()
-    # Predict venue for author, combine relation 2 (paper_is_written_by_author) and relation 4 (paper_is_published_on_venue)
-    testAuthorVenue()
-    # Predict paper for institute, combine relation 2 (paper_is_written_by_author) and relation 0 (author_work_in_institute)
-    testPaperInstitute()
+    if target is None:
+        # Predict venue for author, combine relation 2 (paper_is_written_by_author) and relation 4 (paper_is_published_on_venue)
+        testAuthorVenue()
+        # Predict paper for institute, combine relation 2 (paper_is_written_by_author) and relation 0 (author_work_in_institute)
+        testPaperInstitute()
+    else:
+        if target.lower() == 'authorvenue':
+            testAuthorVenue()
+        if target.lower() == 'paperinstitute':
+            testPaperInstitute()
 
 
 parser = argparse.ArgumentParser()
@@ -513,6 +519,7 @@ parser.add_argument('--predict', type=bool, required=False)
 parser.add_argument('--update', type=bool, required=False)
 parser.add_argument('--alg', type=str, required=False)  # 'chained'/'magnetic', 'normdist'/'mindist'/'maxmrr'
 parser.add_argument('--coeff', type=float, required=False)  # meant for 'mindist' and 'maxmrr' to reduce calculation
+parser.add_argument('--target', type=str, required=False)  # 'authorvenue' or 'paperinstitute'
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
@@ -524,6 +531,7 @@ algorithm = parsedArgs.alg.lower().strip() if parsedArgs.alg else 'chained'
 coeff = parsedArgs.coeff if parsedArgs.coeff is not None else 1
 if coeff <= 0 or coeff > 1:
     coeff = 1
+target = parsedArgs.target
 
 recommendCount = 10 if linkPredict else 0
 

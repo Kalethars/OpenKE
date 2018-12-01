@@ -75,7 +75,7 @@ paramConfig['TransE'] = {'detailed': {'epoch': [5000],
                                       'alpha': [0.002, 0.001, 0.003, 0.004],
                                       'margin': [2.5, 2.0],
                                       'bern': [0],
-                                      'cuda': [1],
+                                      'cuda': [0],
                                       'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
                                       },
                          'test': {'epoch': [500],
@@ -83,7 +83,7 @@ paramConfig['TransE'] = {'detailed': {'epoch': [5000],
                                   'nbatches': [100],
                                   'alpha': [0.003, 0.01, 0.001],
                                   'bern': [0],
-                                  'cuda': [1],
+                                  'cuda': [0],
                                   'model': ['ACE17K/TransE_detailed/6']
                                   }
                          }
@@ -93,7 +93,7 @@ paramConfig['TransH'] = {'detailed': {'epoch': [5000],
                                       'alpha': [0.002, 0.001, 0.003, 0.004],
                                       'margin': [2.5, 2.0],
                                       'bern': [0],
-                                      'cuda': [1],
+                                      'cuda': [0],
                                       'model': ['ACE17K/TransH_test/1', 'ACE17K/WTransH_test/1']
                                       },
                          'test': {'epoch': [500],
@@ -101,7 +101,7 @@ paramConfig['TransH'] = {'detailed': {'epoch': [5000],
                                   'nbatches': [100],
                                   'alpha': [0.003, 0.01, 0.001],
                                   'bern': [0],
-                                  'cuda': [1],
+                                  'cuda': [0],
                                   'model': ['ACE17K/TransH_test/1']
                                   }
                          }
@@ -111,7 +111,7 @@ paramConfig['DistMult'] = {'detailed': {'epoch': [5000],
                                         'alpha': [0.04],
                                         'lmbda': [0, 0.001, 0.01],
                                         'bern': [0],
-                                        'cuda': [1],
+                                        'cuda': [0],
                                         'model': ['ACE17K/DistMult_detailed/1']
                                         }
                            }
@@ -121,7 +121,7 @@ paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
                                        'alpha': [0.03, 0.05],
                                        'lmbda': [0.01, 0.001],
                                        'bern': [0],
-                                       'cuda': [1],
+                                       'cuda': [0],
                                        'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
                                        }
                           }
