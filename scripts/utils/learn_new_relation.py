@@ -127,8 +127,8 @@ for i in range(1, authorVenueTotal):
     f.write('%s %s 0\n' % (authorVenue[i][0], authorVenue[i][1]))
     g.write('%s %s 0 1.0\n' % (authorVenue[i][0], authorVenue[i][1]))
 for i in range(1, paperInstituteTotal):
-    f.write('%s %s 0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
-    g.write('%s %s 0 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
+    f.write('%s %s 1\n' % (paperInstitute[i][0], paperInstitute[i][1]))
+    g.write('%s %s 1 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
 f.close()
 
 f = open(newDir + 'test2id.txt', 'w')
@@ -139,8 +139,8 @@ for i in range(authorVenueTotal, len(authorVenue)):
     f.write('%s %s 0\n' % (authorVenue[i][0], authorVenue[i][1]))
     g.write('%s %s 0 1.0\n' % (authorVenue[i][0], authorVenue[i][1]))
 for i in range(paperInstituteTotal, len(paperInstitute)):
-    f.write('%s %s 0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
-    g.write('%s %s 0 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
+    f.write('%s %s 1\n' % (paperInstitute[i][0], paperInstitute[i][1]))
+    g.write('%s %s 1 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
 f.close()
 g.close()
 
@@ -150,8 +150,8 @@ f.write('2\n')
 g.write('2\n')
 f.write('%s %s 0\n' % (authorVenue[0][0], authorVenue[0][1]))
 g.write('%s %s 0 1.0\n' % (authorVenue[0][0], authorVenue[0][1]))
-f.write('%s %s 0\n' % (paperInstitute[0][0], paperInstitute[0][1]))
-g.write('%s %s 0 1.0\n' % (paperInstitute[0][0], paperInstitute[0][1]))
+f.write('%s %s 1\n' % (paperInstitute[0][0], paperInstitute[0][1]))
+g.write('%s %s 1 1.0\n' % (paperInstitute[0][0], paperInstitute[0][1]))
 f.close()
 g.close()
 
