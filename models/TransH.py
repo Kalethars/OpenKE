@@ -91,7 +91,10 @@ class TransH(Model):
         p_score = tf.reduce_sum(tf.reduce_mean(_p_score, 0, keep_dims=False), 1, keep_dims=True)
         n_score = tf.reduce_sum(tf.reduce_mean(_n_score, 0, keep_dims=False), 1, keep_dims=True)
         # Calculating loss to get what the framework will optimize
-        self.loss = tf.reduce_sum(tf.maximum(p_score - n_score + config.margin, 0))
+        if config.learn_new_relations:
+            self.loss = tf.reduce_sum(p_score, 0)
+        else:
+            self.loss = tf.reduce_sum(tf.maximum(p_score - n_score + config.margin, 0))
 
     def predict_def(self):
         config = self.get_config()
