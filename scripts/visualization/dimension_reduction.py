@@ -50,15 +50,15 @@ def determineOutputName():
 
 
 def calcDistance(v1, v2, norm=1):
-    return sum([abs(v1[i] - v2[i]) ** norm for i in range(len(v1))])
+    return np.sum(np.power(np.abs(v1 - v2), norm))
 
 
 def calcCosSimilarity(v1, v2, norm=None):
-    return 1 - sum([v1[i] * v2[i] for i in range(len(v1))])
+    return 1 - np.sum(v1 * v2)
 
 
 def calcCosSimilarityForComplex(v1, v2, norm=None):
-    return 1 - sum([(v1[i] * v2[i].conjugate()).real for i in range(len(v1))])
+    return 1 - np.sum(np.real(v1 * np.conj(v2)))
 
 
 parser = argparse.ArgumentParser()
@@ -111,9 +111,9 @@ for i in range(len(infoLines)):
     if len(splited) < 2:
         continue
     if not 'complex' in model:
-        nodes.append(list(map(lambda x: float(x), splited)))
+        nodes.append(np.array(list(map(lambda x: float(x), splited))))
     else:
-        nodes.append(list(map(lambda x: complex(x), splited)))
+        nodes.append(np.array(list(map(lambda x: complex(x), splited))))
 
 num = len(nodes)
 dimension = len(nodes[0])
