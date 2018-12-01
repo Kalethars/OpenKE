@@ -304,7 +304,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
                 recommendVector = transfer(entityVectors[tailType][recommendId], relations[-1])
                 distances[recommendId] = calcDistance(entityVector, recommendVector)
 
-            outputProgress(distances, entityId)
+            outputProgress(distances, entityList[i])
 
     def minDistModel(algorithm):
         MAX = 10000000
@@ -341,14 +341,14 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
         num = len(relations)
 
         startTiming(len(entityList))
-        entityId = entityList[i]
         for i in range(len(entityList)):
+            entityId = entityList[i]
             for j in range(num):
                 distances = getLegalDistances(entityId, relationEntityDistances[j][entityId], coeff,
                                               (relations[-1], directions[-1]) if j == num - 1 else None)
                 entityId = distances[0][0]
 
-            entityVector = entityVectors[entityId]
+            entityVector = entityVectors[tailType][entityId]
             distances = dict()
             for recommendId in entityVectors[tailType].keys():
                 if not available(recommendId, relations[-1], directions[-1]):
@@ -356,7 +356,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
                 recommendVector = transfer(entityVectors[tailType][recommendId], relations[-1])
                 distances[recommendId] = calcDistance(entityVector, recommendVector)
 
-            outputProgress(distances, entityId)
+            outputProgress(distances, entityList[i])
 
     def outputProgress(distances, headId):
         sortedDistances = sorted(distances.keys(), key=lambda x: distances[x])
