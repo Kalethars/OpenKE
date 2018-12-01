@@ -370,8 +370,6 @@ def WComplEx():
     end()
 
 
-mkdir(['log'])
-mkdir(['res'])
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, required=True)
 parser.add_argument('--method', type=str, required=True)
@@ -387,6 +385,9 @@ map = parseParams(configLines[0], False)
 threads = int(map['threads'])
 database = map['database']
 databasePath = parentDir + '/benchmarks/' + map['database'] + '/'
+
+mkdir(['log', database])
+mkdir(['res', database])
 
 order = str(parsedConfig.order)
 configLine = configLines[parsedConfig.order]
