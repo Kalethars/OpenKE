@@ -61,10 +61,7 @@ class TransE(Model):
         p_score = tf.reduce_sum(tf.reduce_mean(_p_score, 1, keep_dims=False), 1, keep_dims=True)
         n_score = tf.reduce_sum(tf.reduce_mean(_n_score, 1, keep_dims=False), 1, keep_dims=True)
         # Calculating loss to get what the framework will optimize
-        if config.learn_new_relations:
-            self.loss = tf.reduce_sum(tf.reduce_sum(p_score))
-        else:
-            self.loss = tf.reduce_sum(tf.maximum((p_score - n_score) + config.margin, 0))
+        self.loss = tf.reduce_sum(tf.maximum((p_score - n_score) + config.margin, 0))
 
     def predict_def(self):
         predict_h, predict_t, predict_r = self.get_predict_instance()
