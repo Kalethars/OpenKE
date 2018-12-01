@@ -96,7 +96,7 @@ paramConfig['DistMult'] = {'detailed': {'epoch': [5000],
                                         'alpha': [0.04],
                                         'bern': [0, 1],
                                         'cuda': [1],
-                                      'model': ['DistMult_detailed/1']
+                                        'model': ['DistMult_detailed/1']
                                         }
                            }
 paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
@@ -107,7 +107,7 @@ paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
                                        'lmbda': [0.001, 0.01],
                                        'bern': [0, 1],
                                        'cuda': [1],
-                                      'model': ['TransE_detailed/6', 'WTransE_test/1']
+                                       'model': ['TransE_detailed/6', 'WTransE_test/1']
                                        }
                           }
 

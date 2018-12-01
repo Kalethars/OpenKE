@@ -2,6 +2,7 @@
 import numpy as np
 import tensorflow as tf
 from .Model import Model
+import json
 
 
 class TransE(Model):
@@ -17,12 +18,18 @@ class TransE(Model):
         # Obtaining the initial configuration of the model
         config = self.get_config()
         # Defining required parameters of the model, including embeddings of entities and relations
-        self.ent_embeddings = tf.get_variable(name="ent_embeddings", shape=[config.entTotal, config.hidden_size],
-                                              initializer=tf.contrib.layers.xavier_initializer(uniform=False))
         self.rel_embeddings = tf.get_variable(name="rel_embeddings", shape=[config.relTotal, config.hidden_size],
                                               initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-        self.parameter_lists = {"ent_embeddings": self.ent_embeddings,
-                                "rel_embeddings": self.rel_embeddings}
+        if config.learn_new_relations:
+            f = open(config.entity_embedding_path, 'r')
+            self.ent_embeddings = tf.cast(json.load(f)['ent_embeddings'], tf.float32)
+            f.close()
+            self.parameter_lists = {"rel_embeddings": self.rel_embeddings}
+        else:
+            self.ent_embeddings = tf.get_variable(name="ent_embeddings", shape=[config.entTotal, config.hidden_size],
+                                                  initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+            self.parameter_lists = {"ent_embeddings": self.ent_embeddings,
+                                    "rel_embeddings": self.rel_embeddings}
 
     def loss_def(self):
         # Obtaining the initial configuration of the model

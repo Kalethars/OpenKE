@@ -57,6 +57,8 @@ class Config(object):
         self.train_weighted = False
         self.test_weighted = False
         self.recommend_count = 10
+        self.entity_embedding_path = None # For new relation training
+        self.learn_new_relations = False
 
     def init(self):
         self.trainModel = None
@@ -229,6 +231,11 @@ class Config(object):
 
     def set_export_steps(self, steps):
         self.export_steps = steps
+
+    def set_entity_embedding_path(self, path):
+        self.entity_embedding_path = path
+        if path is not None:
+            self.learn_new_relations = True
 
     def sampling(self):
         self.lib.sampling(self.batch_h_addr, self.batch_t_addr, self.batch_r_addr, self.batch_y_addr, self.batch_w_addr,
