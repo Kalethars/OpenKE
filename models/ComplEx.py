@@ -14,8 +14,9 @@ class ComplEx(Model):
                                                initializer=tf.contrib.layers.xavier_initializer(uniform=True))
         if config.learn_new_relations:
             f = open(config.entity_embedding_path, 'r')
-            self.ent1_embeddings = tf.cast(json.load(f)['ent_re_embeddings'], tf.float32)
-            self.ent2_embeddings = tf.cast(json.load(f)['ent_im_embeddings'], tf.float32)
+            data = json.load(f)
+            self.ent1_embeddings = tf.cast(data['ent_re_embeddings'], tf.float32)
+            self.ent2_embeddings = tf.cast(data['ent_im_embeddings'], tf.float32)
             f.close()
             self.parameter_lists = {"rel_re_embeddings": self.rel1_embeddings,
                                     "rel_im_embeddings": self.rel2_embeddings}
