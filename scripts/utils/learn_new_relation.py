@@ -100,6 +100,7 @@ def loadEntities():
 mkdir(['benchmarks', '%s_new_relation' % database])
 newDir = parentDir + '/benchmarks/%s_new_relation/' % database
 
+# relation2id
 f = open(newDir + 'relation2id.txt', 'w')
 f.write('2\n')
 f.write('author_participate_in_venue 0\n')
@@ -111,50 +112,7 @@ entityIndex = loadEntities()
 authorVenue = loadAuthorVenue()
 paperInstitute = loadPaperInstitute()
 
-random.shuffle(authorVenue)
-random.shuffle(paperInstitute)
-
-percentage = 0.9
-
-authorVenueTotal = round(len(authorVenue) * percentage)
-paperInstituteTotal = round(len(paperInstitute) * percentage)
-
-f = open(newDir + 'train2id.txt', 'w')
-g = open(newDir + 'train2id_weighted.txt', 'w')
-f.write('%i\n' % (authorVenueTotal + paperInstituteTotal - 2))
-g.write('%i\n' % (authorVenueTotal + paperInstituteTotal - 2))
-for i in range(1, authorVenueTotal):
-    f.write('%s %s 0\n' % (authorVenue[i][0], authorVenue[i][1]))
-    g.write('%s %s 0 1.0\n' % (authorVenue[i][0], authorVenue[i][1]))
-for i in range(1, paperInstituteTotal):
-    f.write('%s %s 1\n' % (paperInstitute[i][0], paperInstitute[i][1]))
-    g.write('%s %s 1 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
-f.close()
-
-f = open(newDir + 'test2id.txt', 'w')
-g = open(newDir + 'test2id_weighted.txt', 'w')
-f.write('%i\n' % (len(authorVenue) + len(paperInstitute) - authorVenueTotal - paperInstituteTotal))
-g.write('%i\n' % (len(authorVenue) + len(paperInstitute) - authorVenueTotal - paperInstituteTotal))
-for i in range(authorVenueTotal, len(authorVenue)):
-    f.write('%s %s 0\n' % (authorVenue[i][0], authorVenue[i][1]))
-    g.write('%s %s 0 1.0\n' % (authorVenue[i][0], authorVenue[i][1]))
-for i in range(paperInstituteTotal, len(paperInstitute)):
-    f.write('%s %s 1\n' % (paperInstitute[i][0], paperInstitute[i][1]))
-    g.write('%s %s 1 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
-f.close()
-g.close()
-
-f = open(newDir + 'valid2id.txt', 'w')
-g = open(newDir + 'valid2id_weighted.txt', 'w')
-f.write('2\n')
-g.write('2\n')
-f.write('%s %s 0\n' % (authorVenue[0][0], authorVenue[0][1]))
-g.write('%s %s 0 1.0\n' % (authorVenue[0][0], authorVenue[0][1]))
-f.write('%s %s 1\n' % (paperInstitute[0][0], paperInstitute[0][1]))
-g.write('%s %s 1 1.0\n' % (paperInstitute[0][0], paperInstitute[0][1]))
-f.close()
-g.close()
-
+# type_constrain
 authorVenueHeads = set([authorId for (authorId, venueId) in authorVenue])
 authorVenueTails = set([venueId for (authorId, venueId) in authorVenue])
 paperInstituteHeads = set([paperId for (paperId, instituteId) in paperInstitute])
@@ -185,3 +143,77 @@ for instituteId in paperInstituteTails:
 f.write('\n')
 
 f.close()
+
+# find necessary triplets
+random.shuffle(authorVenue)
+random.shuffle(paperInstitute)
+
+necessary = set()
+for i in range(len(authorVenue)):
+    (authorId, venueId) = authorVenue[i]
+    if authorId in authorVenueHeads and venueId in authorVenueTails:
+        continue
+    necessary.add(i)
+    authorVenueHeads.discard(authorId)
+    authorVenueTails.discard(venueId)
+    if len(authorVenueHeads) + len(authorVenueTails) == 0:
+        break
+authorVenue = [authorVenue[i] for i in range(len(authorVenue)) if i in necessary] + \
+              [authorVenue[i] for i in range(len(authorVenue)) if i not in necessary]
+
+necessary = set()
+for i in range(len(paperInstitute)):
+    (paperId, instituteId) = paperInstitute[i]
+    if paperId in paperInstituteHeads and instituteId in paperInstituteTails:
+        continue
+    necessary.add(i)
+    paperInstituteHeads.discard(paperId)
+    paperInstituteTails.discard(instituteId)
+    if len(paperInstituteHeads) + len(paperInstituteTails) == 0:
+        break
+paperInstitute = [paperInstitute[i] for i in range(len(paperInstitute)) if i in necessary] + \
+                 [paperInstitute[i] for i in range(len(paperInstitute)) if i not in necessary]
+
+# train2id
+percentage = 0.9
+
+authorVenueTotal = round(len(authorVenue) * percentage)
+paperInstituteTotal = round(len(paperInstitute) * percentage)
+
+f = open(newDir + 'train2id.txt', 'w')
+g = open(newDir + 'train2id_weighted.txt', 'w')
+f.write('%i\n' % (authorVenueTotal + paperInstituteTotal - 2))
+g.write('%i\n' % (authorVenueTotal + paperInstituteTotal - 2))
+for i in range(1, authorVenueTotal):
+    f.write('%s %s 0\n' % (authorVenue[i][0], authorVenue[i][1]))
+    g.write('%s %s 0 1.0\n' % (authorVenue[i][0], authorVenue[i][1]))
+for i in range(1, paperInstituteTotal):
+    f.write('%s %s 1\n' % (paperInstitute[i][0], paperInstitute[i][1]))
+    g.write('%s %s 1 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
+f.close()
+
+# test2id
+f = open(newDir + 'test2id.txt', 'w')
+g = open(newDir + 'test2id_weighted.txt', 'w')
+f.write('%i\n' % (len(authorVenue) + len(paperInstitute) - authorVenueTotal - paperInstituteTotal))
+g.write('%i\n' % (len(authorVenue) + len(paperInstitute) - authorVenueTotal - paperInstituteTotal))
+for i in range(authorVenueTotal, len(authorVenue)):
+    f.write('%s %s 0\n' % (authorVenue[i][0], authorVenue[i][1]))
+    g.write('%s %s 0 1.0\n' % (authorVenue[i][0], authorVenue[i][1]))
+for i in range(paperInstituteTotal, len(paperInstitute)):
+    f.write('%s %s 1\n' % (paperInstitute[i][0], paperInstitute[i][1]))
+    g.write('%s %s 1 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
+f.close()
+g.close()
+
+# valid2id
+f = open(newDir + 'valid2id.txt', 'w')
+g = open(newDir + 'valid2id_weighted.txt', 'w')
+f.write('2\n')
+g.write('2\n')
+f.write('%s %s 0\n' % (authorVenue[0][0], authorVenue[0][1]))
+g.write('%s %s 0 1.0\n' % (authorVenue[0][0], authorVenue[0][1]))
+f.write('%s %s 1\n' % (paperInstitute[0][0], paperInstitute[0][1]))
+g.write('%s %s 1 1.0\n' % (paperInstitute[0][0], paperInstitute[0][1]))
+f.close()
+g.close()
