@@ -69,10 +69,11 @@ target = (parsedConfig.target if parsedConfig.target else 'all').lower()
 threads = parsedConfig.threads if parsedConfig.threads else 32
 
 paramConfig = dict()
-paramConfig['TransE'] = {'detailed': {'epoch': [2000],
+paramConfig['TransE'] = {'detailed': {'epoch': [5000],
                                       'dimension': [300],
                                       'nbatches': [100],
-                                      'alpha': [0.001, 0.002, 0.003, 0.004],
+                                      'alpha': [0.002, 0.001, 0.003, 0.004],
+                                      'margin': [2.5, 2.0],
                                       'bern': [0],
                                       'cuda': [1],
                                       'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
@@ -86,10 +87,11 @@ paramConfig['TransE'] = {'detailed': {'epoch': [2000],
                                   'model': ['ACE17K/TransE_detailed/6']
                                   }
                          }
-paramConfig['TransH'] = {'detailed': {'epoch': [2000],
+paramConfig['TransH'] = {'detailed': {'epoch': [5000],
                                       'dimension': [300],
                                       'nbatches': [100],
-                                      'alpha': [0.001, 0.002, 0.003, 0.004],
+                                      'alpha': [0.002, 0.001, 0.003, 0.004],
+                                      'margin': [2.5, 2.0],
                                       'bern': [0],
                                       'cuda': [1],
                                       'model': ['ACE17K/TransH_test/1', 'ACE17K/WTransH_test/1']

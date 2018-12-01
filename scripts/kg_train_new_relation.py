@@ -69,7 +69,6 @@ def initParams(map):
     params.set_train_times(int(map['epoch']))
     params.set_nbatches(int(map['nbatches']))
     params.set_alpha(float(map['alpha']))
-    # params.set_margin(float(map['margin']))
     params.set_bern(int(map['bern']))
     params.set_dimension(int(map['dimension']))
 
@@ -98,7 +97,6 @@ def parseParams(line, output=True):
         verify(paramMap, 'epoch', int)
         verify(paramMap, 'nbatches', int)
         verify(paramMap, 'alpha', float)
-        # verify(paramMap, 'margin', float)
         verify(paramMap, 'bern', int)
         verify(paramMap, 'dimension', int)
         verify(paramMap, 'model', str)
@@ -107,11 +105,13 @@ def parseParams(line, output=True):
         f.write('--epoch:\t%s\n' % paramMap['epoch'])
         f.write('--nbatches:\t%s\n' % paramMap['nbatches'])
         f.write('--alpha:\t%s\n' % paramMap['alpha'])
-        # f.write('--margin:\t%s\n' % paramMap['margin'])
         f.write('--bern:\t%s\n' % paramMap['bern'])
         f.write('--dimension:\t%s\n' % paramMap['dimension'])
         f.write('--model:\t%s\n' % paramMap['model'])
 
+        if 'margin' in paramMap.keys():
+            verify(paramMap, 'margin', float)
+            f.write('--margin:\t%s\n' % paramMap['margin'])
         if 'lmbda' in paramMap.keys():
             verify(paramMap, 'lmbda', float)
             f.write('--lmbda:\t%s\n' % paramMap['lmbda'])
@@ -135,6 +135,8 @@ def TransE():
     params = initParams(paramMap)
     params.set_in_path(databasePath)
     params.set_work_threads(threads)
+    if 'margin' in paramMap.keys():
+        params.set_margin(float(paramMap['margin']))
     params.set_opt_method("SGD")
 
     mkdir(['res', database, configName, order])
@@ -165,6 +167,8 @@ def TransH():
     params = initParams(paramMap)
     params.set_in_path(databasePath)
     params.set_work_threads(threads)
+    if 'margin' in paramMap.keys():
+        params.set_margin(float(paramMap['margin']))
     params.set_opt_method("SGD")
 
     mkdir(['res', database, configName, order])
