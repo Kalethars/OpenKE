@@ -18,7 +18,7 @@ class DistMult(Model):
         config = self.get_config()
         self.rel_embeddings = tf.get_variable(name="rel_embeddings", shape=[config.relTotal, config.hidden_size],
                                               initializer=tf.contrib.layers.xavier_initializer(uniform=True))
-        if config.learn_new_relation:
+        if config.learn_new_relations:
             f = open(config.entity_embedding_path, 'r')
             self.ent_embeddings = tf.cast(json.load(f)['ent_embeddings'], tf.float32)
             f.close()
