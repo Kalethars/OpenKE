@@ -81,11 +81,11 @@ paramConfig['TransE'] = {'detailed': {'epoch': [2000],
                          'test': {'epoch': [500],
                                   'dimension': [300],
                                   'nbatches': [100],
-                                  'margin': [1.0, 3.0],
-                                  'alpha': [0.01, 0.03, 0.001],
+                                  'margin': [-1.0, -1.5, -2.0],
+                                  'alpha': [0.003, 0.01, 0.001],
                                   'bern': [0],
                                   'cuda': [1],
-                                  'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
+                                  'model': ['ACE17K/TransE_detailed/6']
                                   }
                          }
 paramConfig['TransH'] = {'detailed': {'epoch': [2000],
@@ -100,11 +100,11 @@ paramConfig['TransH'] = {'detailed': {'epoch': [2000],
                          'test': {'epoch': [500],
                                   'dimension': [300],
                                   'nbatches': [100],
-                                  'margin': [1.0, 3.0],
-                                  'alpha': [0.01, 0.03, 0.001],
+                                  'margin': [-1.0, -1.5, -2.0],
+                                  'alpha': [0.003, 0.01, 0.001],
                                   'bern': [0],
                                   'cuda': [1],
-                                  'model': ['ACE17K/TransH_test/1', 'ACE17K/WTransH_test/1']
+                                  'model': ['ACE17K/TransH_test/1']
                                   }
                          }
 paramConfig['DistMult'] = {'detailed': {'epoch': [2000],

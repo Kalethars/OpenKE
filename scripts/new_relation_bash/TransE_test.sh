@@ -10,6 +10,3 @@ CUDA_VISIBLE_DEVICES="1" python kg_train_new_relation.py --method=TransE --confi
 CUDA_VISIBLE_DEVICES="1" python kg_train_new_relation.py --method=TransE --config=./new_relation_config/TransE_test.config --order=7
 CUDA_VISIBLE_DEVICES="1" python kg_train_new_relation.py --method=TransE --config=./new_relation_config/TransE_test.config --order=8
 CUDA_VISIBLE_DEVICES="1" python kg_train_new_relation.py --method=TransE --config=./new_relation_config/TransE_test.config --order=9
-CUDA_VISIBLE_DEVICES="1" python kg_train_new_relation.py --method=TransE --config=./new_relation_config/TransE_test.config --order=10
-CUDA_VISIBLE_DEVICES="1" python kg_train_new_relation.py --method=TransE --config=./new_relation_config/TransE_test.config --order=11
-CUDA_VISIBLE_DEVICES="1" python kg_train_new_relation.py --method=TransE --config=./new_relation_config/TransE_test.config --order=12
