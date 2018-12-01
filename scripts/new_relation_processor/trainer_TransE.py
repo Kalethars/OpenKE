@@ -164,7 +164,7 @@ t2 = tf.nn.embedding_lookup(entityVectors, tNeg)
 scorePos = tf.abs(h + r - t)
 scoreNeg = tf.abs(h2 + r2 - t2)
 
-loss = tf.reduce_sum(tf.reduce_mean(scorePos - scoreNeg + margin, 1, keep_dims=False))
+loss = tf.reduce_sum(tf.reduce_mean(tf.maximum(scorePos - scoreNeg + margin, 0), 1, keep_dims=False))
 tf.Print(loss, [loss])
 train_step = tf.train.GradientDescentOptimizer(alpha).minimize(loss)
 

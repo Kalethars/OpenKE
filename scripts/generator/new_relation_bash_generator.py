@@ -105,12 +105,12 @@ paramConfig['TransH'] = {'detailed': {'epoch': [5000],
                                   'model': ['ACE17K/TransH_test/1']
                                   }
                          }
-paramConfig['DistMult'] = {'detailed': {'epoch': [2000],
+paramConfig['DistMult'] = {'detailed': {'epoch': [5000],
                                         'dimension': [300],
                                         'nbatches': [100],
-                                        'margin': [1.75],
                                         'alpha': [0.04],
-                                        'bern': [0, 1],
+                                        'lmbda': [0, 0.001, 0.01],
+                                        'bern': [0],
                                         'cuda': [1],
                                         'model': ['ACE17K/DistMult_detailed/1']
                                         }
@@ -118,10 +118,9 @@ paramConfig['DistMult'] = {'detailed': {'epoch': [2000],
 paramConfig['ComplEx'] = {'advanced': {'epoch': [1000],
                                        'dimension': [150],
                                        'nbatches': [100],
-                                       'margin': [2.0],
                                        'alpha': [0.03, 0.05],
                                        'lmbda': [0.001, 0.01],
-                                       'bern': [0, 1],
+                                       'bern': [0],
                                        'cuda': [1],
                                        'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
                                        }

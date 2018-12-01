@@ -1,6 +1,8 @@
 from __future__ import print_function
 from __future__ import division
 
+import numpy as np
+
 import argparse
 import os
 import codecs
@@ -82,7 +84,7 @@ def loadEntityInfo(typ, entityInfo, entityVectors, sortedEntityInfo):
     f.close()
     entityInfo[typ] = dict()
 
-    if algorithm == 'chained':
+    if algorithm in {'chained', 'magnetic'}:
         f = open(parentDir + '/res/%s/%s/%i/%sVector.data' % (database, method, order, typ), 'r')
         vectorLines = f.read().split('\n')
         f.close()
@@ -102,7 +104,7 @@ def loadEntityInfo(typ, entityInfo, entityVectors, sortedEntityInfo):
             info = splited[2] + '\t' + splited[3].replace('.', ' ')
         entityInfo[typ][entityId] = info.encode('utf-8').decode('ascii', 'ignore').strip()
 
-        if algorithm == 'chained':
+        if algorithm in {'chained', 'magnetic'}:
             splited = vectorLines[i].split()
             if len(splited) < 2:
                 continue
@@ -286,11 +288,12 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
     def chainedModel():
         startTiming(len(entityList))
 
+        num = len(relations)
         vectors = entityVectors[headType]
         for i in range(len(entityList)):
             entityId = entityList[i]
             entityVector = vectors[entityId]
-            for j in range(len(relations)):
+            for j in range(num):
                 relationVector = getRelationVector(relations[j], directions[j])
                 entityVector = applyRelation(transfer(entityVector, relations[j]), relationVector)
 
@@ -317,8 +320,12 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
                 for entityId in minDistance[j].keys():
                     distances = getLegalDistances(entityId, relationEntityDistances[j][entityId], coeff,
                                                   (relations[-1], directions[-1]) if j == num - 1 else None)
+                    if algorithm == 'normdist':
+                        normalized = np.array([distances[i][1] for i in range(len(distances))])
+                        normalized = (normalized - np.average(normalized)) / np.std(normalized)
                     for k in range(len(distances)):
-                        (recommendId, distance) = distances[k]
+                        recommendId = distances[k][0]
+                        distance = normalized[k] if algorithm == 'normdist' else distances[k][1]
                         if algorithm == 'maxmrr':
                             distance = -1 / (k + 1)
                         minDistance[j + 1][recommendId] = min(minDistance[j + 1].get(recommendId, MAX),
@@ -328,6 +335,28 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
 
         del relationEntityDistances
         gc.collect()
+
+    def magneticModel():
+        relationEntityDistances = loadRelationEntityDistances(relations, directions)
+        num = len(relations)
+
+        startTiming(len(entityList))
+        entityId = entityList[i]
+        for i in range(len(entityList)):
+            for j in range(num):
+                distances = getLegalDistances(entityId, relationEntityDistances[j][entityId], coeff,
+                                              (relations[-1], directions[-1]) if j == num - 1 else None)
+                entityId = distances[0][0]
+
+            entityVector = entityVectors[entityId]
+            distances = dict()
+            for recommendId in entityVectors[tailType].keys():
+                if not available(recommendId, relations[-1], directions[-1]):
+                    continue
+                recommendVector = transfer(entityVectors[tailType][recommendId], relations[-1])
+                distances[recommendId] = calcDistance(entityVector, recommendVector)
+
+            outputProgress(distances, entityId)
 
     def outputProgress(distances, headId):
         sortedDistances = sorted(distances.keys(), key=lambda x: distances[x])
@@ -376,7 +405,9 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
 
     if algorithm == 'chained':
         chainedModel()
-    elif algorithm in {'mindist', 'maxmrr'}:
+    elif algorithm == 'magnetic':
+        magneticModel()
+    elif algorithm in {'mindist', 'maxmrr', 'normdist'}:
         minDistModel(algorithm)
 
     outputFile.close()
@@ -480,7 +511,7 @@ parser.add_argument('--method', type=str, required=True)
 parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--predict', type=bool, required=False)
 parser.add_argument('--update', type=bool, required=False)
-parser.add_argument('--alg', type=str, required=False)  # 'chained', 'mindist' or 'maxmrr'
+parser.add_argument('--alg', type=str, required=False)  # 'chained'/'magnetic', 'normdist'/'mindist'/'maxmrr'
 parser.add_argument('--coeff', type=float, required=False)  # meant for 'mindist' and 'maxmrr' to reduce calculation
 parsedArgs = parser.parse_args()
 
@@ -507,12 +538,12 @@ elif 'complex' in method.lower():
 else:
     raise ValueError('Invalid model!')
 
-if not algorithm in {'chained', 'mindist', 'maxmrr'}:
+if not algorithm in {'chained', 'magnetic', 'mindist', 'maxmrr', 'normdist'}:
     raise ValueError('Invalid algorithm!')
 
 relationVectors = []
 normalVectors = []
-if algorithm in {'chained'}:
+if algorithm in {'chained', 'magnetic'}:
     f = open(parentDir + '/res/%s/%s/%i/relationVector.data' % (database, method, order), 'r')
     s = f.read().split('\n')
     f.close()
@@ -546,7 +577,7 @@ typeConstraint = loadTypeConstraint()
 
 if linkPredict:
     coeffString = ('_coeff=%s' % str(round(coeff, 4)).rstrip('0.')) if \
-        (algorithm in {'mindist', 'maxmrr'} and coeff != 1) else ''
+        (algorithm in {'mindist', 'maxmrr', 'normdist'} and coeff != 1) else ''
     testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/%s_prediction_analysis%s.log' % \
                     (database, method, order, algorithm, coeffString)
     mkdir(['res', database, method, order, 'recommendation', 'analyzed'])
