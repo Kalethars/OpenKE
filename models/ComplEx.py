@@ -2,23 +2,32 @@
 import numpy as np
 import tensorflow as tf
 from .Model import Model
+import json
 
 
 class ComplEx(Model):
     def embedding_def(self):
         config = self.get_config()
-        self.ent1_embeddings = tf.get_variable(name="ent1_embeddings", shape=[config.entTotal, config.hidden_size],
-                                               initializer=tf.contrib.layers.xavier_initializer(uniform=True))
         self.rel1_embeddings = tf.get_variable(name="rel1_embeddings", shape=[config.relTotal, config.hidden_size],
-                                               initializer=tf.contrib.layers.xavier_initializer(uniform=True))
-        self.ent2_embeddings = tf.get_variable(name="ent2_embeddings", shape=[config.entTotal, config.hidden_size],
                                                initializer=tf.contrib.layers.xavier_initializer(uniform=True))
         self.rel2_embeddings = tf.get_variable(name="rel2_embeddings", shape=[config.relTotal, config.hidden_size],
                                                initializer=tf.contrib.layers.xavier_initializer(uniform=True))
-        self.parameter_lists = {"ent_re_embeddings": self.ent1_embeddings,
-                                "ent_im_embeddings": self.ent2_embeddings,
-                                "rel_re_embeddings": self.rel1_embeddings,
-                                "rel_im_embeddings": self.rel2_embeddings}
+        if self.learn_new_relations:
+            f = open(config.entity_embedding_path, 'r')
+            self.ent1_embeddings = tf.cast(json.load(f)['ent_re_embeddings'], tf.float32)
+            self.ent2_embeddings = tf.cast(json.load(f)['ent_im_embeddings'], tf.float32)
+            f.close()
+            self.parameter_lists = {"rel_re_embeddings": self.rel1_embeddings,
+                                    "rel_im_embeddings": self.rel2_embeddings}
+        else:
+            self.ent1_embeddings = tf.get_variable(name="ent1_embeddings", shape=[config.entTotal, config.hidden_size],
+                                                   initializer=tf.contrib.layers.xavier_initializer(uniform=True))
+            self.ent2_embeddings = tf.get_variable(name="ent2_embeddings", shape=[config.entTotal, config.hidden_size],
+                                                   initializer=tf.contrib.layers.xavier_initializer(uniform=True))
+            self.parameter_lists = {"ent_re_embeddings": self.ent1_embeddings,
+                                    "ent_im_embeddings": self.ent2_embeddings,
+                                    "rel_re_embeddings": self.rel1_embeddings,
+                                    "rel_im_embeddings": self.rel2_embeddings}
 
     r'''
     ComplEx extends DistMult by introducing complex-valued embeddings so as to better model asymmetric relations.

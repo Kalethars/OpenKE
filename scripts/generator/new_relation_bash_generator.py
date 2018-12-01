@@ -115,11 +115,11 @@ paramConfig['DistMult'] = {'detailed': {'epoch': [5000],
                                         'model': ['ACE17K/DistMult_detailed/1']
                                         }
                            }
-paramConfig['ComplEx'] = {'advanced': {'epoch': [1000],
+paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
                                        'dimension': [150],
                                        'nbatches': [100],
                                        'alpha': [0.03, 0.05],
-                                       'lmbda': [0.001, 0.01],
+                                       'lmbda': [0.01, 0.001],
                                        'bern': [0],
                                        'cuda': [1],
                                        'model': ['ACE17K/TransE_detailed/6', 'ACE17K/WTransE_test/1']
