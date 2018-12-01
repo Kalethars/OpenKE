@@ -121,12 +121,12 @@ paperInstituteTotal = round(len(paperInstitute) * percentage)
 
 f = open(newDir + 'train2id.txt', 'w')
 g = open(newDir + 'train2id_weighted.txt', 'w')
-f.write('%i\n' % (authorVenueTotal + paperInstituteTotal))
-g.write('%i\n' % (authorVenueTotal + paperInstituteTotal))
-for i in range(authorVenueTotal):
+f.write('%i\n' % (authorVenueTotal + paperInstituteTotal - 2))
+g.write('%i\n' % (authorVenueTotal + paperInstituteTotal - 2))
+for i in range(1, authorVenueTotal):
     f.write('%s %s 0\n' % (authorVenue[i][0], authorVenue[i][1]))
     g.write('%s %s 0 1.0\n' % (authorVenue[i][0], authorVenue[i][1]))
-for i in range(paperInstituteTotal):
+for i in range(1, paperInstituteTotal):
     f.write('%s %s 0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
     g.write('%s %s 0 1.0\n' % (paperInstitute[i][0], paperInstitute[i][1]))
 f.close()
@@ -146,8 +146,12 @@ g.close()
 
 f = open(newDir + 'valid2id.txt', 'w')
 g = open(newDir + 'valid2id_weighted.txt', 'w')
-f.write('0\n')
-g.write('0\n')
+f.write('2\n')
+g.write('2\n')
+f.write('%s %s 0\n' % (authorVenue[0][0], authorVenue[0][1]))
+g.write('%s %s 0 1.0\n' % (authorVenue[0][0], authorVenue[0][1]))
+f.write('%s %s 0\n' % (paperInstitute[0][0], paperInstitute[0][1]))
+g.write('%s %s 0 1.0\n' % (paperInstitute[0][0], paperInstitute[0][1]))
 f.close()
 g.close()
 
