@@ -73,7 +73,7 @@ def initParams(map):
     params.set_bern(int(map['bern']))
     params.set_dimension(int(map['dimension']))
 
-    params.set_entity_embedding_path(parentDir + '/res/%s/embedding.vec.json')
+    params.set_entity_embedding_path(parentDir + '/res/%s/embedding.vec.json' % map['model'])
 
     return params
 
