@@ -70,9 +70,14 @@ def initParams(map):
     params.set_train_times(int(map['epoch']))
     params.set_nbatches(int(map['nbatches']))
     params.set_alpha(float(map['alpha']))
-    params.set_margin(float(map['margin']))
     params.set_bern(int(map['bern']))
     params.set_dimension(int(map['dimension']))
+
+    if 'margin' in map.keys():
+        params.set_margin(float(map['margin']))
+
+    if 'lmbda' in map.keys():
+        params.set_margin(float(map['lmbda']))
 
     return params
 
@@ -97,7 +102,6 @@ def parseParams(line, output=True):
         verify(paramMap, 'epoch', int)
         verify(paramMap, 'nbatches', int)
         verify(paramMap, 'alpha', float)
-        verify(paramMap, 'margin', float)
         verify(paramMap, 'bern', int)
         verify(paramMap, 'dimension', int)
         verify(paramMap, 'weighted', bool)
@@ -106,10 +110,13 @@ def parseParams(line, output=True):
         f.write('--epoch:\t%s\n' % paramMap['epoch'])
         f.write('--nbatches:\t%s\n' % paramMap['nbatches'])
         f.write('--alpha:\t%s\n' % paramMap['alpha'])
-        f.write('--margin:\t%s\n' % paramMap['margin'])
         f.write('--bern:\t%s\n' % paramMap['bern'])
         f.write('--dimension:\t%s\n' % paramMap['dimension'])
         f.write('--weighted:\t%s\n' % paramMap['weighted'])
+
+        if 'margin' in paramMap.keys():
+            verify(paramMap, 'margin', float)
+            f.write('--margin:\t%s\n' % paramMap['margin'])
 
         if 'lmbda' in paramMap.keys():
             verify(paramMap, 'lmbda', float)
@@ -194,8 +201,6 @@ def DistMult():
     params = initParams(paramMap)
     params.set_in_path(databasePath)
     params.set_work_threads(threads)
-    if 'lmbda' in paramMap.keys():
-        params.set_lmbda(float(paramMap['lmbda']))
     params.set_opt_method("Adagrad")
 
     mkdir(['res', database, configName, order])
@@ -226,8 +231,6 @@ def ComplEx():
     params = initParams(paramMap)
     params.set_in_path(databasePath)
     params.set_work_threads(threads)
-    if 'lmbda' in paramMap.keys():
-        params.set_lmbda(float(paramMap['lmbda']))
     params.set_opt_method("Adagrad")
 
     mkdir(['res', database, configName, order])
@@ -245,10 +248,10 @@ def ComplEx():
     end()
 
 
-def HolE():
+def Analogy():
     global logPath, order, configLine
 
-    name = 'HolE'
+    name = 'Analogy'
     initVariables()
 
     begin(name + '_' + order)
@@ -268,7 +271,7 @@ def HolE():
     params.set_out_files(outPath)
 
     params.init()
-    params.set_model(models.HolE)
+    params.set_model(models.Analogy)
     params.run()
     params.test(logPath)
 
@@ -401,8 +404,8 @@ elif method == 'distmult':
     DistMult()
 elif method == 'complex':
     ComplEx()
-elif method == 'hole':
-    HolE()
+elif method == 'analogy':
+    Analogy()
 elif method == 'wtranse':
     WTransE()
 elif method == 'wtranse2':

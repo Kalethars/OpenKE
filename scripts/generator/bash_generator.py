@@ -242,6 +242,16 @@ paramConfig['ComplEx'] = {'advanced': {'epoch': [2000],
                                    'weighted': [False]
                                    }
                           }
+paramConfig['Analogy'] = {'advanced': {'epoch': [2000],
+                                       'dimension': [150],
+                                       'nbatches': [100],
+                                       'alpha': [0.03, 0.05],
+                                       'lmbda': [0.01, 0.001],
+                                       'bern': [0],
+                                       'cuda': [1],
+                                       'weighted': [False]
+                                       }
+                          }
 
 if method != 'all':
     if target == 'all':

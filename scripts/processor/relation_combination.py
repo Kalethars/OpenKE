@@ -492,19 +492,22 @@ def testPaperInstitute():
         #                           groundTruth=institutePaper)
     else:
         recommendCombinedRelation(model, algorithm, relations=[2, 0], directions=[True, True])
-        recommendCombinedRelation(model, algorithm, relations=[0, 2], directions=[False, False])
+        # recommendCombinedRelation(model, algorithm, relations=[0, 2], directions=[False, False])
 
 
 def test():
-    if not linkPredict:
-        # Predict field for venue, combine relation 4 (paper_is_published_on_venue) and relation 3 (paper_is_in_field)
-        testVenueField()
     if target is None:
+        if not linkPredict:
+            # Predict field for venue, combine relation 4 (paper_is_published_on_venue) and relation 3 (paper_is_in_field)
+            testVenueField()
         # Predict venue for author, combine relation 2 (paper_is_written_by_author) and relation 4 (paper_is_published_on_venue)
         testAuthorVenue()
         # Predict paper for institute, combine relation 2 (paper_is_written_by_author) and relation 0 (author_work_in_institute)
         testPaperInstitute()
     else:
+        if not linkPredict:
+            if target.lower == 'venuefield':
+                testVenueField()
         if target.lower() == 'authorvenue':
             testAuthorVenue()
         if target.lower() == 'paperinstitute':
@@ -533,7 +536,7 @@ if coeff <= 0 or coeff > 1:
     coeff = 1
 target = parsedArgs.target
 
-recommendCount = 10 if linkPredict else 0
+recommendCount = 0 if linkPredict else 10
 
 if 'transe' in method.lower():
     model = 'transe'
@@ -589,7 +592,8 @@ if linkPredict:
     testResultLog = parentDir + '/res/%s/%s/%i/recommendation/analyzed/%s_prediction_analysis%s.log' % \
                     (database, method, order, algorithm, coeffString)
     mkdir(['res', database, method, order, 'recommendation', 'analyzed'])
-    f = open(testResultLog, 'w')
-    f.close()
+    if update or not os.path.exists(testResultLog):
+        f = open(testResultLog, 'w')
+        f.close()
 
 test()

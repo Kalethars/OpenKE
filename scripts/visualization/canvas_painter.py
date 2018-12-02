@@ -1,4 +1,5 @@
 from tkinter import *
+import numpy as np
 import argparse
 
 try:
@@ -9,7 +10,7 @@ except:
     pass
 
 
-def getDefaultRadius(target):
+def getDefaultDotRadius(target):
     if target in {'venue'}:
         return 3
     else:
@@ -17,12 +18,12 @@ def getDefaultRadius(target):
 
 
 def calcDistance(node1, node2):
-    return ((node1[0][0] - node2[0][0]) ** 2 + (node1[0][1] - node2[0][1]) ** 2) ** 0.5
+    return abs(node1[0] - node2[0])
 
 
 def getDirection(node1, node2, threshold=20):
-    dx = node2[0][0] - node1[0][0]
-    dy = node2[0][1] - node1[0][1]
+    dx = node2[0].real - node1[0].real
+    dy = node2[0].imag - node1[0].imag
     distance = calcDistance(node1, node2)
     directions = set()
     if dx == 0:
@@ -61,15 +62,15 @@ def toHexColor(color):
 
 
 def createPoint(canvas, node, radius=3):
-    x = node[0][0]
-    y = node[0][1]
+    x = node[0].real
+    y = node[0].imag
     color = node[2]
     Canvas.create_oval(canvas, x - radius, y - radius, x + radius, y + radius, fill=color, outline=color)
 
 
 def createLabel(canvas, label, radius=3, offset=2, noColor=False):
-    x = label[0][0]
-    y = label[0][1]
+    x = label[0].real
+    y = label[0].imag
     text = label[1]
     color = '#000000' if noColor else label[2]
     anchor = label[3]
@@ -86,27 +87,22 @@ def createLabel(canvas, label, radius=3, offset=2, noColor=False):
         Canvas.create_text(canvas, x, y, text=text, fill=color)
 
 
-def normalize(nodes, lowX=150, highX=1050, lowY=50, highY=950):
-    minX = nodes[0][0][0]
-    maxX = nodes[0][0][0]
-    minY = nodes[0][0][1]
-    maxY = nodes[0][0][1]
-    for node in nodes:
-        minX = min(minX, node[0][0])
-        maxX = max(maxX, node[0][0])
-        minY = min(minY, node[0][1])
-        maxY = max(maxY, node[0][1])
-    for node in nodes:
-        node[0][0] = (node[0][0] - minX) / (maxX - minX) * (highX - lowX) + lowX
-        node[0][1] = (node[0][1] - minY) / (maxY - minY) * (highY - lowY) + lowY
+def normalize(nodes, centerX=600, centerY=500, std=200):
+    nodeX = np.array([node[0].real for node in nodes])
+    nodeY = np.array([node[0].imag for node in nodes])
+    nodeX = (nodeX - np.average(nodeX)) / np.std(nodeX)
+    nodeY = (nodeY - np.average(nodeY)) / np.std(nodeY)
+    nodeX = nodeX * std + centerX
+    nodeY = nodeY * std + centerY
+    for i in range(len(nodes)):
+        nodes[i][0] = complex(nodeX[i], nodeY[i])
 
 
-def venueLegend(canvas, nodes, radius=3, offset=5, split=False):
+def venueLegend(canvas, radius=3, offset=5, split=False):
     f = open('./data/venue_color.data', 'r')
     s = f.read().split('\n')
     f.close()
 
-    cnt = 0
     x = 20
     y = 20
     for line in s:
@@ -152,15 +148,17 @@ parser.add_argument('--target', type=str, required=False)
 parser.add_argument('--manual', type=str, required=False)
 parser.add_argument('--x', type=int, required=False)
 parser.add_argument('--y', type=int, required=False)
+parser.add_argument('--std', type=int, required=False)
 parser.add_argument('--r', type=float, required=False)
 parsedArgs = parser.parse_args()
 
 method = parsedArgs.method if parsedArgs.method else 'WTransE2_test'
 target = parsedArgs.target.lower() if parsedArgs.target else 'venue'
 manual = parsedArgs.manual
-sizeX = parsedArgs.x if parsedArgs.x else 900
-sizeY = parsedArgs.y if parsedArgs.y else 900
-radius = parsedArgs.r if parsedArgs.r else getDefaultRadius(target)
+centerX = parsedArgs.x if parsedArgs.x else 600
+centerY = parsedArgs.y if parsedArgs.y else 500
+std = parsedArgs.std if parsedArgs.std else 200
+radius = parsedArgs.r if parsedArgs.r else getDefaultDotRadius(target)
 
 showLabel = True if target in {'venue'} else False
 
@@ -180,12 +178,12 @@ for line in s:
     splited = line.split('\t')
     if len(splited) >= 6:
         # Coordinate, Label, Color
-        coordinate = [float(splited[0]), float(splited[1])]
+        coordinate = complex(float(splited[0]), float(splited[1]))
         label = splited[2]
         color = toHexColor((float(splited[3]), float(splited[4]), float(splited[5])))
         nodes.append([coordinate, label, color])
         colors[label] = color
-normalize(nodes, 1050 - sizeX, 1050, 950 - sizeY, 950)
+normalize(nodes, centerX, centerY, std)
 nodeNum = len(nodes)
 
 pointX = dict()
@@ -195,13 +193,13 @@ for node in nodes:
     if not label in pointX:
         pointX[label] = []
         pointY[label] = []
-    pointX[label].append(node[0][0])
-    pointY[label].append(node[0][1])
+    pointX[label].append(node[0].real)
+    pointY[label].append(node[0].imag)
 
 labels = []
 for label in pointX.keys():
     coreX, coreY = computeCore(pointX[label], pointY[label])
-    labels.append([[coreX, coreY], label, colors[label]])
+    labels.append([complex(coreX, coreY), label, colors[label]])
 labelNum = len(labels)
 
 distance = [[0] * labelNum for i in range(labelNum)]
@@ -244,7 +242,7 @@ if len(manualNode) > 0:
 
 window = Tk()
 window.title('%s graph of %s' % (target.capitalize(), method))
-canvas = Canvas(window, height=1000, width=1200, bg='white')
+canvas = Canvas(window, height=centerY + 2.25 * std + 50, width=centerX + 2.25 * std + 50, bg='white')
 
 for node in nodes:
     createPoint(canvas, node, radius)
@@ -253,7 +251,7 @@ for label in labels:
     createLabel(canvas, label, radius, noColor=False if target in {'venue'} else True)
 
 if target in {'venue', 'paper'}:
-    venueLegend(canvas, nodes, split=True if target == 'paper' else False)
+    venueLegend(canvas, split=True if target == 'paper' else False)
 
 canvas.pack()
 window.mainloop()
