@@ -181,7 +181,7 @@ for typ in types:
     entityInfo[typ], typeEntityList[typ] = loadEntityList(typ)
 
 # author = 2_pos, field = 3_pos, venue = 4_pos, institute = 7_pos
-relationsEntityDistances = loadRelationEntityDistances([2, 3, 4, 7], [True, True, True, True])
+relationsEntityDistances = loadRelationEntityDistances([7, 4, 3, 2], [True, True, True, True])
 
 reverseInfo = []
 for typ in types:
@@ -190,7 +190,7 @@ for typ in types:
     for entityId in entityInfo[typ].keys():
         reverseInfo.append((entityInfo[typ][entityId].lower(), typ, entityId))
 
-typeRelationMap = {'author': 0, 'field': 1, 'venue': 2, 'institute': 3}
+typeRelationMap = {'author': 3, 'field': 2, 'venue': 1, 'institute': 0}
 while True:
     queries = input('Query: ')
     if queries == '#':
@@ -224,22 +224,41 @@ while True:
             print('\t(%s)' % ', '.join(matched[i][:3]), end='')
         print()
 
-        if len(matched) > 0:
-            analyzedQuery.append([(x[2], typeRelationMap[x[1]]) for x in matched])
+        analyzedQuery.append((query, [(x[2], x[1]) for x in matched]))
 
     maxValue = 1000000
+    contribution = dict()
+    contributor = dict()
+    for paperId in typeEntityList['paper']:
+        contribution[paperId] = dict()
+        contributor[paperId] = dict()
     if len(analyzedQuery) > 0:
         resultDistances = dict()
-        for n in range(len(analyzedQuery)):
+        fullScore = 0
+        for i in range(len(analyzedQuery)):
             localDistances = dict()
+            localEntities = dict()
+            query = analyzedQuery[i][0]
             for paperId in typeEntityList['paper']:
-                for (entityId, relation) in analyzedQuery[n]:
-                    distance = relationsEntityDistances[relation][paperId].get(entityId, maxValue)
-                    localDistances[paperId] = min(localDistances.get(paperId, maxValue), distance)
+                for (entityId, typ) in analyzedQuery[i][1]:
+                    distance = relationsEntityDistances[typeRelationMap[typ]][paperId].get(entityId, maxValue)
+                    if distance < localDistances.get(paperId, maxValue):
+                        localDistances[paperId] = distance
+                        localEntities[paperId] = (entityId, typ)
+            queryFullScore = min(localDistances.values())
+            fullScore += queryFullScore
             for paperId in typeEntityList['paper']:
                 resultDistances[paperId] = resultDistances.get(paperId, 0) + localDistances[paperId]
+                contribution[paperId][query] = localDistances[paperId] / queryFullScore * 100
+                contributor[paperId][query] = entityInfo[localEntities[paperId][1]][localEntities[paperId][0]]
 
         results = sorted(resultDistances.keys(), key=lambda x: resultDistances[x])
         for i in range(min(10, len(results))):
-            print('%i\t%s\t%.4f\t%s' % (i + 1, results[i], resultDistances[results[i]],
-                                        entityInfo['paper'][results[i]]))
+            print('%i\t%s\t%s' % (i + 1, results[i], entityInfo['paper'][results[i]]))
+
+            distance = resultDistances[results[i]]
+            print('\tScore: %.1f' % (distance / fullScore * 100), end='')
+            for j in range(len(analyzedQuery)):
+                query = analyzedQuery[j][0]
+                print('\t%s: %.1f' % (contributor[results[i]][query], contribution[results[i]][query]), end='')
+            print()
