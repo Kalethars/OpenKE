@@ -9,12 +9,13 @@ def formattedRound(number, digit):
 
 
 methods = ['TransE_detailed/6', 'TransH_test/1', 'DistMult_detailed/1', 'ComplEx_advanced/2']
-# algs = [('mindist', '$f_r(h,t)$'), ('normdist', '$z_r(h,t)$'), ('maxmrr', '$R_r^{-1}(h,t)$')]
-algs = [('mindist', '$f_r(h,t)$'), ('maxmrr', '$R_r^{-1}(h,t)$')]
+algs = [('mindist', '$f_r(h,t)$'), ('normdist', '$z_r(h,t)$'), ('maxmrr', '$R_r^{-1}(h,t)$')]
 coeffs = ['0.1', '0.05']
 metrics = ['MRR', 'Hit@10', 'Hit@3', 'Hit@1', 'Score']
 
 for method in methods:
+    print('\\midrule')
+
     bestAuthorVenue = dict()
     bestpaperInsitute = dict()
     authorVenue = dict()
@@ -53,7 +54,7 @@ for method in methods:
                         bestRef[metric] = formattedRound(max(float(bestRef.get(metric, 0)), float(value)), digit)
 
     for (alg, func) in algs:
-        output = '\multirow{%i}{*}{%s} & ' % (len(algs), (method.split('_')[0]) if alg == 'mindist' else '& ')
+        output = '\multirow{%i}{*}{%s} & ' % (len(algs), (method.split('_')[0])) if alg == 'mindist' else '& '
         output += '%s' % func
         for metric in metrics:
             if authorVenue[alg][metric] == bestAuthorVenue[metric]:
@@ -67,5 +68,3 @@ for method in methods:
                 output += ' & %s' % paperInsitute[alg][metric]
         output += ' \\\\'
         print(output)
-    if methods.index(method) != len(methods) - 1:
-        print('\\midrule')
