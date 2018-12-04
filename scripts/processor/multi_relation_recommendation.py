@@ -7,6 +7,7 @@ import argparse
 import os
 import codecs
 import time
+import gc
 
 try:
     import win_unicode_console
@@ -227,15 +228,19 @@ while True:
         analyzedQuery.append((query, [(x[2], x[1]) for x in matched]))
 
     maxValue = 1000000
-    contribution = dict()
-    contributor = dict()
-    for paperId in typeEntityList['paper']:
-        contribution[paperId] = dict()
-        contributor[paperId] = dict()
     if len(analyzedQuery) > 0:
+        contribution = dict()
+        contributor = dict()
+        for paperId in typeEntityList['paper']:
+            contribution[paperId] = dict()
+            contributor[paperId] = dict()
+
         resultDistances = dict()
         fullScore = 0
         for i in range(len(analyzedQuery)):
+            if len(analyzedQuery[i][1])==0:
+                continue
+
             localDistances = dict()
             localEntities = dict()
             query = analyzedQuery[i][0]
@@ -252,6 +257,9 @@ while True:
                 contribution[paperId][query] = localDistances[paperId] / queryFullScore * 100
                 contributor[paperId][query] = entityInfo[localEntities[paperId][1]][localEntities[paperId][0]]
 
+            del localDistances
+            del localEntities
+
         results = sorted(resultDistances.keys(), key=lambda x: resultDistances[x])
         for i in range(min(10, len(results))):
             print('%i\t%s\t%s' % (i + 1, results[i], entityInfo['paper'][results[i]]))
@@ -262,3 +270,8 @@ while True:
                 query = analyzedQuery[j][0]
                 print('\t%s: %.1f' % (contributor[results[i]][query], contribution[results[i]][query]), end='')
             print()
+
+        del resultDistances
+        del contribution
+        del contributor
+        gc.collect()
