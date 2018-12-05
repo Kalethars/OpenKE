@@ -168,30 +168,31 @@ if target == 'paper':
         miscs[i][1] = venueName[venueId]
         miscs[i].append(venueCategory[venueId])
 
-norm = 1
-if 'trans' in model:
-    calc = calcDistance
-    if model == 'wtranse2':
-        norm = 2
-elif 'distmult' in model:
-    calc = calcCosSimilarity
-elif 'complex' in model:
-    calc = calcCosSimilarityForComplex
-else:
-    calc = calcDistance
-
-total = num * (num + 1) / 2
-startTiming(total)
-
 distance = np.zeros((num, num))
-for i in range(num):
-    for j in range(i, num):
-        distance[i][j] = calc(nodes[i], nodes[j], norm)
-        if distance[i][j] < 0:
-            distance[i][j] = 0
-        distance[j][i] = distance[i][j]
+if alg in {'tsne'}:
+    norm = 1
+    if 'trans' in model:
+        calc = calcDistance
+        if model == 'wtranse2':
+            norm = 2
+    elif 'distmult' in model:
+        calc = calcCosSimilarity
+    elif 'complex' in model:
+        calc = calcCosSimilarityForComplex
+    else:
+        calc = calcDistance
 
-        displayTiming()
+    total = num * (num + 1) / 2
+    startTiming(total)
+
+    for i in range(num):
+        for j in range(i, num):
+            distance[i][j] = calc(nodes[i], nodes[j], norm)
+            if distance[i][j] < 0:
+                distance[i][j] = 0
+            distance[j][i] = distance[i][j]
+
+            displayTiming()
 
 if alg == 'tsne':
     tsne = TSNE(n_components=2, metric='precomputed', n_iter=10000, learning_rate=150.0, perplexity=30, verbose=True)
@@ -205,6 +206,8 @@ elif alg == 'pca':
     pca = PCA(n_components=2)
     pca.fit_transform(nodes)
     result = list(pca.transform(nodes))
+elif alg == 'origin':
+    result = nodes
 else:
     raise ValueError('Incorrect algorithm!')
 
