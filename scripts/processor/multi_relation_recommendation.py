@@ -133,8 +133,7 @@ def loadRelationEntityDistances(relations, directions):
                 distances.append((valueEntity, value))
 
             distances.sort(key=lambda x: x[1])
-            remaining = int(coeff * len(distances))
-            distancesRemaining = normalize(distances[:remaining])
+            distancesRemaining = normalize(distances)
 
             relationEntityDistances[-1][keyEntity] = dict()
             for (valueEntity, value) in distancesRemaining:
@@ -158,16 +157,14 @@ parser.add_argument('--database', type=str, required=False)
 parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--order', type=int, required=False)
 parser.add_argument('--update', type=bool, required=False)
-parser.add_argument('--coeff', type=float, required=False)
+parser.add_argument('--target', type=str, required=False)
 parsedArgs = parser.parse_args()
 
 database = parsedArgs.database if parsedArgs.database else 'ACE17K'
 method = parsedArgs.method if parsedArgs.method else 'ComplEx_advanced'
 order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
 update = parsedArgs.update if parsedArgs.update else False
-coeff = parsedArgs.coeff if parsedArgs.coeff is not None else 1
-if coeff <= 0 or coeff > 1:
-    coeff = 1
+target = parsedArgs.target.lower() if parsedArgs.target is not None else 'paper'
 
 relationVectors = []
 normalVectors = []
@@ -181,17 +178,22 @@ typeEntityList = dict()
 for typ in types:
     entityInfo[typ], typeEntityList[typ] = loadEntityList(typ)
 
-# author = 2_pos, field = 3_pos, venue = 4_pos, institute = 7_pos
-relationsEntityDistances = loadRelationEntityDistances([7, 4, 3, 2], [True, True, True, True])
+if target == 'paper':
+    # author = 2_pos, field = 3_pos, venue = 4_pos, institute = 7_pos
+    relationsEntityDistances = loadRelationEntityDistances([7, 4, 3, 2], [True, True, True, True])
+    typeRelationMap = {'author': 3, 'field': 2, 'venue': 1, 'institute': 0}
+elif target == 'venue':
+    relationsEntityDistances = loadRelationEntityDistances([4, 8], [False, True])
+    typeRelationMap = {'paper': 0, 'field': 1}
+else:
+    raise ValueError('Invalid target!')
 
 reverseInfo = []
 for typ in types:
-    if typ == 'paper':
-        continue
-    for entityId in entityInfo[typ].keys():
-        reverseInfo.append((entityInfo[typ][entityId].lower(), typ, entityId))
+    if typ in typeRelationMap:
+        for entityId in entityInfo[typ].keys():
+            reverseInfo.append((entityInfo[typ][entityId].lower(), typ, entityId))
 
-typeRelationMap = {'author': 3, 'field': 2, 'venue': 1, 'institute': 0}
 while True:
     queries = input('Query: ')
     if queries == '#':
@@ -231,7 +233,7 @@ while True:
     if len(analyzedQuery) > 0:
         contribution = dict()
         contributor = dict()
-        for paperId in typeEntityList['paper']:
+        for paperId in typeEntityList[target]:
             contribution[paperId] = dict()
             contributor[paperId] = dict()
 
@@ -244,7 +246,7 @@ while True:
             localDistances = dict()
             localEntities = dict()
             query = analyzedQuery[i][0]
-            for paperId in typeEntityList['paper']:
+            for paperId in typeEntityList[target]:
                 for (entityId, typ) in analyzedQuery[i][1]:
                     distance = relationsEntityDistances[typeRelationMap[typ]][paperId].get(entityId, maxValue)
                     if distance < localDistances.get(paperId, maxValue):
@@ -252,7 +254,7 @@ while True:
                         localEntities[paperId] = (entityId, typ)
             queryFullScore = min(localDistances.values())
             fullScore += queryFullScore
-            for paperId in typeEntityList['paper']:
+            for paperId in typeEntityList[target]:
                 resultDistances[paperId] = resultDistances.get(paperId, 0) + localDistances[paperId]
                 contribution[paperId][query] = localDistances[paperId] / queryFullScore * 100
                 contributor[paperId][query] = entityInfo[localEntities[paperId][1]][localEntities[paperId][0]]
@@ -262,7 +264,7 @@ while True:
 
         results = sorted(resultDistances.keys(), key=lambda x: resultDistances[x])
         for i in range(min(10, len(results))):
-            print('%i\t%s\t%s' % (i + 1, results[i], entityInfo['paper'][results[i]]))
+            print('%i\t%s\t%s' % (i + 1, results[i], entityInfo[target][results[i]]))
 
             distance = resultDistances[results[i]]
             print('\tScore: %.1f' % (distance / fullScore * 100), end='')

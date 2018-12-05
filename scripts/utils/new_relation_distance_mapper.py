@@ -139,7 +139,7 @@ def loadRelationEntityDistances(relations, directions):
     return relationEntityDistances
 
 
-def recommendCombinedRelation(relations, directions=None):
+def recommendCombinedRelation(relationSuffix, relations, directions=None):
     def minDistModel():
         MAX = 10000000
 
@@ -182,7 +182,7 @@ def recommendCombinedRelation(relations, directions=None):
     tailType = relationTails[relations[-1]] if directions[-1] else relationHeads[relations[-1]]
     entityList = sortedEntityInfo[headType]
 
-    outputPath = parentDir + '/res/%s/%s/%i/distmap/distmap_7_pos.data' % (database, method, order)
+    outputPath = parentDir + '/res/%s/%s/%i/distmap/distmap_%s.data' % (database, method, order, relationSuffix)
     outputFile = open(outputPath, 'w')
     outputFile.write(' '.join(sortedEntityInfo[headType]) + '\n')
     outputFile.write(' '.join(sortedEntityInfo[tailType]) + '\n')
@@ -193,12 +193,18 @@ def recommendCombinedRelation(relations, directions=None):
 
 
 def testPaperInstitute():
-    recommendCombinedRelation(relations=[2, 0], directions=[True, True])
-    # recommendCombinedRelation(relations=[0, 2], directions=[False, False])
+    recommendCombinedRelation('7_pos', relations=[2, 0], directions=[True, True])
+    # recommendCombinedRelation('7_neg', relations=[0, 2], directions=[False, False])
+
+
+def testVenueField():
+    recommendCombinedRelation('8_pos', relations=[4, 3], directions=[False, True])
+    recommendCombinedRelation('8_neg', relations=[3, 4], directions=[False, True])
 
 
 def test():
-    testPaperInstitute()
+    # testPaperInstitute()
+    testVenueField()
 
 
 parser = argparse.ArgumentParser()
