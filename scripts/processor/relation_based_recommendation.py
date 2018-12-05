@@ -172,7 +172,7 @@ for fileName in fileList:
                 recommendInfos[givenId] = []
                 for j in range(count):
                     recommendLine = s[i + j + 1]
-                    recommendInfos[givenId].append(map(lambda x: x.strip(), recommendLine.split()))
+                    recommendInfos[givenId].append(list(map(lambda x: x.strip(), recommendLine.split())))
                 i = i + count + 1
             else:
                 i += 1

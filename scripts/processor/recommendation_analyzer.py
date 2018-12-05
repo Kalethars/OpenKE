@@ -404,7 +404,8 @@ def paperRecommendationAnalyzer():
                 if i < num:
                     updateMetric(avgYearDiff[num], paperId, paperYears[recommendationId] - paperYears[paperId])
                     updateMetric(avgYearDiffAbs[num], paperId, abs(paperYears[recommendationId] - paperYears[paperId]))
-                    updateMetric(avgCiteDiff[num], paperId, paperCitations[recommendationId] - paperCitations[paperId])
+                    updateMetric(avgCiteDiff[num], paperId,
+                                 (paperCitations[recommendationId] + 1) / (paperCitations[paperId] + 1))
                     updateMetric(avgCoCite[num], paperId, coCount(paperCitedPapers, paperId, recommendationId))
                     if recommendationId in paperCitedPapers.get(paperId, set()):
                         updateMetric(avgCoCite[num], paperId, 1)
@@ -1163,7 +1164,7 @@ def paperCitePaperAnalyzer():
                     if i < num:
                         updateMetric(avgYearDiff[num], paperId, paperYears[recommendationId] - paperYears[paperId])
                         updateMetric(avgCiteDiff[num], paperId,
-                                     paperCitations[recommendationId] - paperCitations[paperId])
+                                     (paperCitations[recommendationId] + 1) / (paperCitations[paperId] + 1))
                         updateMetric(avgCoCite[num], paperId, coCount(paperCitedPapers, paperId, recommendationId))
                         if recommendationId in paperCitedPapers.get(paperId, set()):
                             updateMetric(avgCoCite[num], paperId, 1)
@@ -1374,7 +1375,7 @@ order = parsedArgs.order if parsedArgs.order else getBestOrder(database, method)
 pca = parsedArgs.pca if parsedArgs.pca else False
 norm = parsedArgs.norm if parsedArgs.norm else (2 if pca else 1)
 count = parsedArgs.count if parsedArgs.count else 10
-target = parsedArgs.target.lower().split(',') if parsedArgs.target else None
+target = set(parsedArgs.target.lower().split(',')) if parsedArgs.target else None
 unlimited = parsedArgs.unlimited if parsedArgs.unlimited else False
 noLog = parsedArgs.nolog if parsedArgs.nolog else False
 
@@ -1424,10 +1425,10 @@ print('-' * 50)
 
 types = ['paper', 'author', 'field', 'institute', 'venue']
 
-if noLog:
-    logFile = None
-else:
+if (not noLog) and (target is None or len(set(types) & target) >= 1):
     logFile = open(recommendationDir + 'analyzed/recommendation_analysis.log', 'w')
+else:
+    logFile = None
 
 for typ in types:
     if target is None or typ in target:
@@ -1437,8 +1438,9 @@ for typ in types:
             exec('%sRecommendationAnalyzer()' % typ)
 
 if target is not None and 'relbased' in target:
-    if not logFile is None:
+    if logFile is not None:
         logFile.close()
+    if not noLog:
         logFile = open(recommendationDir + 'analyzed/relation_based_recommendation_analysis.log', 'w')
 
     paperIsWrittenByAuthorAnalyzer()

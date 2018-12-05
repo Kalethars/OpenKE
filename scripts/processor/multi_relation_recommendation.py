@@ -238,7 +238,7 @@ while True:
         resultDistances = dict()
         fullScore = 0
         for i in range(len(analyzedQuery)):
-            if len(analyzedQuery[i][1])==0:
+            if len(analyzedQuery[i][1]) == 0:
                 continue
 
             localDistances = dict()
@@ -267,6 +267,8 @@ while True:
             distance = resultDistances[results[i]]
             print('\tScore: %.1f' % (distance / fullScore * 100), end='')
             for j in range(len(analyzedQuery)):
+                if len(analyzedQuery[j][1]) == 0:
+                    continue
                 query = analyzedQuery[j][0]
                 print('\t%s: %.1f' % (contributor[results[i]][query], contribution[results[i]][query]), end='')
             print()
