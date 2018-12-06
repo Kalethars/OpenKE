@@ -227,7 +227,7 @@ if target == 'paper':
     typeRelationMap = {'author': 0, 'field': 1, 'venue': 2, 'institute': 3}
 elif target == 'venue':
     relationsEntityDistances = loadRelationEntityDistances([4, 8, 9], [False, True, False])
-    typeRelationMap = {'paper': 0, 'field': 1}
+    typeRelationMap = {'paper': 0, 'field': 1, 'author':2}
 elif target == 'field':
     relationsEntityDistances = loadRelationEntityDistances([1, 3, 8], [False, False, False])
     typeRelationMap = {'author': 0, 'paper': 1, 'venue': 2}

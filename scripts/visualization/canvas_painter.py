@@ -99,7 +99,10 @@ def normalize(nodes, centerX=600, centerY=500, std=200):
 
 
 def venueLegend(canvas, radius=3, offset=5, split=False):
-    f = open('./data/venue_color.data', 'r')
+    if method.count('_') >= 2:
+        f = open('./data/venue_%s_color.data' % (method.split('_')[-1].upper()), 'r')
+    else:
+        f = open('./data/venue_color.data', 'r')
     s = f.read().split('\n')
     f.close()
 
@@ -146,8 +149,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--method', type=str, required=False)
 parser.add_argument('--target', type=str, required=False)
 parser.add_argument('--manual', type=str, required=False)
-parser.add_argument('--x', type=int, required=False)
-parser.add_argument('--y', type=int, required=False)
+parser.add_argument('--dx', type=int, required=False)
+parser.add_argument('--dy', type=int, required=False)
 parser.add_argument('--std', type=int, required=False)
 parser.add_argument('--r', type=float, required=False)
 parsedArgs = parser.parse_args()
@@ -155,9 +158,9 @@ parsedArgs = parser.parse_args()
 method = parsedArgs.method if parsedArgs.method else 'WTransE2_test'
 target = parsedArgs.target.lower() if parsedArgs.target else 'venue'
 manual = parsedArgs.manual
-centerX = parsedArgs.x if parsedArgs.x else 600
-centerY = parsedArgs.y if parsedArgs.y else 500
 std = parsedArgs.std if parsedArgs.std else 200
+centerX = 100 + 2.5 * std + (parsedArgs.dx if parsedArgs.dx else 0)
+centerY = 2.5 * std + (parsedArgs.dy if parsedArgs.dy else 0)
 radius = parsedArgs.r if parsedArgs.r else getDefaultDotRadius(target)
 
 showLabel = True if target in {'venue'} else False
