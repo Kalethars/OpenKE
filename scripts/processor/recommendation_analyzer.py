@@ -405,7 +405,8 @@ def paperRecommendationAnalyzer():
                     updateMetric(avgYearDiff[num], paperId, paperYears[recommendationId] - paperYears[paperId])
                     updateMetric(avgYearDiffAbs[num], paperId, abs(paperYears[recommendationId] - paperYears[paperId]))
                     updateMetric(avgCiteDiff[num], paperId,
-                                 math.log((paperCitations[recommendationId] + 1) / (paperCitations[paperId] + 1)))
+                                 abs(math.log(
+                                     (paperCitations[recommendationId] + 1) / (paperCitations[paperId] + 1))))
                     updateMetric(avgCoCite[num], paperId, coCount(paperCitedPapers, paperId, recommendationId))
                     if recommendationId in paperCitedPapers.get(paperId, set()):
                         updateMetric(avgCoCite[num], paperId, 1)

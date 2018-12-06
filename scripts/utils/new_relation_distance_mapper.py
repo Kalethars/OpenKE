@@ -202,9 +202,15 @@ def testVenueField():
     recommendCombinedRelation('8_neg', relations=[3, 4], directions=[False, True])
 
 
+def testAuthorVenue():
+    recommendCombinedRelation('9_pos', relations=[2, 4], directions=[False, True])
+    recommendCombinedRelation('9_neg', relations=[4, 2], directions=[False, True])
+
+
 def test():
     # testPaperInstitute()
-    testVenueField()
+    # testVenueField()
+    testAuthorVenue()
 
 
 parser = argparse.ArgumentParser()

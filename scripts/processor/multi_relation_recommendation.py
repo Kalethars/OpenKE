@@ -77,13 +77,23 @@ def normalize(data):
 
 
 def loadEntityList(typ):
+    typeEntityCount = dict()
+    if typ == 'field':
+        f = open(parentDir + '/benchmarks/%s/triplets.txt' % database, 'r')
+        s = f.read().split('\n')
+        f.close()
+
+        for line in s:
+            splited = line.split()
+            if len(splited) == 3 and splited[1] in {'1', '3'}:
+                typeEntityCount[splited[2][1:]] = typeEntityCount.get(splited[2][1:], 0) + 1
+
     f = codecs.open(parentDir + '/data/%s/info/%sInfo.data' % (database, typ), 'r', encoding='utf-8', errors='ignore')
     infoLines = f.read().split('\n')
     f.close()
 
     entityInfo = dict()
     typeEntityList = []
-
     for i in range(len(infoLines)):
         splited = infoLines[i].split('\t')
         if typ != 'venue':
@@ -96,8 +106,11 @@ def loadEntityList(typ):
                 continue
             entityId = splited[0]
             info = splited[2]
+        if typ == 'field' and typeEntityCount.get(entityId, 0) <= 2:
+            continue
+        else:
+            typeEntityList.append(entityId)
         entityInfo[entityId] = info.encode('utf-8').decode('ascii', 'ignore').strip()
-        typeEntityList.append(entityId)
 
     return entityInfo, typeEntityList
 
@@ -133,14 +146,14 @@ def loadRelationEntityDistances(relations, directions):
                 distances.append((valueEntity, value))
 
             distances.sort(key=lambda x: x[1])
-            distancesRemaining = normalize(distances)
+            distances = normalize(distances)
 
             relationEntityDistances[-1][keyEntity] = dict()
-            for (valueEntity, value) in distancesRemaining:
+            for (valueEntity, value) in distances:
                 relationEntityDistances[-1][keyEntity][valueEntity] = value
             for (valueEntity, value) in distances:
                 if valueEntity not in relationEntityDistances[-1][keyEntity]:
-                    relationEntityDistances[-1][keyEntity][valueEntity] = distancesRemaining[-1][1]
+                    relationEntityDistances[-1][keyEntity][valueEntity] = distances[-1][1]
 
             displayTiming()
 
@@ -150,6 +163,34 @@ def loadRelationEntityDistances(relations, directions):
     print('Distances loaded.')
 
     return relationEntityDistances
+
+
+def analyzeQuery(query):
+    matched = []
+    partially = False
+    remain = 1
+    query = query.strip()
+
+    if '?' in query:
+        partially = True
+        try:
+            remain = int(query.split('?')[1])
+        except:
+            remain = 1
+        query = query.split('?')[0]
+    for (info, typ, entityId) in reverseInfo:
+        if partially:
+            if query.lower() in info:
+                matched.append((info, typ, entityId, (len(query) - 1) / len(info)))
+        else:
+            if query.lower() == info or query.upper() == entityId:
+                matched.append((info, typ, entityId, 1))
+
+    matched.sort(key=lambda x: x[3], reverse=True)
+    if partially and remain < len(matched):
+        del matched[remain:]
+
+    return matched
 
 
 parser = argparse.ArgumentParser()
@@ -178,13 +219,21 @@ typeEntityList = dict()
 for typ in types:
     entityInfo[typ], typeEntityList[typ] = loadEntityList(typ)
 
+# 0: author_institute, 1: author_field, 2: paper_author
+# 3: paper_field, 4: paper_venue
+# 7: paper_institute, 8: venue_field, 9: author_venue
 if target == 'paper':
-    # author = 2_pos, field = 3_pos, venue = 4_pos, institute = 7_pos
-    relationsEntityDistances = loadRelationEntityDistances([7, 4, 3, 2], [True, True, True, True])
-    typeRelationMap = {'author': 3, 'field': 2, 'venue': 1, 'institute': 0}
+    relationsEntityDistances = loadRelationEntityDistances([2, 3, 4, 7], [True, True, True, True])
+    typeRelationMap = {'author': 0, 'field': 1, 'venue': 2, 'institute': 3}
 elif target == 'venue':
-    relationsEntityDistances = loadRelationEntityDistances([4, 8], [False, True])
+    relationsEntityDistances = loadRelationEntityDistances([4, 8, 9], [False, True, False])
     typeRelationMap = {'paper': 0, 'field': 1}
+elif target == 'field':
+    relationsEntityDistances = loadRelationEntityDistances([1, 3, 8], [False, False, False])
+    typeRelationMap = {'author': 0, 'paper': 1, 'venue': 2}
+elif target == 'author':
+    relationsEntityDistances = loadRelationEntityDistances([0, 1, 2, 9], [True, True, False, True])
+    typeRelationMap = {'institute': 0, 'field': 1, 'paper': 2, 'venue': 3}
 else:
     raise ValueError('Invalid target!')
 
@@ -202,25 +251,8 @@ while True:
     analyzedQuery = []
     for query in queries:
         matched = []
-        partially = False
-        remain = 1
-        if '?' in query:
-            partially = True
-            try:
-                remain = int(query.split('?')[1])
-            except:
-                remain = 1
-            query = query.split('?')[0]
-        for (info, typ, entityId) in reverseInfo:
-            if partially:
-                if query.lower() in info:
-                    matched.append((info, typ, entityId, (len(query) - 1) / len(info)))
-            else:
-                if query.lower() == info or query.upper() == entityId:
-                    matched.append((info, typ, entityId, 1))
-        matched.sort(key=lambda x: x[3], reverse=True)
-        if partially and remain < len(matched):
-            del matched[remain:]
+        for q in query.split('|'):
+            matched += analyzeQuery(q)
 
         print('Matched for %s:' % query, end='')
         for i in range(len(matched)):
@@ -233,9 +265,9 @@ while True:
     if len(analyzedQuery) > 0:
         contribution = dict()
         contributor = dict()
-        for paperId in typeEntityList[target]:
-            contribution[paperId] = dict()
-            contributor[paperId] = dict()
+        for candidateId in typeEntityList[target]:
+            contribution[candidateId] = dict()
+            contributor[candidateId] = dict()
 
         resultDistances = dict()
         fullScore = 0
@@ -246,18 +278,19 @@ while True:
             localDistances = dict()
             localEntities = dict()
             query = analyzedQuery[i][0]
-            for paperId in typeEntityList[target]:
+            for candidateId in typeEntityList[target]:
                 for (entityId, typ) in analyzedQuery[i][1]:
-                    distance = relationsEntityDistances[typeRelationMap[typ]][paperId].get(entityId, maxValue)
-                    if distance < localDistances.get(paperId, maxValue):
-                        localDistances[paperId] = distance
-                        localEntities[paperId] = (entityId, typ)
+                    distance = relationsEntityDistances[typeRelationMap[typ]][candidateId].get(entityId, maxValue)
+                    if distance < localDistances.get(candidateId, maxValue):
+                        localDistances[candidateId] = distance
+                        localEntities[candidateId] = (entityId, typ)
             queryFullScore = min(localDistances.values())
             fullScore += queryFullScore
-            for paperId in typeEntityList[target]:
-                resultDistances[paperId] = resultDistances.get(paperId, 0) + localDistances[paperId]
-                contribution[paperId][query] = localDistances[paperId] / queryFullScore * 100
-                contributor[paperId][query] = entityInfo[localEntities[paperId][1]][localEntities[paperId][0]]
+            for candidateId in typeEntityList[target]:
+                resultDistances[candidateId] = resultDistances.get(candidateId, 0) + localDistances[candidateId]
+                contribution[candidateId][query] = localDistances[candidateId] / queryFullScore * 100
+                contributor[candidateId][query] = \
+                    entityInfo[localEntities[candidateId][1]][localEntities[candidateId][0]]
 
             del localDistances
             del localEntities
