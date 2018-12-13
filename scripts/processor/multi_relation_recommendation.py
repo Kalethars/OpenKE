@@ -222,18 +222,19 @@ for typ in types:
 # 0: author_institute, 1: author_field, 2: paper_author
 # 3: paper_field, 4: paper_venue
 # 7: paper_institute, 8: venue_field, 9: author_venue
+# -1: paper, -2: author, -3: field, -4: venue, -5: institute
 if target == 'paper':
-    relationsEntityDistances = loadRelationEntityDistances([2, 3, 4, 7], [True, True, True, True])
-    typeRelationMap = {'author': 0, 'field': 1, 'venue': 2, 'institute': 3}
+    relationsEntityDistances = loadRelationEntityDistances([2, 3, 4, 7, -1], [True, True, True, True, True])
+    typeRelationMap = {'author': 0, 'field': 1, 'venue': 2, 'institute': 3, 'paper': 4}
 elif target == 'venue':
-    relationsEntityDistances = loadRelationEntityDistances([4, 8, 9], [False, True, False])
-    typeRelationMap = {'paper': 0, 'field': 1, 'author':2}
+    relationsEntityDistances = loadRelationEntityDistances([4, 8, 9, -4], [False, True, False, True])
+    typeRelationMap = {'paper': 0, 'field': 1, 'author': 2, 'venue': 3}
 elif target == 'field':
-    relationsEntityDistances = loadRelationEntityDistances([1, 3, 8], [False, False, False])
-    typeRelationMap = {'author': 0, 'paper': 1, 'venue': 2}
+    relationsEntityDistances = loadRelationEntityDistances([1, 3, 8, -3], [False, False, False, True])
+    typeRelationMap = {'author': 0, 'paper': 1, 'venue': 2, 'field': 3}
 elif target == 'author':
-    relationsEntityDistances = loadRelationEntityDistances([0, 1, 2, 9], [True, True, False, True])
-    typeRelationMap = {'institute': 0, 'field': 1, 'paper': 2, 'venue': 3}
+    relationsEntityDistances = loadRelationEntityDistances([0, 1, 2, 9, -2], [True, True, False, True, True])
+    typeRelationMap = {'institute': 0, 'field': 1, 'paper': 2, 'venue': 3, 'author': 4}
 else:
     raise ValueError('Invalid target!')
 

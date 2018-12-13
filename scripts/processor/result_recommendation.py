@@ -2,6 +2,8 @@
 # result_mapper -> result_recommendation
 from __future__ import print_function
 
+import numpy as np
+
 import argparse
 import os
 import codecs
@@ -54,22 +56,23 @@ def getBestOrder(database, method):
 
 
 def parseVector(vectorLine):
+    splited = vectorLine.split('\t')
     try:
-        return list(map(lambda x: float(x), vectorLine.split('\t')))
+        return np.array([float(x) for x in splited])
     except:
-        return list(map(lambda x: complex(x), vectorLine.split('\t')))
+        return np.array([complex(x) for x in splited])
 
 
 def calcDistance(v1, v2, norm):
-    return sum([abs(v1[i] - v2[i]) ** norm for i in range(len(v1))])
+    return np.sum(np.power(np.abs(v1 - v2), norm))
 
 
 def calcCosSimilarity(v1, v2, norm=None):
-    return 1 - sum([v1[i] * v2[i] for i in range(len(v1))])
+    return -np.sum(v1 * v2)
 
 
 def calcCosSimilarityForComplex(v1, v2, norm=None):
-    return 1 - sum([(v1[i] * v2[i].conjugate()).real for i in range(len(v1))])
+    return -np.sum(np.real(v1 * np.conj(v2)))
 
 
 def paperRecommendation():
