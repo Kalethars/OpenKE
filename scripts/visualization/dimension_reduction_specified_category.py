@@ -76,9 +76,17 @@ category = parsedArgs.category.upper() if parsedArgs.category else 'AI'
 overwrite = parsedArgs.overwrite if parsedArgs.overwrite else False
 
 model = method.split('_')[0].lower()
-categoryMap = {'AI': 'Artificial.Intelligence',
-               'NET': 'Computer.Network'
-               }
+
+f = open('./data/venue_%s_color.data' % category, 'r')
+s = f.read().split('\n')
+f.close()
+
+color = dict()
+for line in s:
+    splited = line.split()
+    if len(splited) == 4:
+        color[splited[0]] = splited[1:]
+legalVenues = set(color.keys())
 
 outputName = determineOutputName()
 
@@ -108,7 +116,7 @@ for line in s:
         continue
     paperId = splited[0][1:]
     venueId = splited[2][1:]
-    if venueCategory[venueId] != categoryMap[category]:
+    if venueName[venueId] not in legalVenues:
         continue
     if paperId not in paperVenue:
         paperVenue[paperId] = dict()
@@ -150,16 +158,6 @@ for i in range(len(infoLines)):
         nodes.append(np.array(list(map(lambda x: float(x), splited))))
     else:
         nodes.append(np.array(list(map(lambda x: complex(x), splited))))
-
-f = open('./data/venue_%s_color.data' % category, 'r')
-s = f.read().split('\n')
-f.close()
-
-color = dict()
-for line in s:
-    splited = line.split()
-    if len(splited) == 4:
-        color[splited[0]] = splited[1:]
 
 num = len(nodes)
 distance = np.zeros((num, num))
@@ -213,5 +211,5 @@ for i in range(len(result)):
     f.write('%f\t%f\t%s' % (vector[0], vector[1], '\t'.join([miscs[i][1]] + color[miscs[i][1]])) + '\n')
 f.close()
 
-os.system('python canvas_painter.py --method=%s --target=paper --std=100' %
+os.system('python canvas_painter.py --method=%s --target=paper --std=100 --dx=-50' %
           ('_'.join(outputName.split('_')[:-1])))

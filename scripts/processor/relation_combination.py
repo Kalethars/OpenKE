@@ -270,7 +270,7 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
                 if not available(recommendId, checkArgs[0], checkArgs[1]):
                     continue
             legalDistances.append((recommendId, distance))
-        remaining = int(coeff * len(legalDistances))
+        remaining = round(coeff * len(legalDistances))
         return legalDistances[:remaining]
 
     def validate():
@@ -317,7 +317,9 @@ def recommendCombinedRelation(model, algorithm, relations, directions=None, grou
             minDistance = [dict() for i in range(num + 1)]
             minDistance[0][entityList[i]] = 0
             for j in range(num):
-                for entityId in minDistance[j].keys():
+                legalEntities = sorted(minDistance[j].keys(), key=lambda x: minDistance[j][x])[
+                                :round(coeff * len(relationEntityDistances[j]))]
+                for entityId in legalEntities:
                     distances = getLegalDistances(entityId, relationEntityDistances[j][entityId], coeff,
                                                   (relations[-1], directions[-1]) if j == num - 1 else None)
                     if algorithm == 'normdist':
