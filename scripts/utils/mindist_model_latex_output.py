@@ -24,6 +24,7 @@ for method in methods:
         authorVenue[alg] = dict()
         paperInsitute[alg] = dict()
         betterScore={'authorVenue':0, 'paperInstitute':0}
+        betterPart=dict()
         for coeff in coeffs:
             analyzedPath = '../../res/ACE17K/%s/recommendation/analyzed/%s_prediction_analysis_coeff=%s.log' % (
                 method, alg, coeff)
@@ -34,24 +35,32 @@ for method in methods:
             for part in s:
                 lines = part.split('\n')
                 if lines[0] == 'Predict venue for author:':
-                    ref = authorVenue[alg]
-                    bestRef = bestAuthorVenue
                     scoreRef='authorVenue'
                 elif lines[0] == 'Predict institute for paper:':
-                    ref = paperInsitute[alg]
-                    bestRef = bestpaperInsitute
                     scoreRef='paperInstitute'
                 else:
                     continue
                 if float(lines[-1].split()[-1]) > betterScore[scoreRef]:
                     betterScore[scoreRef] = float(lines[-1].split()[-1])
-                    for i in range(1, len(lines)):
-                        splited = lines[i].split(':\t')
-                        metric = splited[0]
-                        digit = 4 if metric != 'Score' else 3
-                        value = formattedRound(float(splited[1]), digit)
-                        ref[metric] = value
-                        bestRef[metric] = formattedRound(max(float(bestRef.get(metric, 0)), float(value)), digit)
+                    betterPart[scoreRef]=lines
+        for lines in betterPart.values():
+            if lines[0] == 'Predict venue for author:':
+                ref = authorVenue[alg]
+                bestRef = bestAuthorVenue
+                scoreRef='authorVenue'
+            elif lines[0] == 'Predict institute for paper:':
+                ref = paperInsitute[alg]
+                bestRef = bestpaperInsitute
+                scoreRef='paperInstitute'
+            else:
+                continue
+            for i in range(1, len(lines)):
+                splited = lines[i].split(':\t')
+                metric = splited[0]
+                digit = 4 if metric != 'Score' else 3
+                value = formattedRound(float(splited[1]), digit)
+                ref[metric] = value
+                bestRef[metric] = formattedRound(max(float(bestRef.get(metric, 0)), float(value)), digit)
 
     for (alg, func) in algs:
         output = '\multirow{%i}{*}{%s} & ' % (len(algs), (method.split('_')[0])) if alg == 'mindist' else '& '
