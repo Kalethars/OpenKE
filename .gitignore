@@ -142,6 +142,7 @@ reference/
 log/
 res/
 database.config
+database2.config
 playground/
 *.asv
 *.bat
