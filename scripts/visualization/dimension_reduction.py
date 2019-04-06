@@ -194,6 +194,7 @@ if alg in {'tsne'}:
 
             displayTiming()
 
+startTime = time.time()
 if alg == 'tsne':
     tsne = TSNE(n_components=2, metric='precomputed', n_iter=10000, learning_rate=150.0, perplexity=30, verbose=True)
     tsne.fit_transform(distance)
@@ -210,6 +211,7 @@ elif alg == 'origin':
     result = nodes
 else:
     raise ValueError('Incorrect algorithm!')
+print('Dimension reduction finished in %.2fs.' % (time.time() - startTime))
 
 f = open('./data/%s' % outputName, 'w')
 for i in range(len(result)):
