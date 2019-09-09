@@ -7,8 +7,8 @@ import json
 
 class TransH(Model):
     r'''
-    To preserve the mapping propertities of 1-N/N-1/N-N relations,
-    TransH inperprets a relation as a translating operation on a hyperplane.
+    To preserve the mapping properties of 1-N/N-1/N-N relations,
+    TransH interprets a relation as a translating operation on a hyperplane.
     '''
 
     def _transfer(self, e, n):

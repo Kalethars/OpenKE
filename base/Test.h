@@ -186,7 +186,7 @@ void testHead(REAL *con, bool weighted = false) {
         hitAt3[r] += w;
     }
     if (l_s <= 3) l3_tot += w;
-    if (l_filter_s <= w) {
+    if (l_filter_s <= 1) {
         l1_filter_tot += w;
         hitAt1[r] += w;
     }
